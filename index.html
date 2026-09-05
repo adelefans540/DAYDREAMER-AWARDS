@@ -13,7 +13,7 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { 
-            getFirestore, collection, addDoc, onSnapshot 
+            getFirestore, collection, addDoc, onSnapshot, query, orderBy 
         } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         const firebaseConfig = {
@@ -31,13 +31,14 @@
         const db = getFirestore(app);
         const appId = 'adele-fans-app';
 
-        window.fb = { db, appId, collection, addDoc, onSnapshot };
+        window.fb = { db, appId, collection, addDoc, onSnapshot, query, orderBy };
 
         signInAnonymously(auth).catch((error) => console.error("Error Auth Firebase:", error));
         onAuthStateChanged(auth, (user) => {
             if (user) {
                 cargarNominados();
                 cargarColaboradores();
+                cargarNoticias(); // Nueva función para cargar noticias
             }
         });
     </script>
@@ -56,10 +57,10 @@
             /* Variables adaptables (Glassmorphism) */
             --body-bg-gradient: linear-gradient(135deg, #f0f0f0, #d9d9d9);
             --header-text: #555;
-            --glass-bg: rgba(255, 255, 255, 0.4);
-            --glass-border: rgba(255, 255, 255, 0.6);
-            --glass-shadow: rgba(0, 0, 0, 0.05);
-            --nav-bg: rgba(255, 255, 255, 0.8);
+            --glass-bg: rgba(255, 255, 255, 0.85);
+            --glass-border: rgba(212, 175, 55, 0.4);
+            --glass-shadow: rgba(0, 0, 0, 0.1);
+            --nav-bg: rgba(255, 255, 255, 0.95);
         }
 
         [data-theme="dark"] {
@@ -67,17 +68,13 @@
             --bg-light: #1a1a1a;
             --text-dark: #e0e0e0;
             --header-text: #aaaaaa;
-            --glass-bg: rgba(0, 0, 0, 0.4);
-            --glass-border: rgba(255, 255, 255, 0.1);
-            --glass-shadow: rgba(0, 0, 0, 0.3);
-            --nav-bg: rgba(10, 10, 10, 0.85);
+            --glass-bg: rgba(10, 10, 10, 0.85);
+            --glass-border: rgba(212, 175, 55, 0.4);
+            --glass-shadow: rgba(0, 0, 0, 0.5);
+            --nav-bg: rgba(10, 10, 10, 0.95);
         }
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
 
         body {
             font-family: 'Helvetica Neue', Arial, sans-serif;
@@ -92,8 +89,8 @@
         /* Clase Reutilizable Glassmorphism */
         .glass-effect {
             background: var(--glass-bg);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
             border: 1px solid var(--glass-border);
             box-shadow: 0 8px 32px var(--glass-shadow);
             border-radius: 12px;
@@ -107,25 +104,7 @@
             transform: translateY(40px);
             transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
         }
-        .animate-up.visible {
-            opacity: 1;
-            transform: translateY(0);
-        }
-
-        /* =========================================
-           ANIMACIÓN DE CARGA (LOADER)
-           ========================================= */
-        #loader-wrapper {
-            position: fixed; inset: 0; background-color: var(--bg-dark); z-index: 9999;
-            display: flex; justify-content: center; align-items: center; transition: opacity 0.5s ease, visibility 0.5s;
-        }
-        .loader { display: flex; margin: 0.25em 0; align-items: center; }
-        .w-2 { width: 0.5em; }
-        .inline-block { display: inline-block; }
-        .absolute { position: absolute; }
-        .dash { animation: dashArray 2s ease-in-out infinite, dashOffset 2s linear infinite; }
-        @keyframes dashArray { 0% { stroke-dasharray: 0 1 359 0; } 50% { stroke-dasharray: 0 359 1 0; } 100% { stroke-dasharray: 359 1 0 0; } }
-        @keyframes dashOffset { 0% { stroke-dashoffset: 365; } 100% { stroke-dashoffset: 5; } }
+        .animate-up.visible { opacity: 1; transform: translateY(0); }
 
         /* =========================================
            BARRA SUPERIOR Y CONTROLES
@@ -169,55 +148,59 @@
            ========================================= */
         header { text-align: center; padding: 6rem 1rem 4rem; transition: 0.3s; }
         .logo-principal { max-width: 300px; height: auto; margin-bottom: 1.5rem; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
-        header h1 { font-size: 2.8rem; color: var(--text-dark); margin-bottom: 0.5rem; }
-        header p { font-size: 1.2rem; max-width: 800px; margin: 0 auto; color: var(--header-text); }
+        header h1 { font-size: 2.8rem; color: var(--text-dark); margin-bottom: 0.5rem; text-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        header p { font-size: 1.2rem; max-width: 800px; margin: 0 auto; color: var(--text-dark); font-weight: 500; }
 
-        section { padding: 5rem 2rem; max-width: 1200px; margin: 0 auto; }
+        section { padding: 4rem 2rem; max-width: 1200px; margin: 0 auto; }
         h2 { font-size: 2.2rem; color: var(--text-dark); margin-bottom: 2.5rem; text-align: center; text-transform: uppercase; letter-spacing: 2px; }
 
-        /* Grids Genéricos */
         .grid-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; }
         
         .historia-item, .categoria-card { padding: 2rem; transition: transform 0.3s; }
-        .historia-item:hover, .categoria-card:hover { transform: translateY(-5px); }
-        .historia-item h3, .categoria-card h3 { color: var(--primary-color); margin-bottom: 1rem; }
+        .historia-item:hover, .categoria-card:hover { transform: translateY(-5px); border-color: var(--primary-color); }
+        .historia-item h3, .categoria-card h3 { color: var(--primary-color); margin-bottom: 1rem; font-size: 1.4rem;}
+        .historia-item p, .categoria-card p { color: var(--text-dark); font-weight: 500; }
         
         .categoria-card { border-left: 5px solid var(--primary-color); }
 
         /* Galardón */
-        .seccion-galardon { width: 100%; padding: 5rem 2rem; margin: 3rem 0; color: var(--text-light); }
+        .seccion-galardon { width: 100%; padding: 4rem 2rem; margin: 2rem 0; }
         .galardon-content { max-width: 1000px; margin: 0 auto; display: flex; align-items: center; justify-content: center; gap: 4rem; flex-wrap: wrap; }
         .galardon-texto { flex: 1; min-width: 300px; }
         .galardon-texto h2 { color: var(--primary-color); text-align: left; }
+        .galardon-texto p { color: var(--text-dark); font-weight: 500; font-size: 1.1rem; }
         .imagen-premio { flex: 1; min-width: 300px; display: flex; justify-content: center; }
         .imagen-premio img { max-width: 100%; height: auto; mix-blend-mode: screen; filter: drop-shadow(0 0 20px rgba(212, 175, 55, 0.4)); }
 
         /* =========================================
-           GRILLAS DINÁMICAS (Nominados y Colab)
+           TARJETAS: NOMINADOS, COLAB Y NOTICIAS
            ========================================= */
-        .nominee-card, .colab-card {
+        .card-base {
             padding: 1.5rem; text-align: center; transition: 0.3s; display: flex; flex-direction: column; align-items: center;
         }
-        .nominee-card:hover, .colab-card:hover { transform: scale(1.03); border-color: var(--primary-color); }
+        .card-base:hover { transform: scale(1.02); border-color: var(--primary-color); }
         
         .avatar-img { width: 120px; height: 120px; border-radius: 50%; object-fit: cover; border: 3px solid var(--primary-color); margin-bottom: 1rem; }
+        .news-img { width: 100%; height: 200px; object-fit: cover; border-radius: 8px; margin-bottom: 1rem; border: 2px solid var(--primary-color); }
+        
         .card-name { font-size: 1.3rem; font-weight: bold; margin-bottom: 0.5rem; color: var(--text-dark); }
-        .card-meta { font-size: 0.9rem; color: var(--header-text); margin-bottom: 1.5rem; }
+        .card-meta { font-size: 0.95rem; color: var(--text-dark); margin-bottom: 1.5rem; font-weight: 500; }
+        .news-desc { font-size: 1rem; color: var(--text-dark); margin-bottom: 1.5rem; text-align: left; width: 100%; }
         
         .btn-action {
             background: var(--primary-color); color: #000; text-decoration: none; padding: 10px 20px;
-            border-radius: 25px; font-weight: bold; transition: 0.3s; display: inline-block; width: 100%; text-align: center;
+            border-radius: 25px; font-weight: bold; transition: 0.3s; display: inline-block; width: 100%; text-align: center; border: none; cursor: pointer;
         }
         .btn-action:hover { box-shadow: 0 0 15px var(--primary-color); transform: translateY(-2px); color: #000; }
 
-        .estado-vacio { text-align: center; padding: 3rem; color: var(--header-text); font-style: italic; width: 100%; }
+        .estado-vacio { text-align: center; padding: 3rem; color: var(--text-dark); font-style: italic; width: 100%; font-weight: bold; }
 
         /* =========================================
-           ADMIN Y MODALES CUSTOM (Alertas de la pág)
+           ADMIN Y MODALES
            ========================================= */
         .admin-btn {
             position: fixed; bottom: 30px; left: 30px; width: 55px; height: 55px;
-            background: var(--glass-bg); color: var(--primary-color); border: 1px solid var(--glass-border);
+            background: var(--nav-bg); color: var(--primary-color); border: 2px solid var(--primary-color);
             border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 20px;
             cursor: pointer; z-index: 1500; transition: 0.3s; backdrop-filter: blur(10px);
         }
@@ -230,16 +213,19 @@
         }
         .custom-overlay.active { display: flex; opacity: 1; }
         
-        .custom-modal { width: 100%; max-width: 450px; padding: 2rem; text-align: center; }
+        .custom-modal { width: 100%; max-width: 500px; padding: 2rem; text-align: center; max-height: 90vh; overflow-y: auto;}
         .modal-title { color: var(--primary-color); margin-bottom: 1.5rem; font-size: 1.5rem; }
         
         .form-group { margin-bottom: 15px; text-align: left; }
-        .form-group label { display: block; font-size: 13px; color: var(--text-dark); margin-bottom: 6px; font-weight: bold; }
-        .form-group input {
-            width: 100%; padding: 12px; border-radius: 8px; background: rgba(0,0,0,0.05);
-            border: 1px solid var(--glass-border); color: var(--text-dark); outline: none;
+        .form-group label { display: block; font-size: 14px; color: var(--primary-color); margin-bottom: 6px; font-weight: bold; }
+        .form-group input, .form-group textarea {
+            width: 100%; padding: 12px; border-radius: 8px; background: rgba(0,0,0,0.02);
+            border: 1px solid var(--glass-border); color: var(--text-dark); outline: none; font-family: inherit; font-size: 14px;
         }
-        [data-theme="dark"] .form-group input { background: rgba(255,255,255,0.05); }
+        [data-theme="dark"] .form-group input, [data-theme="dark"] .form-group textarea { background: rgba(255,255,255,0.05); }
+        .form-group textarea { resize: vertical; min-height: 80px; }
+
+        .admin-options { display: flex; flex-direction: column; gap: 10px; margin-bottom: 15px; }
 
         .btn-modal {
             background: var(--primary-color); color: #000; border: none; padding: 12px; width: 100%;
@@ -248,60 +234,19 @@
         .btn-modal.cancel { background: transparent; color: var(--text-dark); border: 1px solid var(--text-dark); }
         .btn-modal:hover { opacity: 0.9; transform: scale(1.02); }
 
-        /* Loader ImgBB */
-        #loaderAdmin { display: none; margin-top: 10px; color: var(--primary-color); font-size: 14px; }
+        #loaderAdmin { display: none; margin-top: 10px; color: var(--primary-color); font-size: 14px; font-weight: bold; }
 
         /* =========================================
            FOOTER
            ========================================= */
-        footer {
-            padding: 3rem 2rem; text-align: center; margin-top: 4rem;
-            border-top: 1px solid var(--glass-border);
-        }
+        footer { padding: 3rem 2rem; text-align: center; margin-top: 4rem; border-top: 1px solid var(--glass-border); }
         .footer-icons { display: flex; justify-content: center; gap: 1.5rem; margin-bottom: 1rem; }
-        .footer-icons a { color: var(--text-dark); font-size: 1.5rem; transition: 0.3s; }
-        .footer-icons a:hover { color: var(--primary-color); transform: translateY(-3px); }
-        .footer-text { font-size: 0.9rem; color: var(--header-text); }
-
-        @media (max-width: 768px) {
-            .galardon-content { flex-direction: column; text-align: center; }
-            .galardon-texto h2 { text-align: center; }
-        }
+        .footer-icons a { color: var(--primary-color); font-size: 1.8rem; transition: 0.3s; }
+        .footer-icons a:hover { color: var(--text-dark); transform: translateY(-3px); }
+        .footer-text { font-size: 1rem; color: var(--text-dark); font-weight: bold; }
     </style>
 </head>
 <body>
-
-    <!-- Animación Carga Original -->
-    <div id="loader-wrapper">
-        <div class="loader">
-            <svg height="0" width="0" viewBox="0 0 64 64" class="absolute">
-                <defs>
-                    <linearGradient id="gold" x1="0" y1="0" x2="0" y2="64" gradientUnits="userSpaceOnUse">
-                        <stop stop-color="#D4AF37"></stop><stop stop-color="#FFD700" offset="0.5"></stop><stop stop-color="#DAA520" offset="1"></stop>
-                    </linearGradient>
-                </defs>
-            </svg>
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 64 64" height="64" width="64" class="inline-block">
-                <path stroke-linejoin="round" stroke-linecap="round" stroke-width="8" stroke="url(#gold)" d="M 32,4 L 8,60 M 32,4 L 56,60 M 18,40 L 46,40" class="dash" pathLength="360"></path>
-            </svg>
-            <div class="w-2"></div>
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 64 64" height="64" width="64" class="inline-block">
-                <path stroke-linejoin="round" stroke-linecap="round" stroke-width="8" stroke="url(#gold)" d="M 16,4 L 32,4 C 52,4 52,60 32,60 L 16,60 Z" class="dash" pathLength="360"></path>
-            </svg>
-            <div class="w-2"></div>
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 64 64" height="64" width="64" class="inline-block">
-                <path stroke-linejoin="round" stroke-linecap="round" stroke-width="8" stroke="url(#gold)" d="M 52,4 L 16,4 L 16,60 L 52,60 M 16,32 L 44,32" class="dash" pathLength="360"></path>
-            </svg>
-            <div class="w-2"></div>
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 64 64" height="64" width="64" class="inline-block">
-                <path stroke-linejoin="round" stroke-linecap="round" stroke-width="8" stroke="url(#gold)" d="M 20,4 L 20,60 L 52,60" class="dash" pathLength="360"></path>
-            </svg>
-            <div class="w-2"></div>
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 64 64" height="64" width="64" class="inline-block">
-                <path stroke-linejoin="round" stroke-linecap="round" stroke-width="8" stroke="url(#gold)" d="M 52,4 L 16,4 L 16,60 L 52,60 M 16,32 L 44,32" class="dash" pathLength="360"></path>
-            </svg>
-        </div>
-    </div>
 
     <!-- Top Bar & Nav -->
     <div class="top-bar">
@@ -315,8 +260,8 @@
     </div>
 
     <nav id="sidebar" class="glass-effect">
-        
-        <a href="#inicio" data-i18n="nav_inicio" onclick="closeMenu()"><i class="fas fa-star"></i> Inicio</a>
+        <a href="#inicio" data-i18n="nav_inicio" onclick="closeMenu()"><i class="fas fa-home"></i> Inicio</a>
+        <a href="#noticias" data-i18n="nav_noticias" onclick="closeMenu()"><i class="fas fa-newspaper"></i> Noticias y Anuncios</a>
         <a href="votaciones.html" data-i18n="nav_manifiesto" onclick="closeMenu()"><i class="fas fa-vote-yea"></i> Votaciones</a>
         <a href="#categorias" data-i18n="nav_categorias" onclick="closeMenu()"><i class="fas fa-list"></i> Categorías</a>
         <a href="#galardon" data-i18n="nav_galardon" onclick="closeMenu()"><i class="fas fa-trophy"></i> El Galardón</a>
@@ -326,13 +271,23 @@
 
     <!-- Contenido -->
     <header id="inicio" class="animate-up">
-        <img src="daydreamer.jpeg" alt="Daydreamers Awards Logo" class="logo-principal">
-        <h1 class="animate-up">Daydreamers Awards</h1>
-        <p data-i18n="header_desc" class="animate-up">La máxima distinción honorífica creada por y para la comunidad global de fans de Adele, diseñada para rendir homenaje a la pasión, la creatividad y la entrega de sus miembros más destacados.</p>
+        <img src="icono.adele.jpeg" alt="Daydreamers Awards Logo" class="logo-principal">
+        <h1 class="animate-up"><i class="fas fa-star" style="color:var(--primary-color);"></i> Daydreamers Awards</h1>
+        <p data-i18n="header_desc" class="animate-up"><i class="fas fa-quote-left" style="color:var(--primary-color); font-size:0.8em;"></i> os Daydreamers Awards constituyen la máxima distinción honorífica concebida por y para la comunidad global de fans de Adele. Nacidos de la admiración profunda y el respeto hacia su legado, estos galardones fueron creados para rendir tributo a la pasión, la brillantez creativa y el compromiso incondicional de nuestros miembros y creadores más destacados.
+
+En un espacio donde la música trasciende fronteras, los Daydreamers Awards celebran a aquellas voces, mentes y talentos que mantienen viva la chispa de la comunidad, convirtiendo la dedicación diaria en verdaderas obras de arte y puntos de encuentro inolvidables <i class="fas fa-quote-right" style="color:var(--primary-color); font-size:0.8em;"></i></p>
     </header>
 
+    <!-- SECCIÓN NOTICIAS Y ANUNCIOS -->
+    <section id="noticias">
+        <h2 data-i18n="noticias_titulo" class="animate-up"><i class="fas fa-bullhorn"></i> Noticias y Anuncios</h2>
+        <div id="contenedor-noticias" class="grid-container animate-up">
+            <div class="estado-vacio glass-effect"><i class="fas fa-spinner fa-spin"></i> Cargando noticias...</div>
+        </div>
+    </section>
+
     <section id="manifiesto">
-        <h2 data-i18n="mani_titulo" class="animate-up">Manifiesto de los Daydreamers Awards</h2>
+        <h2 data-i18n="mani_titulo" class="animate-up"><i class="fas fa-book-open"></i> Manifiesto de los Daydreamers Awards</h2>
         <div class="grid-container">
             <div class="historia-item glass-effect animate-up">
                 <h3 data-i18n="mani_origen_tit"><i class="fas fa-music"></i> El Origen del Nombre</h3>
@@ -343,26 +298,25 @@
                 <p data-i18n="mani_proposito_desc">Reconocer el trabajo incansable de los creadores de contenido, administradores de fanpages, editores, analistas musicales y miembros activos que mantienen vivo el legado cultural de Adele en todas las plataformas digitales.</p>
             </div>
             <div class="historia-item glass-effect animate-up" style="transition-delay: 0.2s;">
-                <img src="icono.adele.jpeg" alt="Icono Adele" style="width: 50px; margin-bottom: 1rem; border-radius: 5px;">
-                <h3 data-i18n="mani_logo_tit">El Significado del Logo</h3>
+                <h3 data-i18n="mani_logo_tit"><i class="fas fa-paint-brush"></i> El Significado del Logo</h3>
                 <p data-i18n="mani_logo_desc">La "D" monumental representa la unidad del fandom, mientras que el micrófono vintage en su centro evoca la esencia del canto y la voz. Las pequeñas siluetas integradas rinden honor a cada fan individual que apoya este proyecto.</p>
             </div>
         </div>
     </section>
 
     <section id="categorias">
-        <h2 data-i18n="cat_titulo" class="animate-up">Categorías Principales</h2>
+        <h2 data-i18n="cat_titulo" class="animate-up"><i class="fas fa-award"></i> Categorías Principales</h2>
         <div class="grid-container" style="display: flex; flex-direction: column;">
             <div class="categoria-card glass-effect animate-up">
-                <h3 data-i18n="cat_1_tit">Creador del Año (Content Creator of the Year)</h3>
+                <h3 data-i18n="cat_1_tit"><i class="fas fa-video"></i> Creador del Año (Content Creator of the Year)</h3>
                 <p data-i18n="cat_1_desc">Otorgado al canal o cuenta que haya producido el mejor contenido visual, informativo o de análisis sobre la carrera de la artista.</p>
             </div>
             <div class="categoria-card glass-effect animate-up">
-                <h3 data-i18n="cat_2_tit">Leyenda de la Comunidad (Hometown Glory Legend)</h3>
+                <h3 data-i18n="cat_2_tit"><i class="fas fa-heart"></i> Leyenda de la Comunidad (Hometown Glory Legend)</h3>
                 <p data-i18n="cat_2_desc">Destinado al miembro más activo, solidario y dedicado dentro de las plataformas de la comunidad (TikTok, Instagram, grupos, etc).</p>
             </div>
             <div class="categoria-card glass-effect animate-up">
-                <h3 data-i18n="cat_3_tit">Mejor Edición/Arte Fan (Chasing Pavements Creative Award)</h3>
+                <h3 data-i18n="cat_3_tit"><i class="fas fa-palette"></i> Mejor Edición/Arte Fan (Chasing Pavements Creative Award)</h3>
                 <p data-i18n="cat_3_desc">Dirigido a los diseñadores, editores de video y artistas gráficos que destacan por la calidad estética de sus creaciones inspiradas en Adele.</p>
             </div>
         </div>
@@ -380,19 +334,19 @@
         </div>
     </div>
 
-    <!-- SECCIÓN NOMINADOS SINCRONIZADA -->
+    <!-- SECCIÓN NOMINADOS -->
     <section id="nominados">
-        <h2 data-i18n="nom_titulo" class="animate-up">Comunidades y Creadores Nominados</h2>
+        <h2 data-i18n="nom_titulo" class="animate-up"><i class="fas fa-star-half-alt"></i> Nominated Communities and Creators</h2>
         <div id="contenedor-nominados" class="grid-container animate-up">
-            <div class="estado-vacio glass-effect"><i class="fas fa-spinner fa-spin"></i> Cargando nominaciones...</div>
+            <div class="estado-vacio glass-effect"><i class="fas fa-spinner fa-spin"></i> Loading nominations...</div>
         </div>
     </section>
 
-    <!-- SECCIÓN COLABORADORES SINCRONIZADA -->
+    <!-- SECCIÓN COLABORADORES -->
     <section id="colaboradores">
-        <h2 data-i18n="colab_titulo" class="animate-up">Colaboradores de los Premios</h2>
+        <h2 data-i18n="colab_titulo" class="animate-up"><i class="fas fa-users-cog"></i> Awards Collaborators</h2>
         <div id="contenedor-colaboradores" class="grid-container animate-up">
-            <div class="estado-vacio glass-effect"><i class="fas fa-spinner fa-spin"></i> Cargando colaboradores...</div>
+            <div class="estado-vacio glass-effect"><i class="fas fa-spinner fa-spin"></i> Loading collaborators...</div>
         </div>
     </section>
 
@@ -403,11 +357,11 @@
             <a href="#"><i class="fab fa-tiktok"></i></a>
             <a href="#"><i class="fab fa-twitter"></i></a>
         </div>
-        <p class="footer-text">© 2026 Daydreamers Awards. All rights reserved by the Adele community.</p>
+        <p class="footer-text"><i class="fas fa-copyright"></i> 2026 Daydreamers Awards. All rights reserved by the Adele community.</p>
     </footer>
 
     <!-- BOTÓN ADMIN -->
-    <div class="admin-btn" onclick="pedirPasswordAdmin()" title="Administrar Colaboradores">
+    <div class="admin-btn" onclick="pedirPasswordAdmin()" title="Panel de Administración">
         <i class="fas fa-crown"></i>
     </div>
 
@@ -416,7 +370,7 @@
         <div class="custom-modal glass-effect" id="adminModalContent"></div>
     </div>
 
-    <!-- MODAL DE ALERTAS (Reemplazo de alert nativo) -->
+    <!-- MODAL DE ALERTAS -->
     <div class="custom-overlay" id="alertOverlay" style="z-index: 3000;">
         <div class="custom-modal glass-effect" id="alertContent"></div>
     </div>
@@ -425,42 +379,28 @@
         const IMGBB_API_KEY = "f5567fb36a6232aae841ea9aac0ee139";
 
         // ==========================================
-        // 1. SISTEMA DE ALERTAS PERSONALIZADO
+        // 1. SISTEMA DE ALERTAS
         // ==========================================
-        function mostrarAlerta(mensaje, icono = "fa-info-circle", color = "var(--text-dark)") {
+        function mostrarAlerta(mensaje, icono = "fa-info-circle", color = "var(--primary-color)") {
             const overlay = document.getElementById('alertOverlay');
             const content = document.getElementById('alertContent');
             content.innerHTML = `
                 <i class="fas ${icono}" style="font-size: 3rem; color: ${color}; margin-bottom: 1rem;"></i>
-                <p style="font-size: 1.1rem; margin-bottom: 1.5rem; color: var(--text-dark);">${mensaje}</p>
-                <button class="btn-action" onclick="document.getElementById('alertOverlay').classList.remove('active')">Aceptar</button>
+                <p style="font-size: 1.1rem; margin-bottom: 1.5rem; color: var(--text-dark); font-weight:bold;">${mensaje}</p>
+                <button class="btn-action" onclick="document.getElementById('alertOverlay').classList.remove('active')"><i class="fas fa-check"></i> Aceptar</button>
             `;
             overlay.classList.add('active');
         }
 
         // ==========================================
-        // 2. INTERSECTION OBSERVER (Animaciones Scroll)
+        // 2. ANIMACIONES E INTERFAZ BÁSICA
         // ==========================================
         const observer = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    entry.target.classList.add('visible');
-                }
+                if (entry.isIntersecting) entry.target.classList.add('visible');
             });
         }, { threshold: 0.1 });
-
         document.querySelectorAll('.animate-up').forEach((el) => observer.observe(el));
-
-        // ==========================================
-        // 3. UI BASICA (Loader, Menú, Tema, Idioma)
-        // ==========================================
-        window.addEventListener('load', () => {
-            setTimeout(() => {
-                const loader = document.getElementById('loader-wrapper');
-                loader.style.opacity = '0';
-                setTimeout(() => loader.style.visibility = 'hidden', 500);
-            }, 2000); 
-        });
 
         const hamburger = document.getElementById('hamburger');
         const sidebar = document.getElementById('sidebar');
@@ -490,13 +430,17 @@
             }
         }
 
+        // ==========================================
+        // 3. IDIOMAS
+        // ==========================================
         let currentLang = 'en';
         const langBtn = document.getElementById('lang-btn');
         const translations = {
             es: {
-                nav_inicio_link: "Página de Inicio", nav_inicio: "Inicio", nav_manifiesto: "Votaciones",
+                nav_inicio: "Inicio", nav_noticias: "Noticias y Anuncios", nav_manifiesto: "Votaciones",
                 nav_categorias: "Categorías", nav_galardon: "El Galardón", nav_nominados: "Nominados",
-                nav_colaboradores: "Colaboradores", header_desc: "La máxima distinción honorífica creada por y para la comunidad global de fans de Adele, diseñada para rendir homenaje a la pasión, la creatividad y la entrega de sus miembros más destacados.",
+                nav_colaboradores: "Colaboradores", noticias_titulo: "Noticias y Anuncios",
+                header_desc: "Los Daydreamers Awards constituyen la máxima distinción honorífica concebida por y para la comunidad global de fans de Adele. Nacidos de la admiración profunda hacia su legado, estos galardones rinden tributo a la pasión, la brillantez creativa y el compromiso incondicional de nuestros miembros y creadores más destacados.",
                 mani_titulo: "Manifiesto de los Daydreamers Awards", mani_origen_tit: "El Origen del Nombre",
                 mani_origen_desc: "Inspirados en \"Daydreamer\", la icónica canción que abre el álbum debut de Adele (19), estos premios celebran a quienes soñaron en grande y convirtieron su admiración por la artista en un punto de encuentro, arte y comunidad.",
                 mani_proposito_tit: "El Propósito", mani_proposito_desc: "Reconocer el trabajo incansable de los creadores de contenido, administradores de fanpages, editores, analistas musicales y miembros activos que mantienen vivo el legado cultural de Adele en todas las plataformas digitales.",
@@ -509,9 +453,10 @@
                 nom_titulo: "Comunidades y Creadores Nominados", colab_titulo: "Colaboradores de los Premios"
             },
             en: {
-                nav_inicio_link: "Main Page", nav_inicio: "Home", nav_manifiesto: "Vote",
+                nav_inicio: "Home", nav_noticias: "News & Announcements", nav_manifiesto: "Vote",
                 nav_categorias: "Categories", nav_galardon: "The Award", nav_nominados: "Nominees",
-                nav_colaboradores: "Collaborators", header_desc: "The highest honorary distinction created by and for the global community of Adele fans, designed to pay tribute to the passion, creativity, and dedication of its most outstanding members.",
+                nav_colaboradores: "Collaborators", noticias_titulo: "News & Announcements",
+                header_desc: "The Daydreamers Awards stand as the ultimate honor created by and for the global Adele fan community. Born from a profound admiration for her legacy, these awards pay tribute to the passion, creative brilliance, and unwavering commitment of our most outstanding members and content creators.",
                 mani_titulo: "Daydreamers Awards Manifesto", mani_origen_tit: "The Origin of the Name",
                 mani_origen_desc: "Inspired by \"Daydreamer\", the iconic opening track from Adele's debut album (19), these awards celebrate those who dreamt big and turned their admiration for the artist into a meeting point, art, and community.",
                 mani_proposito_tit: "The Purpose", mani_proposito_desc: "To recognize the tireless work of content creators, fanpage administrators, editors, music analysts, and active members who keep Adele's cultural legacy alive across all digital platforms.",
@@ -525,27 +470,29 @@
             }
         };
 
-        // Función para aplicar traducción al idioma actual
         function aplicarIdioma() {
             document.querySelectorAll('[data-i18n]').forEach(el => {
                 const key = el.getAttribute('data-i18n');
-                if (translations[currentLang][key]) el.innerText = translations[currentLang][key];
+                if (translations[currentLang][key]) {
+                    // Mantener el icono si existe dentro de la etiqueta
+                    const icon = el.querySelector('i');
+                    if (icon) {
+                        el.innerHTML = '';
+                        el.appendChild(icon);
+                        el.innerHTML += ' ' + translations[currentLang][key];
+                    } else {
+                        el.innerText = translations[currentLang][key];
+                    }
+                }
             });
             langBtn.innerText = currentLang === 'es' ? 'EN' : 'ES';
         }
 
-        // Aplicar idioma inglés al cargar la página
-        window.addEventListener('load', () => {
-            aplicarIdioma();
-        });
-
-        function toggleLang() {
-            currentLang = currentLang === 'es' ? 'en' : 'es';
-            aplicarIdioma();
-        }
+        window.addEventListener('load', () => aplicarIdioma());
+        function toggleLang() { currentLang = currentLang === 'es' ? 'en' : 'es'; aplicarIdioma(); }
 
         // ==========================================
-        // 4. LECTURA DE FIREBASE (Nominados y Colab)
+        // 4. LECTURA DE FIREBASE
         // ==========================================
         function cargarNominados() {
             const { db, appId, collection, onSnapshot } = window.fb;
@@ -554,18 +501,18 @@
 
             onSnapshot(nomineesRef, (snapshot) => {
                 if(snapshot.empty) {
-                    contenedor.innerHTML = `<div class="estado-vacio glass-effect">The nominations will be revealed soon. Stay tuned!</div>`;
+                    contenedor.innerHTML = `<div class="estado-vacio glass-effect"><i class="fas fa-info-circle"></i> The nominations will be revealed soon. Stay tuned!</div>`;
                     return;
                 }
                 contenedor.innerHTML = '';
                 snapshot.forEach(doc => {
                     const data = doc.data();
                     contenedor.innerHTML += `
-                        <div class="nominee-card glass-effect">
+                        <div class="card-base glass-effect">
                             <img src="${data.imagenUrl}" alt="${data.nombre}" class="avatar-img">
                             <h3 class="card-name">${data.nombre}</h3>
-                            <p class="card-meta"><i class="fas fa-tag"></i> ${data.categoria}</p>
-                            <a href="votaciones.html" class="btn-action"><i class="fas fa-vote-yea"></i> Vote on this page</a>
+                            <p class="card-meta"><i class="fas fa-tag" style="color:var(--primary-color);"></i> ${data.categoria}</p>
+                            <a href="votaciones.html" class="btn-action"><i class="fas fa-vote-yea"></i> Votar</a>
                         </div>
                     `;
                 });
@@ -579,18 +526,49 @@
 
             onSnapshot(colabRef, (snapshot) => {
                 if(snapshot.empty) {
-                    contenedor.innerHTML = `<div class="estado-vacio glass-effect">Sección en construcción para nuestros futuros colaboradores y patrocinadores.</div>`;
+                    contenedor.innerHTML = `<div class="estado-vacio glass-effect"><i class="fas fa-tools"></i> Sección en construcción para nuestros futuros colaboradores y patrocinadores.</div>`;
                     return;
                 }
                 contenedor.innerHTML = '';
                 snapshot.forEach(doc => {
                     const data = doc.data();
                     contenedor.innerHTML += `
-                        <div class="colab-card glass-effect">
+                        <div class="card-base glass-effect">
                             <img src="${data.imagenUrl}" alt="${data.nombre}" class="avatar-img">
                             <h3 class="card-name">${data.nombre}</h3>
-                            <p class="card-meta"><i class="fas fa-handshake"></i> Official Collaborator</p>
-                            <a href="${data.enlace}" target="_blank" class="btn-action"><i class="fas fa-external-link-alt"></i> Visit Page</a>
+                            <p class="card-meta"><i class="fas fa-handshake" style="color:var(--primary-color);"></i> Official Collaborator</p>
+                            <a href="${data.enlace}" target="_blank" class="btn-action"><i class="fas fa-external-link-alt"></i>Visit Page</a>
+                        </div>
+                    `;
+                });
+            });
+        }
+
+        function cargarNoticias() {
+            const { db, appId, collection, onSnapshot, query, orderBy } = window.fb;
+            // Se ordenan por fecha de registro descendente
+            const noticiasRef = query(collection(db, 'artifacts', appId, 'public', 'data', 'awards_noticias'), orderBy('fechaRegistro', 'desc'));
+            const contenedor = document.getElementById('contenedor-noticias');
+
+            onSnapshot(noticiasRef, (snapshot) => {
+                if(snapshot.empty) {
+                    contenedor.innerHTML = `<div class="estado-vacio glass-effect"><i class="fas fa-envelope-open-text"></i>We’ll soon be posting new news and announcements.</div>`;
+                    return;
+                }
+                contenedor.innerHTML = '';
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    let btnHTML = '';
+                    if (data.enlace && data.enlace.trim() !== '') {
+                        btnHTML = `<a href="${data.enlace}" target="_blank" class="btn-action" style="margin-top:auto;"><i class="fas fa-link"></i> Más Información</a>`;
+                    }
+                    contenedor.innerHTML += `
+                        <div class="card-base glass-effect" style="align-items: flex-start;">
+                            <img src="${data.imagenUrl}" alt="${data.titulo}" class="news-img">
+                            <h3 class="card-name" style="text-align:left;">${data.titulo}</h3>
+                            <p class="card-meta" style="text-align:left;"><i class="fas fa-clock" style="color:var(--primary-color);"></i> ${new Date(data.fechaRegistro).toLocaleDateString()}</p>
+                            <p class="news-desc">${data.informacion}</p>
+                            ${btnHTML}
                         </div>
                     `;
                 });
@@ -598,7 +576,7 @@
         }
 
         // ==========================================
-        // 5. PANEL ADMIN: AÑADIR COLABORADORES
+        // 5. PANEL ADMIN MULTIPROPÓSITO
         // ==========================================
         const adminOverlay = document.getElementById('adminModalOverlay');
         const adminContent = document.getElementById('adminModalContent');
@@ -609,12 +587,12 @@
         window.pedirPasswordAdmin = function() {
             adminContent.innerHTML = `
                 <h3 class="modal-title"><i class="fas fa-lock"></i> Acceso Administrador</h3>
-                <p style="font-size: 13px; margin-bottom:15px; color:var(--header-text);">Solo admins pueden añadir colaboradores.</p>
+                <p style="font-size: 14px; margin-bottom:15px; color:var(--text-dark); font-weight:bold;">Panel para publicar Noticias o añadir Colaboradores.</p>
                 <div class="form-group">
                     <input type="password" id="adminPass" placeholder="Contraseña..." onkeypress="if(event.key === 'Enter') verificarAdmin()">
                 </div>
-                <button class="btn-modal" onclick="verificarAdmin()">Entrar</button>
-                <button class="btn-modal cancel" onclick="cerrarAdminModal()">Cancelar</button>
+                <button class="btn-modal" onclick="verificarAdmin()"><i class="fas fa-sign-in-alt"></i> Entrar</button>
+                <button class="btn-modal cancel" onclick="cerrarAdminModal()"><i class="fas fa-times"></i> Cancelar</button>
             `;
             adminOverlay.classList.add('active');
         }
@@ -622,33 +600,117 @@
         window.verificarAdmin = function() {
             const pass = document.getElementById('adminPass').value;
             if (pass === 'admin540') {
-                mostrarFormularioColab();
+                mostrarMenuAdmin();
             } else {
                 mostrarAlerta("Contraseña incorrecta", "fa-times-circle", "#ff4444");
                 cerrarAdminModal();
             }
         }
 
-        function mostrarFormularioColab() {
+        function mostrarMenuAdmin() {
+            adminContent.innerHTML = `
+                <h3 class="modal-title"><i class="fas fa-cogs"></i> Panel de Control</h3>
+                <div class="admin-options">
+                    <button class="btn-modal" onclick="mostrarFormularioNoticia()"><i class="fas fa-newspaper"></i> Publicar Noticia/Anuncio</button>
+                    <button class="btn-modal" onclick="mostrarFormularioColab()"><i class="fas fa-handshake"></i> Añadir Colaborador</button>
+                </div>
+                <button class="btn-modal cancel" onclick="cerrarAdminModal()"><i class="fas fa-sign-out-alt"></i> Salir</button>
+            `;
+        }
+
+        // --- FORMULARIO NOTICIAS ---
+        window.mostrarFormularioNoticia = function() {
+            adminContent.innerHTML = `
+                <h3 class="modal-title"><i class="fas fa-bullhorn"></i> Publicar Noticia</h3>
+                <div class="form-group">
+                    <label><i class="fas fa-heading"></i> Título del Anuncio</label>
+                    <input type="text" id="notiTitulo" placeholder="Ej: ¡Nuevas Categorías Abiertas!">
+                </div>
+                <div class="form-group">
+                    <label><i class="fas fa-align-left"></i> Información</label>
+                    <textarea id="notiInfo" placeholder="Detalles de la noticia..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label><i class="fas fa-link"></i> Enlace (Opcional)</label>
+                    <input type="url" id="notiEnlace" placeholder="https://...">
+                </div>
+                <div class="form-group">
+                    <label><i class="fas fa-image"></i> Imagen de Portada (Obligatoria)</label>
+                    <input type="file" id="notiFile" accept="image/*" style="padding: 8px;">
+                </div>
+                
+                <div id="loaderAdmin"><i class="fas fa-spinner fa-spin"></i> Subiendo y guardando...</div>
+                
+                <button class="btn-modal" id="btnGuardarNoti" onclick="guardarNoticia()"><i class="fas fa-paper-plane"></i> Publicar Noticia</button>
+                <button class="btn-modal cancel" onclick="mostrarMenuAdmin()"><i class="fas fa-arrow-left"></i> Volver</button>
+            `;
+        }
+
+        window.guardarNoticia = async function() {
+            const titulo = document.getElementById('notiTitulo').value.trim();
+            const info = document.getElementById('notiInfo').value.trim();
+            const enlace = document.getElementById('notiEnlace').value.trim();
+            const fileInput = document.getElementById('notiFile');
+            const loader = document.getElementById('loaderAdmin');
+            const btnGuardar = document.getElementById('btnGuardarNoti');
+
+            if (!titulo || !info || fileInput.files.length === 0) {
+                mostrarAlerta("Debes poner al menos Título, Información e Imagen.", "fa-exclamation-triangle", "var(--primary-color)");
+                return;
+            }
+
+            btnGuardar.disabled = true;
+            btnGuardar.style.opacity = '0.5';
+            loader.style.display = 'block';
+
+            const formData = new FormData();
+            formData.append('image', fileInput.files[0]);
+
+            try {
+                const imgbbResponse = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, { method: 'POST', body: formData });
+                const imgbbData = await imgbbResponse.json();
+                
+                if (!imgbbData.success) throw new Error("Error ImgBB");
+                const imageUrl = imgbbData.data.url;
+
+                const { db, appId, collection, addDoc } = window.fb;
+                await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'awards_noticias'), {
+                    titulo: titulo, informacion: info, enlace: enlace, imagenUrl: imageUrl,
+                    fechaRegistro: new Date().toISOString()
+                });
+
+                cerrarAdminModal();
+                mostrarAlerta("¡Noticia publicada con éxito!", "fa-check-circle", "#4CAF50");
+            } catch (error) {
+                console.error(error);
+                mostrarAlerta("Error al publicar la noticia.", "fa-times-circle", "#ff4444");
+                btnGuardar.disabled = false;
+                btnGuardar.style.opacity = '1';
+                loader.style.display = 'none';
+            }
+        }
+
+        // --- FORMULARIO COLABORADORES ---
+        window.mostrarFormularioColab = function() {
             adminContent.innerHTML = `
                 <h3 class="modal-title"><i class="fas fa-user-plus"></i> Añadir Colaborador</h3>
                 <div class="form-group">
-                    <label>Nombre del Creador / Página</label>
+                    <label><i class="fas fa-user"></i> Nombre del Creador / Página</label>
                     <input type="text" id="colabNombre" placeholder="Ej: Adele Global">
                 </div>
                 <div class="form-group">
-                    <label>Enlace de su Página</label>
+                    <label><i class="fas fa-link"></i> Enlace de su Página</label>
                     <input type="url" id="colabEnlace" placeholder="https://...">
                 </div>
                 <div class="form-group">
-                    <label>Foto de Perfil (Se subirá a ImgBB)</label>
+                    <label><i class="fas fa-image"></i> Foto de Perfil (Obligatoria)</label>
                     <input type="file" id="colabFile" accept="image/*" style="padding: 8px;">
                 </div>
                 
                 <div id="loaderAdmin"><i class="fas fa-spinner fa-spin"></i> Subiendo y guardando...</div>
                 
-                <button class="btn-modal" id="btnGuardarColab" onclick="guardarColaborador()"><i class="fas fa-save"></i> Publicar</button>
-                <button class="btn-modal cancel" onclick="cerrarAdminModal()">Cancelar</button>
+                <button class="btn-modal" id="btnGuardarColab" onclick="guardarColaborador()"><i class="fas fa-save"></i> Guardar Colaborador</button>
+                <button class="btn-modal cancel" onclick="mostrarMenuAdmin()"><i class="fas fa-arrow-left"></i> Volver</button>
             `;
         }
 
@@ -660,7 +722,7 @@
             const btnGuardar = document.getElementById('btnGuardarColab');
 
             if (!nombre || !enlace || fileInput.files.length === 0) {
-                mostrarAlerta("Completa todos los campos e incluye una imagen.", "fa-exclamation-triangle", "#ffaa00");
+                mostrarAlerta("Completa todos los campos e incluye una imagen.", "fa-exclamation-triangle", "var(--primary-color)");
                 return;
             }
 
@@ -668,21 +730,16 @@
             btnGuardar.style.opacity = '0.5';
             loader.style.display = 'block';
 
-            const file = fileInput.files[0];
             const formData = new FormData();
-            formData.append('image', file);
+            formData.append('image', fileInput.files[0]);
 
             try {
-                // ImgBB Upload
-                const imgbbResponse = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
-                    method: 'POST', body: formData
-                });
+                const imgbbResponse = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, { method: 'POST', body: formData });
                 const imgbbData = await imgbbResponse.json();
                 
-                if (!imgbbData.success) throw new Error("Error al subir a ImgBB");
+                if (!imgbbData.success) throw new Error("Error ImgBB");
                 const imageUrl = imgbbData.data.url;
 
-                // Firebase Save
                 const { db, appId, collection, addDoc } = window.fb;
                 await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'awards_colaboradores'), {
                     nombre: nombre, enlace: enlace, imagenUrl: imageUrl,
@@ -691,10 +748,9 @@
 
                 cerrarAdminModal();
                 mostrarAlerta("Colaborador añadido correctamente.", "fa-check-circle", "#4CAF50");
-
             } catch (error) {
                 console.error(error);
-                mostrarAlerta("Hubo un error en el proceso.", "fa-times-circle", "#ff4444");
+                mostrarAlerta("Error al añadir el colaborador.", "fa-times-circle", "#ff4444");
                 btnGuardar.disabled = false;
                 btnGuardar.style.opacity = '1';
                 loader.style.display = 'none';
