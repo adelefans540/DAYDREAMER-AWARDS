@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DAYDREAMERS AWARDS - Votaciones</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { 
+            getFirestore, collection, addDoc, doc, updateDoc, increment, onSnapshot 
+        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Configuración de Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyAAW-bBHn7MXXJNsVW0EAiH5kf69C9DAeg",
+            authDomain: "app-de-proyectos-3279c.firebaseapp.com",
+            projectId: "app-de-proyectos-3279c",
+            storageBucket: "app-de-proyectos-3279c.firebasestorage.app",
+            messagingSenderId: "1055271736396",
+            appId: "1:1055271736396:web:e486e47d23f1c6420f50e9",
+            measurementId: "G-09W0G43NXG"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const appId = 'adele-fans-app';
+
+        window.fb = { db, appId, collection, addDoc, doc, updateDoc, increment, onSnapshot };
+
+        // Autenticación
+        signInAnonymously(auth).catch((error) => console.error("Error Auth Firebase:", error));
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                initAwardsLogic();
+            }
+        });
+    </script>
+
+    <style>
+        /* === VARIABLES Y TEMAS === */
+        :root {
+            --light-bg: #ffffff;
+            --gradient-bg: #f8f6f0;
+            --text-main: #333333;
+            --glass-bg: rgba(255, 255, 255, 0.9);
+            --glass-border: rgba(212, 175, 55, 0.4);
+            --gold: #d4af37;
+            --font-family: 'Helvetica Neue', Arial, sans-serif;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: var(--font-family); }
+        
+        body {
+            background: linear-gradient(135deg, var(--light-bg), var(--gradient-bg));
+            background-attachment: fixed; color: var(--text-main); min-height: 100vh; overflow-x: hidden;
+        }
+
+        /* === NAVEGACIÓN === */
+        nav {
+            position: fixed; top: 0; width: 100%; height: 80px; display: flex; justify-content: space-between; align-items: center;
+            padding: 0 5%; z-index: 1000; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(12px); border-bottom: 1px solid var(--glass-border);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        .logo-container { display: flex; align-items: center; gap: 15px; text-decoration: none; }
+        .perfil-img { width: 48px; height: 48px; border-radius: 50%; object-fit: cover; border: 2px solid var(--gold); }
+        .logo-text { font-size: 22px; font-weight: bold; letter-spacing: 2px; color: var(--gold); }
+
+        /* === HEADER DE PREMIOS === */
+        .awards-header {
+            margin-top: 120px; text-align: center; padding: 0 20px;
+        }
+        .awards-title { font-size: 42px; color: var(--gold); text-transform: uppercase; letter-spacing: 3px; text-shadow: 0 2px 10px rgba(212, 175, 55, 0.2); }
+        .awards-subtitle { font-size: 16px; color: #555555; margin-top: 10px; max-width: 600px; margin-left: auto; margin-right: auto; }
+
+        /* === CONTENEDOR DE CATEGORÍAS === */
+        .categories-container {
+            max-width: 1200px; margin: 40px auto; padding: 0 20px; display: flex; flex-direction: column; gap: 50px;
+        }
+
+        .category-section {
+            background: var(--glass-bg); backdrop-filter: blur(10px); border: 1px solid var(--glass-border);
+            border-radius: 20px; padding: 30px; box-shadow: 0 10px 30px rgba(212, 175, 55, 0.1);
+        }
+        .category-title {
+            font-size: 26px; color: var(--gold); margin-bottom: 25px; border-bottom: 2px solid var(--gold);
+            padding-bottom: 10px; display: inline-block; font-weight: bold;
+        }
+
+        /* === GRILLA DE NOMINADOS === */
+        .nominees-grid {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 25px;
+        }
+
+        .nominee-card {
+            background: #ffffff; border: 1px solid var(--glass-border); border-radius: 15px;
+            overflow: hidden; text-align: center; transition: 0.3s; position: relative;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+        .nominee-card:hover { transform: translateY(-10px); border-color: var(--gold); box-shadow: 0 10px 20px rgba(212, 175, 55, 0.2); }
+        
+        .nominee-img-wrapper { width: 100%; aspect-ratio: 1; overflow: hidden; background: #f5f5f5; }
+        .nominee-img { width: 100%; height: 100%; object-fit: cover; transition: 0.5s; }
+        .nominee-card:hover .nominee-img { transform: scale(1.1); }
+
+        .nominee-info { padding: 15px; }
+        .nominee-name { font-size: 18px; font-weight: bold; margin-bottom: 10px; color: var(--text-main); }
+        .nominee-votes { font-size: 13px; color: var(--gold); margin-bottom: 15px; font-weight: bold; }
+        
+        .btn-vote {
+            background: var(--gold); color: #fff; border: none; padding: 10px 20px; width: 100%;
+            border-radius: 25px; font-size: 15px; font-weight: bold; cursor: pointer; transition: 0.3s;
+        }
+        .btn-vote:hover { opacity: 0.85; transform: scale(1.05); }
+        .btn-vote:disabled { background: #e0e0e0; color: #888; cursor: not-allowed; transform: none; }
+        
+        .voted-badge { background: #4CAF50; color: white !important; }
+
+        /* === BOTÓN Y MODAL ADMIN === */
+        .admin-btn {
+            position: fixed; bottom: 30px; left: 30px; width: 55px; height: 55px;
+            background: #ffffff; color: var(--gold); border: 2px solid var(--gold);
+            border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 20px;
+            cursor: pointer; z-index: 1500; transition: 0.3s; backdrop-filter: blur(5px);
+            box-shadow: 0 4px 10px rgba(212, 175, 55, 0.3);
+        }
+        .admin-btn:hover { background: var(--gold); color: white; transform: scale(1.1); }
+
+        .custom-modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(10px); display: none;
+            justify-content: center; align-items: center; z-index: 2500; padding: 20px;
+        }
+        .custom-modal {
+            background: #ffffff; padding: 30px; border-radius: 20px; border: 2px solid var(--gold);
+            max-width: 500px; width: 100%; box-shadow: 0 20px 50px rgba(212, 175, 55, 0.2); color: var(--text-main);
+        }
+        .modal-title { color: var(--gold); font-size: 22px; margin-bottom: 20px; text-align: center; font-weight: bold; }
+        
+        .form-group { margin-bottom: 15px; text-align: left; }
+        .form-group label { display: block; font-size: 13px; color: var(--gold); margin-bottom: 6px; font-weight: bold; }
+        .form-group input {
+            width: 100%; padding: 12px; border-radius: 10px; background: #fdfdfd;
+            border: 1px solid var(--glass-border); color: #333; outline: none; font-size: 14px;
+        }
+        input[type="file"] { padding: 8px; background: #fdfdfd; }
+        
+        .btn-modal {
+            background: var(--gold); color: #fff; border: none; padding: 12px;
+            font-size: 15px; font-weight: bold; border-radius: 25px; cursor: pointer; transition: 0.3s; width: 100%; margin-top: 10px;
+        }
+        .btn-modal.cancel { background: transparent; color: #555; border: 1px solid #555; }
+        .btn-modal:hover { opacity: 0.9; transform: scale(1.02); }
+
+        /* Loader */
+        .loader { display: none; text-align: center; margin-top: 15px; color: var(--gold); font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <nav>
+        <a href="premios.html" class="logo-container">
+            <img src="daydreamer.jpeg" alt="Perfil" class="perfil-img">
+            <span class="logo-text">DAYDREAMERS AWARDS</span>
+        </a>
+        <a href="premios.html" style="color: var(--gold); text-decoration: none; font-weight: bold; font-size: 14px;"><i class="fas fa-arrow-left"></i> Return</a>
+    </nav>
+
+    <header class="awards-header">
+        <h1 class="awards-title"><i class="fas fa-trophy"></i> DAYDREAMERS AWARDS</h1>
+        <p class="awards-subtitle">Support your favorite creators, communities, and moments. Votes decide the season winners.</p>
+    </header>
+
+    <main class="categories-container" id="categoriesContainer">
+        <div style="text-align: center; color: var(--gold); font-size: 20px;"><i class="fas fa-spinner fa-spin"></i> Loading nominees...</div>
+    </main>
+
+    <div class="admin-btn" onclick="pedirPasswordAdmin()" title="Administrar Nominados">
+        <i class="fas fa-crown"></i>
+    </div>
+
+    <div class="custom-modal-overlay" id="modalOverlay">
+        <div class="custom-modal" id="modalContenido">
+            </div>
+    </div>
+
+    <script>
+        // API Key de ImgBB proporcionada
+        const IMGBB_API_KEY = "f5567fb36a6232aae841ea9aac0ee139";
+
+        // Referencia a modales
+        const modalOverlay = document.getElementById('modalOverlay');
+        const modalContenido = document.getElementById('modalContenido');
+        const categoriesContainer = document.getElementById('categoriesContainer');
+
+        function abrirModalHTML(htmlContent) {
+            modalContenido.innerHTML = htmlContent;
+            modalOverlay.style.display = 'flex';
+        }
+        function cerrarModal() { modalOverlay.style.display = 'none'; }
+        modalOverlay.addEventListener('click', (e) => { if (e.target === modalOverlay) cerrarModal(); });
+
+        // ==========================================
+        // LÓGICA PRINCIPAL (FIREBASE)
+        // ==========================================
+        let nominadosData = [];
+
+        function initAwardsLogic() {
+            const { db, appId, collection, onSnapshot } = window.fb;
+            const nomineesRef = collection(db, 'artifacts', appId, 'public', 'data', 'awards_nominees');
+
+            // Escuchar cambios en la base de datos en tiempo real
+            onSnapshot(nomineesRef, (snapshot) => {
+                nominadosData = [];
+                snapshot.forEach(doc => {
+                    nominadosData.push({ id: doc.id, ...doc.data() });
+                });
+                renderizarVotaciones();
+            });
+        }
+
+        // ==========================================
+        // RENDERIZAR CATEGORÍAS Y NOMINADOS
+        // ==========================================
+        function renderizarVotaciones() {
+            if (nominadosData.length === 0) {
+                categoriesContainer.innerHTML = `<p style="text-align:center; color:#555555;">There are no nominees registered yet. Admins can add them..</p>`;
+                return;
+            }
+
+            // Agrupar por categorías
+            const categoriasObj = {};
+            nominadosData.forEach(nom => {
+                const cat = nom.categoria.toUpperCase();
+                if (!categoriasObj[cat]) categoriasObj[cat] = [];
+                categoriasObj[cat].push(nom);
+            });
+
+            categoriesContainer.innerHTML = ''; // Limpiar contenedor
+
+            // Generar HTML por categoría
+            for (const [categoria, nominados] of Object.entries(categoriasObj)) {
+                // Ordenar nominados por votos (mayor a menor)
+                nominados.sort((a, b) => (b.votos || 0) - (a.votos || 0));
+
+                // Verificar si el usuario ya votó en esta categoría (desde localStorage)
+                const votoGuardado = localStorage.getItem(`voto_awards_${categoria}`);
+
+                let htmlTarjetas = '';
+                nominados.forEach(nom => {
+                    const esMiVoto = votoGuardado === nom.id;
+                    const blockBtn = votoGuardado ? 'disabled' : '';
+                    const btnClass = esMiVoto ? 'btn-vote voted-badge' : 'btn-vote';
+                    const btnTexto = esMiVoto ? '<i class="fas fa-check"></i> Votado' : 'Votar';
+
+                    htmlTarjetas += `
+                        <div class="nominee-card">
+                            <div class="nominee-img-wrapper">
+                                <img src="${nom.imagenUrl}" alt="${nom.nombre}" class="nominee-img" loading="lazy">
+                            </div>
+                            <div class="nominee-info">
+                                <h3 class="nominee-name">${nom.nombre}</h3>
+                                <p class="nominee-votes"><i class="fas fa-star"></i> ${nom.votos || 0} Votes</p>
+                                <button class="${btnClass}" ${blockBtn} onclick="vote('${nom.id}', '${categoria}')">
+                                    ${btnTexto}
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                const seccionCat = document.createElement('div');
+                seccionCat.className = 'category-section';
+                seccionCat.innerHTML = `
+                    <h2 class="category-title">${categoria}</h2>
+                    <div class="nominees-grid">
+                        ${htmlTarjetas}
+                    </div>
+                `;
+                categoriesContainer.appendChild(seccionCat);
+            }
+        }
+
+        // ==========================================
+        // SISTEMA DE VOTACIÓN
+        // ==========================================
+        window.votar = function(nomineeId, categoria) {
+            // Seguridad básica del lado del cliente
+            if (localStorage.getItem(`voto_awards_${categoria}`)) {
+                alert("You’ve already voted in this category.");
+                return;
+            }
+
+            const { db, appId, doc, updateDoc, increment } = window.fb;
+            const nomRef = doc(db, 'artifacts', appId, 'public', 'data', 'awards_nominees', nomineeId);
+
+            updateDoc(nomRef, {
+                votos: increment(1)
+            }).then(() => {
+                // Registrar localmente para bloquear otros votos en la misma categoría
+                localStorage.setItem(`voto_awards_${categoria}`, nomineeId);
+                // La UI se actualizará sola gracias a onSnapshot de Firebase
+            }).catch(err => {
+                console.error("Error while voting: ", err);
+                alert("There was an error recording your vote.");
+            });
+        }
+
+        // ==========================================
+        // PANEL DE ADMINISTRADOR & IMGBB UPLOAD
+        // ==========================================
+        window.pedirPasswordAdmin = function() {
+            abrirModalHTML(`
+                <h3 class="modal-title"><i class="fas fa-lock"></i> Acceso Admin Awards</h3>
+                <p style="text-align: center; margin-bottom: 15px; font-size: 14px; color: #555555;">Solo administradores pueden añadir nominados.</p>
+                <div class="form-group">
+                    <input type="password" id="adminPassAwards" placeholder="Contraseña..." onkeypress="if(event.key === 'Enter') verificarAdminAwards()">
+                </div>
+                <button class="btn-modal" onclick="verificarAdminAwards()">Entrar</button>
+                <button class="btn-modal cancel" onclick="cerrarModal()">Cancelar</button>
+            `);
+        }
+
+        window.verificarAdminAwards = function() {
+            const pass = document.getElementById('adminPassAwards').value;
+            if (pass === 'admin540') {
+                mostrarFormularioAdmin();
+            } else {
+                abrirModalHTML(`
+                    <h3 class="modal-title" style="color: #ff4444;"><i class="fas fa-times-circle"></i> Incorrecto</h3>
+                    <button class="btn-modal" onclick="cerrarModal()">Cerrar</button>
+                `);
+            }
+        }
+
+        function mostrarFormularioAdmin() {
+            abrirModalHTML(`
+                <h3 class="modal-title"><i class="fas fa-user-plus"></i> Añadir Nominado</h3>
+                <div class="form-group">
+                    <label>Nombre (Creador, Comunidad, etc.)</label>
+                    <input type="text" id="addNomNombre" placeholder="Ej: Adele Global">
+                </div>
+                <div class="form-group">
+                    <label>Categoría</label>
+                    <input type="text" id="addNomCategoria" placeholder="Ej: Mejor Comunidad Fan">
+                </div>
+                <div class="form-group">
+                    <label>Fotografía (Se subirá a ImgBB)</label>
+                    <input type="file" id="addNomFile" accept="image/*">
+                </div>
+                
+                <div id="uploadLoader" class="loader"><i class="fas fa-spinner fa-spin"></i> Subiendo imagen y guardando...</div>
+                
+                <button class="btn-modal" id="btnGuardarNom" onclick="guardarNominado()"><i class="fas fa-save"></i> Publicar Nominado</button>
+                <button class="btn-modal cancel" onclick="cerrarModal()">Cancelar</button>
+            `);
+        }
+
+        window.guardarNominado = async function() {
+            const nombre = document.getElementById('addNomNombre').value.trim();
+            const categoria = document.getElementById('addNomCategoria').value.trim();
+            const fileInput = document.getElementById('addNomFile');
+            const loader = document.getElementById('uploadLoader');
+            const btnGuardar = document.getElementById('btnGuardarNom');
+
+            if (!nombre || !categoria || fileInput.files.length === 0) {
+                alert("Por favor, completa todos los campos y selecciona una imagen.");
+                return;
+            }
+
+            // Deshabilitar botón y mostrar loader
+            btnGuardar.disabled = true;
+            btnGuardar.style.opacity = '0.5';
+            loader.style.display = 'block';
+
+            const file = fileInput.files[0];
+            const formData = new FormData();
+            formData.append('image', file);
+
+            try {
+                // 1. Subir imagen a ImgBB
+                const imgbbResponse = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
+                    method: 'POST',
+                    body: formData
+                });
+                const imgbbData = await imgbbResponse.json();
+                
+                if (!imgbbData.success) {
+                    throw new Error("Error al subir a ImgBB");
+                }
+                
+                const imageUrl = imgbbData.data.url;
+
+                // 2. Guardar en Firebase
+                const { db, appId, collection, addDoc } = window.fb;
+                await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'awards_nominees'), {
+                    nombre: nombre,
+                    categoria: categoria,
+                    imagenUrl: imageUrl,
+                    votos: 0,
+                    fechaRegistro: new Date().toISOString()
+                });
+
+                // Éxito
+                abrirModalHTML(`
+                    <h3 class="modal-title" style="color: #4CAF50;"><i class="fas fa-check-circle"></i> Nominado Añadido</h3>
+                    <p style="text-align: center; margin-bottom: 20px;">El nominado ya está disponible para recibir votos.</p>
+                    <button class="btn-modal" onclick="mostrarFormularioAdmin()">Añadir Otro</button>
+                    <button class="btn-modal cancel" onclick="cerrarModal()">Cerrar</button>
+                `);
+
+            } catch (error) {
+                console.error(error);
+                alert("Hubo un error en el proceso. Revisa tu conexión.");
+                btnGuardar.disabled = false;
+                btnGuardar.style.opacity = '1';
+                loader.style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html>
