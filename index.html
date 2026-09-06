@@ -1,21 +1,21 @@
 <!DOCTYPE html>
-<html lang="es" data-theme="light">
+<html lang="en" data-theme="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Daydreamers Awards</title>
     
-    <!-- Librería de Iconos FontAwesome -->
+    <!-- FontAwesome Icons Library -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
+ 
     <!-- Firebase SDK -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { 
-            getFirestore, collection, addDoc, onSnapshot, query, orderBy, doc, updateDoc, deleteDoc
+            getFirestore, collection, addDoc, onSnapshot, query, orderBy, doc, updateDoc, deleteDoc, setDoc, increment
         } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
+ 
         const firebaseConfig = {
             apiKey: "AIzaSyAAW-bBHn7MXXJNsVW0EAiH5kf69C9DAeg",
             authDomain: "app-de-proyectos-3279c.firebaseapp.com",
@@ -25,31 +25,72 @@
             appId: "1:1055271736396:web:e486e47d23f1c6420f50e9",
             measurementId: "G-09W0G43NXG"
         };
-
+ 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
         const appId = 'adele-fans-app';
-
-        window.fb = { db, appId, collection, addDoc, onSnapshot, query, orderBy, doc, updateDoc, deleteDoc };
-        window.isAdmin = false; // Bandera para saber si el usuario ingresó la contraseña
-
-        signInAnonymously(auth).catch((error) => console.error("Error Auth Firebase:", error));
+ 
+        window.fb = { db, appId, collection, addDoc, onSnapshot, query, orderBy, doc, updateDoc, deleteDoc, setDoc, increment };
+        window.isAdmin = false; // Flag to know if user entered the password
+ 
+        signInAnonymously(auth).catch((error) => console.error("Firebase Auth Error:", error));
+        
         onAuthStateChanged(auth, (user) => {
             if (user) {
+                // Record unique visit per session for statistics
+                if (!sessionStorage.getItem('pageVisited')) {
+                    sessionStorage.setItem('pageVisited', 'true');
+                    const statsRef = doc(db, 'artifacts', appId, 'public', 'data', 'awards_settings', 'stats');
+                    setDoc(statsRef, { views: increment(1) }, { merge: true }).catch(console.error);
+                }
+ 
+                cargarConfiguracionGlobal();
                 cargarNominados();
                 cargarColaboradores();
                 cargarNoticias();
             }
         });
+ 
+        // Global Configuration (Marquee and Voting Status)
+        window.statsViews = 0;
+        function cargarConfiguracionGlobal() {
+            const configRef = doc(db, 'artifacts', appId, 'public', 'data', 'awards_settings', 'config');
+            onSnapshot(configRef, (docSnap) => {
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    
+                    // Update Marquee Text
+                    if(data.marqueeText) {
+                        document.getElementById('marqueeText').innerText = data.marqueeText;
+                    }
+                    
+                    // Update Nominees Status
+                    const statusBadge = document.getElementById('nom-status');
+                    if (data.votacionesCerradas) {
+                        statusBadge.innerHTML = '<span style="color: #e74c3c; font-weight: 900; background: rgba(231, 76, 60, 0.1); padding: 5px 10px; border-radius: 8px;">VOTING CLOSED</span>';
+                    } else {
+                        statusBadge.innerHTML = '';
+                    }
+                }
+            });
+ 
+            // Listen to Views
+            const statsRef = doc(db, 'artifacts', appId, 'public', 'data', 'awards_settings', 'stats');
+            onSnapshot(statsRef, (docSnap) => {
+                if(docSnap.exists()) {
+                    window.statsViews = docSnap.data().views || 0;
+                }
+            });
+        }
     </script>
-
+ 
     <style>
         /* =========================================
-           VARIABLES Y TEMAS (Claro / Oscuro)
+           VARIABLES AND THEMES (Light / Dark)
            ========================================= */
         :root {
-            --primary-color: #d4af37; /* Dorado */
+            --primary-color: #d4af37; /* Gold */
             --bg-dark: #000000;
             --bg-light: #ffffff;
             --text-dark: #333333;
@@ -62,7 +103,7 @@
             --glass-shadow: rgba(0, 0, 0, 0.1);
             --nav-bg: rgba(255, 255, 255, 0.95);
         }
-
+ 
         [data-theme="dark"] {
             --body-bg-gradient: linear-gradient(135deg, #0f0f0f, #220000);
             --bg-light: #1a1a1a;
@@ -73,9 +114,9 @@
             --glass-shadow: rgba(0, 0, 0, 0.5);
             --nav-bg: rgba(10, 10, 10, 0.95);
         }
-
+ 
         * { box-sizing: border-box; margin: 0; padding: 0; }
-
+ 
         body {
             font-family: 'Helvetica Neue', Arial, sans-serif;
             line-height: 1.6;
@@ -85,7 +126,7 @@
             transition: background 0.3s, color 0.3s;
             overflow-x: hidden;
         }
-
+ 
         .glass-effect {
             background: var(--glass-bg);
             backdrop-filter: blur(15px);
@@ -94,23 +135,37 @@
             box-shadow: 0 8px 32px var(--glass-shadow);
             border-radius: 12px;
         }
-
+ 
         .animate-up {
             opacity: 0;
             transform: translateY(40px);
             transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
         }
         .animate-up.visible { opacity: 1; transform: translateY(0); }
-
+ 
         /* =========================================
-           ANIMACIÓN DE CARGA (NUEVA)
+           SCROLLING MARQUEE (NEW)
+           ========================================= */
+        .marquee-container {
+            width: 100%; background: var(--primary-color); color: #000;
+            padding: 8px 0; overflow: hidden; position: relative; z-index: 1001;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+        .marquee-content {
+            white-space: nowrap; display: inline-block; font-weight: bold; font-size: 14px;
+            animation: marquee 20s linear infinite; text-transform: uppercase; letter-spacing: 1px;
+        }
+        @keyframes marquee { 0% { transform: translateX(100vw); } 100% { transform: translateX(-100%); } }
+ 
+        /* =========================================
+           MODIFIED LOADING ANIMATION
            ========================================= */
         #loader-wrapper {
             position: fixed; inset: 0; background-color: var(--bg-dark); z-index: 9999;
             display: flex; justify-content: center; align-items: center; transition: opacity 0.5s ease, visibility 0.5s;
         }
         
-        .loader { display: flex; margin: 0.25em 0; align-items: center; justify-content: center; }
+        .loader { display: flex; margin: 0.25em 0; align-items: center; justify-content: center; position: relative;}
         .absolute { position: absolute; }
         .inline-block { display: inline-block; }
         .w-2 { width: 0.5em; }
@@ -131,9 +186,15 @@
             62.5%, 75% { rotate: 810deg; }
             87.5%, 100% { rotate: 1080deg; }
         }
-
+ 
+        .loader-text-adele {
+            position: absolute; font-size: 14px; font-weight: 900; color: var(--primary-color);
+            letter-spacing: 2px; z-index: 10; font-family: 'Helvetica Neue', Arial, sans-serif;
+            text-shadow: 0 0 10px rgba(212, 175, 55, 0.5);
+        }
+ 
         /* =========================================
-           BARRA SUPERIOR Y NAVEGACIÓN
+           TOP BAR AND NAVIGATION
            ========================================= */
         .top-bar {
             position: sticky; top: 0; height: 65px; display: flex; align-items: center;
@@ -145,14 +206,14 @@
         .hamburger.active span:nth-child(1) { transform: translateY(9px) rotate(45deg); }
         .hamburger.active span:nth-child(2) { opacity: 0; }
         .hamburger.active span:nth-child(3) { transform: translateY(-9px) rotate(-45deg); }
-
+ 
         .controls { display: flex; gap: 0.8rem; z-index: 1002; }
         .icon-btn {
             background: transparent; border: 1px solid var(--primary-color); color: var(--primary-color);
             padding: 0.4rem 0.8rem; cursor: pointer; font-weight: bold; border-radius: 8px; transition: 0.3s;
         }
         .icon-btn:hover { background: var(--primary-color); color: #000; }
-
+ 
         nav {
             position: fixed; top: 0; left: -100%; width: 300px; max-width: 80%; height: 100vh;
             display: flex; flex-direction: column; padding: 100px 2rem 2rem 2rem;
@@ -165,19 +226,18 @@
             font-size: 1rem; letter-spacing: 1px; padding-bottom: 5px; border-bottom: 1px solid transparent; transition: 0.2s;
         }
         nav a:hover { color: var(--text-dark); border-bottom: 1px solid var(--text-dark); }
-
+ 
         /* =========================================
-           ESTRUCTURA Y GRILLAS RESPONSIVE
+           STRUCTURE AND RESPONSIVE GRIDS
            ========================================= */
         header { text-align: center; padding: 5rem 1rem 3rem; transition: 0.3s; }
         .logo-principal { max-width: 250px; width: 100%; height: auto; margin-bottom: 1.5rem; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
         header h1 { font-size: clamp(2rem, 5vw, 2.8rem); color: var(--text-dark); margin-bottom: 0.5rem; text-shadow: 0 2px 4px rgba(0,0,0,0.1); }
         header p { font-size: 1.1rem; max-width: 800px; margin: 0 auto; color: var(--text-dark); font-weight: 500; }
-
+ 
         section { padding: 3rem 1.5rem; max-width: 1200px; margin: 0 auto; }
         h2 { font-size: clamp(1.8rem, 4vw, 2.2rem); color: var(--text-dark); margin-bottom: 2rem; text-align: center; text-transform: uppercase; letter-spacing: 2px; }
-
-        /* Ajuste de minmax a 280px para pantallas más pequeñas (iPhone SE) */
+ 
         .grid-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; }
         
         .historia-item, .categoria-card { padding: 1.5rem; transition: transform 0.3s; }
@@ -186,9 +246,9 @@
         .historia-item p, .categoria-card p { color: var(--text-dark); font-weight: 500; font-size: 0.95rem; }
         
         .categoria-card { border-left: 5px solid var(--primary-color); }
-
+ 
         /* =========================================
-           NOTICIAS Y ANUNCIOS REDISEÑADOS
+           NEWS AND ANNOUNCEMENTS REDESIGNED
            ========================================= */
         .news-card {
             display: flex; flex-direction: column; overflow: hidden; position: relative;
@@ -202,7 +262,6 @@
         .news-date { font-size: 0.85rem; color: var(--primary-color); font-weight: bold; margin-bottom: 1rem; }
         .news-desc { font-size: 0.95rem; color: var(--text-dark); flex-grow: 1; margin-bottom: 1.5rem; line-height: 1.5; white-space: pre-wrap; word-break: break-word;}
         
-        /* Botones Administrador en Noticias */
         .admin-controls-news {
             display: flex; gap: 10px; margin-top: auto; padding-top: 15px; border-top: 1px solid rgba(212, 175, 55, 0.2);
         }
@@ -213,9 +272,19 @@
         .btn-edit:hover { background: #357abd; }
         .btn-delete { background: #e74c3c; }
         .btn-delete:hover { background: #c0392b; }
-
+ 
         /* =========================================
-           GALARDÓN Y OTRAS TARJETAS
+           NOMINEES CAROUSEL (MODIFIED)
+           ========================================= */
+        .carousel-container {
+            display: flex; overflow-x: auto; gap: 1.5rem; padding: 1.5rem 5px;
+            scroll-behavior: auto; -ms-overflow-style: none; scrollbar-width: none;
+        }
+        .carousel-container::-webkit-scrollbar { display: none; }
+        .carousel-container .card-base { min-width: 280px; flex-shrink: 0; }
+ 
+        /* =========================================
+           AWARD AND OTHER CARDS
            ========================================= */
         .seccion-galardon { padding: 3rem 1.5rem; margin: 2rem 1rem; border-radius: 15px; }
         .galardon-content { max-width: 1000px; margin: 0 auto; display: flex; align-items: center; justify-content: center; gap: 3rem; flex-wrap: wrap; }
@@ -224,7 +293,7 @@
         .galardon-texto p { color: var(--text-dark); font-weight: 500; font-size: 1.05rem; }
         .imagen-premio { flex: 1; min-width: 280px; display: flex; justify-content: center; }
         .imagen-premio img { max-width: 100%; height: auto; mix-blend-mode: screen; filter: drop-shadow(0 0 20px rgba(212, 175, 55, 0.4)); }
-
+ 
         .card-base { padding: 1.5rem; text-align: center; transition: 0.3s; display: flex; flex-direction: column; align-items: center; justify-content: space-between; }
         .card-base:hover { transform: scale(1.02); border-color: var(--primary-color); }
         .avatar-img { width: 120px; height: 120px; border-radius: 50%; object-fit: cover; border: 3px solid var(--primary-color); margin-bottom: 1rem; }
@@ -234,11 +303,11 @@
             border-radius: 25px; font-weight: bold; transition: 0.3s; display: inline-block; width: 100%; text-align: center; border: none; cursor: pointer; margin-top: auto;
         }
         .btn-action:hover { box-shadow: 0 0 15px var(--primary-color); transform: translateY(-2px); }
-
+ 
         .estado-vacio { text-align: center; padding: 3rem; color: var(--text-dark); font-style: italic; width: 100%; font-weight: bold; }
-
+ 
         /* =========================================
-           POPUP SUSCRIPCIÓN (NUEVO)
+           SUBSCRIPTION POPUP
            ========================================= */
         .popup {
             position: relative; width: 100%; max-width: 360px; height: fit-content;
@@ -268,9 +337,9 @@
             cursor: pointer; transition: 0.3s; box-shadow: 0 4px 10px rgba(212,175,55,0.3);
         }
         .form button.submit:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(212,175,55,0.5); }
-
+ 
         /* =========================================
-           ADMIN Y MODALES
+           ADMIN AND MODALS
            ========================================= */
         .admin-btn {
             position: fixed; bottom: 20px; left: 20px; width: 50px; height: 50px;
@@ -279,7 +348,7 @@
             cursor: pointer; z-index: 1500; transition: 0.3s; backdrop-filter: blur(10px);
         }
         .admin-btn:hover { background: var(--primary-color); color: #000; transform: scale(1.1); }
-
+ 
         .custom-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(8px); display: none;
@@ -298,18 +367,19 @@
         }
         [data-theme="dark"] .form-group input, [data-theme="dark"] .form-group textarea { background: rgba(255,255,255,0.05); }
         .form-group textarea { resize: vertical; min-height: 100px; }
-
+ 
         .admin-options { display: flex; flex-direction: column; gap: 10px; margin-bottom: 15px; }
-
+        .admin-stats { background: rgba(212, 175, 55, 0.1); padding: 15px; border-radius: 10px; border: 1px solid var(--primary-color); margin-bottom: 15px; }
+ 
         .btn-modal {
             background: var(--primary-color); color: #000; border: none; padding: 12px; width: 100%;
             font-size: 15px; font-weight: bold; border-radius: 8px; cursor: pointer; transition: 0.3s; margin-top: 10px;
         }
         .btn-modal.cancel { background: transparent; color: var(--text-dark); border: 1px solid var(--text-dark); }
         .btn-modal:hover { opacity: 0.9; transform: scale(1.02); }
-
+ 
         #loaderAdmin { display: none; margin-top: 10px; color: var(--primary-color); font-size: 14px; font-weight: bold; }
-
+ 
         footer { padding: 3rem 1.5rem; text-align: center; margin-top: 4rem; border-top: 1px solid var(--glass-border); }
         .footer-icons { display: flex; justify-content: center; gap: 1.5rem; margin-bottom: 1rem; }
         .footer-icons a { color: var(--primary-color); font-size: 1.8rem; transition: 0.3s; }
@@ -318,10 +388,11 @@
     </style>
 </head>
 <body>
-
-    <!-- Animación Carga (Nueva) -->
+ 
+    <!-- Load Animation (Modified with "ADELE") -->
     <div id="loader-wrapper">
         <div class="loader">
+            <span class="loader-text-adele">ADELE</span>
             <svg height="0" width="0" viewBox="0 0 64 64" class="absolute">
                 <defs xmlns="http://www.w3.org/2000/svg">
                     <linearGradient gradientUnits="userSpaceOnUse" y2="2" x2="0" y1="62" x1="0" id="b">
@@ -348,7 +419,12 @@
             </svg>
         </div>
     </div>
-
+ 
+    <!-- Scrolling Text Marquee -->
+    <div class="marquee-container" id="topMarquee">
+        <div class="marquee-content" id="marqueeText">Welcome to Daydreamers Awards! Support your favorite communities today.</div>
+    </div>
+ 
     <!-- Top Bar & Nav -->
     <div class="top-bar">
         <div class="hamburger" id="hamburger">
@@ -359,99 +435,101 @@
             <button class="icon-btn" onclick="toggleTheme()"><i class="fas fa-moon" id="theme-icon"></i></button>
         </div>
     </div>
-
+ 
     <nav id="sidebar" class="glass-effect">
-        <a href="#inicio" data-i18n="nav_inicio" onclick="closeMenu()"><i class="fas fa-home"></i> Inicio</a>
-        <a href="#noticias" data-i18n="nav_noticias" onclick="closeMenu()"><i class="fas fa-newspaper"></i> Noticias y Anuncios</a>
-        <a href="votaciones.html" data-i18n="nav_manifiesto" onclick="closeMenu()"><i class="fas fa-vote-yea"></i> Votaciones</a>
-        <a href="#categorias" data-i18n="nav_categorias" onclick="closeMenu()"><i class="fas fa-list"></i> Categorías</a>
-        <a href="#galardon" data-i18n="nav_galardon" onclick="closeMenu()"><i class="fas fa-trophy"></i> El Galardón</a>
-        <a href="#nominados" data-i18n="nav_nominados" onclick="closeMenu()"><i class="fas fa-users"></i> Nominados</a>
-        <a href="#colaboradores" data-i18n="nav_colaboradores" onclick="closeMenu()"><i class="fas fa-handshake"></i> Colaboradores</a>
+        <a href="#inicio" data-i18n="nav_inicio" onclick="closeMenu()"><i class="fas fa-home"></i> Home</a>
+        <a href="#noticias" data-i18n="nav_noticias" onclick="closeMenu()"><i class="fas fa-newspaper"></i> News & Announcements</a>
+        <a href="votaciones.html" data-i18n="nav_manifiesto" onclick="closeMenu()"><i class="fas fa-vote-yea"></i> Vote</a>
+        <a href="#categorias" data-i18n="nav_categorias" onclick="closeMenu()"><i class="fas fa-list"></i> Categories</a>
+        <a href="#galardon" data-i18n="nav_galardon" onclick="closeMenu()"><i class="fas fa-trophy"></i> The Award</a>
+        <a href="#nominados" data-i18n="nav_nominados" onclick="closeMenu()"><i class="fas fa-users"></i> Nominees</a>
+        <a href="#colaboradores" data-i18n="nav_colaboradores" onclick="closeMenu()"><i class="fas fa-handshake"></i> Collaborators</a>
     </nav>
-
+ 
     <header id="inicio" class="animate-up">
         <img src="icono.adele.jpeg" alt="Daydreamers Awards Logo" class="logo-principal">
         <h1 class="animate-up"><i class="fas fa-star" style="color:var(--primary-color);"></i> Daydreamers Awards</h1>
-        <p data-i18n="header_desc" class="animate-up"><i class="fas fa-quote-left" style="color:var(--primary-color); font-size:0.8em;"></i> Los Daydreamers Awards constituyen la máxima distinción honorífica concebida por y para la comunidad global de fans de Adele. Nacidos de la admiración profunda hacia su legado, estos galardones rinden tributo a la pasión, la brillantez creativa y el compromiso incondicional de nuestros miembros y creadores más destacados.</p>
+        <p data-i18n="header_desc" class="animate-up"><i class="fas fa-quote-left" style="color:var(--primary-color); font-size:0.8em;"></i> The Daydreamers Awards stand as the ultimate honor created by and for the global Adele fan community. Born from a profound admiration for her legacy, these awards pay tribute to the passion, creative brilliance, and unwavering commitment of our most outstanding members and content creators.</p>
     </header>
-
-    <!-- SECCIÓN NOTICIAS Y ANUNCIOS -->
+ 
+    <!-- NEWS AND ANNOUNCEMENTS SECTION -->
     <section id="noticias">
-        <h2 data-i18n="noticias_titulo" class="animate-up"><i class="fas fa-bullhorn"></i> Noticias y Anuncios</h2>
+        <h2 data-i18n="noticias_titulo" class="animate-up"><i class="fas fa-bullhorn"></i> News & Announcements</h2>
         <div id="contenedor-noticias" class="grid-container animate-up">
-            <div class="estado-vacio glass-effect"><i class="fas fa-spinner fa-spin"></i> Cargando noticias...</div>
+            <div class="estado-vacio glass-effect"><i class="fas fa-spinner fa-spin"></i> Loading news...</div>
         </div>
     </section>
-
-    <!-- SECCIÓN MANIFIESTO -->
+ 
+    <!-- MANIFESTO SECTION -->
     <section id="manifiesto">
-        <h2 data-i18n="mani_titulo" class="animate-up"><i class="fas fa-book-open"></i> Manifiesto de los Daydreamers Awards</h2>
+        <h2 data-i18n="mani_titulo" class="animate-up"><i class="fas fa-book-open"></i> Daydreamers Awards Manifesto</h2>
         <div class="grid-container">
             <div class="historia-item glass-effect animate-up">
-                <h3 data-i18n="mani_origen_tit"><i class="fas fa-music"></i> El Origen del Nombre</h3>
-                <p data-i18n="mani_origen_desc">Inspirados en "Daydreamer", la icónica canción que abre el álbum debut de Adele (19), estos premios celebran a quienes soñaron en grande y convirtieron su admiración por la artista en un punto de encuentro, arte y comunidad.</p>
+                <h3 data-i18n="mani_origen_tit"><i class="fas fa-music"></i> The Origin of the Name</h3>
+                <p data-i18n="mani_origen_desc">Inspired by "Daydreamer", the iconic opening track from Adele's debut album (19), these awards celebrate those who dreamt big and turned their admiration for the artist into a meeting point, art, and community.</p>
             </div>
             <div class="historia-item glass-effect animate-up" style="transition-delay: 0.1s;">
-                <h3 data-i18n="mani_proposito_tit"><i class="fas fa-bullseye"></i> El Propósito</h3>
-                <p data-i18n="mani_proposito_desc">Reconocer el trabajo incansable de los creadores de contenido, administradores de fanpages, editores, analistas musicales y miembros activos que mantienen vivo el legado cultural de Adele en todas las plataformas digitales.</p>
+                <h3 data-i18n="mani_proposito_tit"><i class="fas fa-bullseye"></i> The Purpose</h3>
+                <p data-i18n="mani_proposito_desc">To recognize the tireless work of content creators, fanpage administrators, editors, music analysts, and active members who keep Adele's cultural legacy alive across all digital platforms.</p>
             </div>
             <div class="historia-item glass-effect animate-up" style="transition-delay: 0.2s;">
-                <h3 data-i18n="mani_logo_tit"><i class="fas fa-paint-brush"></i> El Significado del Logo</h3>
-                <p data-i18n="mani_logo_desc">La "D" monumental representa la unidad del fandom, mientras que el micrófono vintage en su centro evoca la esencia del canto y la voz. Las pequeñas siluetas integradas rinden honor a cada fan individual que apoya este proyecto.</p>
+                <h3 data-i18n="mani_logo_tit"><i class="fas fa-paint-brush"></i> The Meaning of the Logo</h3>
+                <p data-i18n="mani_logo_desc">The monumental "D" represents the unity of the fandom, while the vintage microphone at its center evokes the essence of singing and voice. The small integrated silhouettes honor every individual fan who supports this project.</p>
             </div>
         </div>
     </section>
-
-    <!-- SECCIÓN CATEGORÍAS -->
+ 
+    <!-- CATEGORIES SECTION -->
     <section id="categorias">
-        <h2 data-i18n="cat_titulo" class="animate-up"><i class="fas fa-award"></i> Categorías Principales</h2>
+        <h2 data-i18n="cat_titulo" class="animate-up"><i class="fas fa-award"></i> Main Categories</h2>
         <div class="grid-container">
             <div class="categoria-card glass-effect animate-up">
-                <h3 data-i18n="cat_1_tit"><i class="fas fa-video"></i> Creador del Año</h3>
-                <p data-i18n="cat_1_desc">Otorgado al canal o cuenta que haya producido el mejor contenido visual, informativo o de análisis sobre la carrera de la artista.</p>
+                <h3 data-i18n="cat_1_tit"><i class="fas fa-video"></i> Content Creator of the Year</h3>
+                <p data-i18n="cat_1_desc">Awarded to the channel or account that has produced the best visual, informative, or analytical content about the artist's career.</p>
             </div>
             <div class="categoria-card glass-effect animate-up">
-                <h3 data-i18n="cat_2_tit"><i class="fas fa-heart"></i> Leyenda de la Comunidad</h3>
-                <p data-i18n="cat_2_desc">Destinado al miembro más activo, solidario y dedicado dentro de las plataformas de la comunidad (TikTok, Instagram, grupos, etc).</p>
+                <h3 data-i18n="cat_2_tit"><i class="fas fa-heart"></i> Hometown Glory Legend</h3>
+                <p data-i18n="cat_2_desc">Destined for the most active, supportive, and dedicated member within the community's platforms (TikTok, Instagram, fan groups, etc).</p>
             </div>
             <div class="categoria-card glass-effect animate-up">
-                <h3 data-i18n="cat_3_tit"><i class="fas fa-palette"></i> Mejor Edición/Arte Fan</h3>
-                <p data-i18n="cat_3_desc">Dirigido a los diseñadores, editores de video y artistas gráficos que destacan por la calidad estética de sus creaciones inspiradas en Adele.</p>
+                <h3 data-i18n="cat_3_tit"><i class="fas fa-palette"></i> Chasing Pavements Creative Award</h3>
+                <p data-i18n="cat_3_desc">Directed at designers, video editors, and graphic artists who stand out for the aesthetic quality of their Adele-inspired creations.</p>
             </div>
         </div>
     </section>
-
-    <!-- SECCIÓN GALARDÓN -->
+ 
+    <!-- AWARD SECTION -->
     <div class="seccion-galardon glass-effect animate-up" id="galardon">
         <div class="galardon-content">
             <div class="galardon-texto">
-                <h2 data-i18n="galardon_titulo"><i class="fas fa-medal"></i> El Valor del Galardón</h2>
-                <p data-i18n="galardon_desc">Más que una simple distinción, obtener un Daydreamer Award representa el máximo estatus de respeto dentro de la comunidad: un reconocimiento que valida el tiempo, la dedicación y el amor por la música de Adele, inmortalizando el nombre del ganador en la historia del fandom.</p>
+                <h2 data-i18n="galardon_titulo"><i class="fas fa-medal"></i> The Value of the Award</h2>
+                <p data-i18n="galardon_desc">More than just a distinction, winning a Daydreamer Award represents the highest status of respect within the community: a recognition that validates time, dedication, and love for Adele's music, immortalizing the winner's name in fandom history.</p>
             </div>
             <div class="imagen-premio">
-                <img src="premio-award.jpeg" alt="Estatua del Daydreamer Award">
+                <img src="premio-award.jpeg" alt="Daydreamer Award Statue">
             </div>
         </div>
     </div>
-
-    <!-- SECCIÓN NOMINADOS -->
+ 
+    <!-- NOMINEES SECTION -->
     <section id="nominados">
-        <h2 data-i18n="nom_titulo" class="animate-up"><i class="fas fa-star-half-alt"></i> Nominated Communities and Creators</h2>
-        <div id="contenedor-nominados" class="grid-container animate-up">
+        <h2 class="animate-up"><i class="fas fa-star-half-alt"></i> <span data-i18n="nom_titulo">Nominated Communities and Creators</span><br><span id="nom-status" style="font-size: 0.6em; margin-top: 10px; display: inline-block;"></span></h2>
+        
+        <!-- Now the container uses carousel classes -->
+        <div id="contenedor-nominados" class="carousel-container animate-up">
             <div class="estado-vacio glass-effect"><i class="fas fa-spinner fa-spin"></i> Loading nominations...</div>
         </div>
     </section>
-
-    <!-- SECCIÓN COLABORADORES -->
+ 
+    <!-- COLLABORATORS SECTION -->
     <section id="colaboradores">
-        <h2 data-i18n="colab_titulo" class="animate-up"><i class="fas fa-users-cog"></i> Awards Collaborators</h2>
+        <h2 data-i18n="colab_titulo" class="animate-up"><i class="fas fa-users-cog"></i> Award Collaborators</h2>
         <div id="contenedor-colaboradores" class="grid-container animate-up">
             <div class="estado-vacio glass-effect"><i class="fas fa-spinner fa-spin"></i> Loading collaborators...</div>
         </div>
     </section>
-
-    <!-- PIE DE PÁGINA -->
+ 
+    <!-- FOOTER -->
     <footer class="glass-effect">
         <div class="footer-icons">
             <a href="#"><i class="fab fa-instagram"></i></a>
@@ -460,23 +538,23 @@
         </div>
         <p class="footer-text"><i class="fas fa-copyright"></i> 2026 Daydreamers Awards. All rights reserved by the Adele community.</p>
     </footer>
-
-    <!-- BOTÓN ADMIN -->
-    <div class="admin-btn" onclick="pedirPasswordAdmin()" title="Panel de Administración">
+ 
+    <!-- ADMIN BUTTON -->
+    <div class="admin-btn" onclick="pedirPasswordAdmin()" title="Admin Panel">
         <i class="fas fa-crown"></i>
     </div>
-
-    <!-- MODAL PRINCIPAL (ADMIN) -->
+ 
+    <!-- MAIN ADMIN MODAL -->
     <div class="custom-overlay" id="adminModalOverlay">
         <div class="custom-modal glass-effect" id="adminModalContent"></div>
     </div>
-
-    <!-- MODAL DE ALERTAS -->
+ 
+    <!-- ALERT MODAL -->
     <div class="custom-overlay" id="alertOverlay" style="z-index: 3000;">
         <div class="custom-modal glass-effect" id="alertContent"></div>
     </div>
-
-    <!-- POPUP SUSCRIPCIÓN -->
+ 
+    <!-- SUBSCRIPTION POPUP -->
     <div class="custom-overlay" id="popupOverlay" style="z-index: 2000;">
         <div class="popup" style="background: var(--glass-bg); backdrop-filter: blur(15px); border: 1px solid var(--glass-border);">
             <form class="form" id="subscribeForm">
@@ -490,7 +568,7 @@
                 </div>
                 <div class="note">
                     <label class="title" data-i18n="popup_title">Subscribe for <span style="color: var(--primary-color);">ADELE</span> updates</label>
-                    <span class="subtitle" data-i18n="popup_desc">Subscribe to this weekly news letter so you don’t miss out on the new hot tech topics.</span>
+                    <span class="subtitle" data-i18n="popup_desc">Subscribe to this newsletter so you don't miss out on the latest news and announcements.</span>
                 </div>
                 <input placeholder="Enter your e-mail" title="Enter your e-mail" name="email" type="email" class="input_field" id="subEmail" required>
                 <button type="submit" class="submit" id="btnSubscribe">Submit</button>
@@ -498,11 +576,11 @@
             <button onclick="document.getElementById('popupOverlay').classList.remove('active')" style="position:absolute; top:15px; right:15px; background:transparent; border:none; color:var(--text-dark); cursor:pointer; font-size: 1.2rem;"><i class="fas fa-times"></i></button>
         </div>
     </div>
-
+ 
     <script>
         const IMGBB_API_KEY = "f5567fb36a6232aae841ea9aac0ee139";
-
-        // Quitar Animación de Carga Inicial
+ 
+        // Initial Load Animation
         window.addEventListener('load', () => {
             setTimeout(() => {
                 const loader = document.getElementById('loader-wrapper');
@@ -510,15 +588,34 @@
                 setTimeout(() => loader.style.visibility = 'hidden', 500);
             }, 1200); 
             
-            // Mostrar Popup tras 4 segundos si no se ha suscrito
+            // Show Popup after 4 seconds
             setTimeout(() => {
                 if (!localStorage.getItem('adele_subscribed')) {
                     document.getElementById('popupOverlay').classList.add('active');
                 }
             }, 4000);
+ 
+            // Start Auto-Scroll for Nominees Carousel
+            autoScrollCarousel();
         });
-
-        // Manejar suscripción de correo
+ 
+        // Smooth Carousel Function (JS)
+        function autoScrollCarousel() {
+            const container = document.getElementById('contenedor-nominados');
+            if(!container) return;
+            
+            setInterval(() => {
+                // Stops on hover or if content doesn't overflow
+                if (container.matches(':hover') || container.scrollWidth <= container.clientWidth) return;
+                
+                container.scrollLeft += 1;
+                if (container.scrollLeft >= (container.scrollWidth - container.clientWidth - 1)) {
+                    container.scrollLeft = 0; 
+                }
+            }, 25);
+        }
+ 
+        // Handle subscription
         document.getElementById('subscribeForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const email = document.getElementById('subEmail').value;
@@ -532,37 +629,37 @@
                 });
                 localStorage.setItem('adele_subscribed', 'true');
                 document.getElementById('popupOverlay').classList.remove('active');
-                mostrarAlerta("¡Suscripción exitosa! Te mantendremos informado.", "fa-check-circle", "#4CAF50");
+                mostrarAlerta("Successful subscription! We'll keep you informed.", "fa-check-circle", "#4CAF50");
             } catch (err) {
                 console.error(err);
-                mostrarAlerta("Error al guardar correo.", "fa-times", "#ff4444");
+                mostrarAlerta("Error saving email.", "fa-times", "#ff4444");
                 btn.innerText = "Submit";
             }
         });
-
+ 
         function mostrarAlerta(mensaje, icono = "fa-info-circle", color = "var(--primary-color)") {
             const overlay = document.getElementById('alertOverlay');
             const content = document.getElementById('alertContent');
             content.innerHTML = `
                 <i class="fas ${icono}" style="font-size: 3rem; color: ${color}; margin-bottom: 1rem;"></i>
                 <p style="font-size: 1.1rem; margin-bottom: 1.5rem; color: var(--text-dark); font-weight:bold;">${mensaje}</p>
-                <button class="btn-action" onclick="document.getElementById('alertOverlay').classList.remove('active')"><i class="fas fa-check"></i> Aceptar</button>
+                <button class="btn-action" onclick="document.getElementById('alertOverlay').classList.remove('active')"><i class="fas fa-check"></i> Accept</button>
             `;
             overlay.classList.add('active');
         }
-
+ 
         const observer = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
                 if (entry.isIntersecting) entry.target.classList.add('visible');
             });
         }, { threshold: 0.1 });
         document.querySelectorAll('.animate-up').forEach((el) => observer.observe(el));
-
+ 
         const hamburger = document.getElementById('hamburger');
         const sidebar = document.getElementById('sidebar');
         hamburger.addEventListener('click', () => { hamburger.classList.toggle('active'); sidebar.classList.toggle('open'); });
         function closeMenu() { hamburger.classList.remove('active'); sidebar.classList.remove('open'); }
-
+ 
         function toggleTheme() {
             const html = document.documentElement;
             const icon = document.getElementById('theme-icon');
@@ -572,7 +669,10 @@
                 html.setAttribute('data-theme', 'light'); icon.classList.replace('fa-sun', 'fa-moon');
             }
         }
-
+ 
+        // ==========================================
+        // LANGUAGE SYSTEM (100% English Default)
+        // ==========================================
         let currentLang = 'en';
         const langBtn = document.getElementById('lang-btn');
         const translations = {
@@ -591,7 +691,7 @@
                 cat_3_tit: "Mejor Edición/Arte Fan (Chasing Pavements Creative Award)", cat_3_desc: "Dirigido a los diseñadores, editores de video y artistas gráficos que destacan por la calidad estética de sus creaciones inspiradas en Adele.",
                 galardon_titulo: "El Valor del Galardón", galardon_desc: "Más que una simple distinción, obtener un Daydreamer Award representa el máximo estatus de respeto dentro de la comunidad: un reconocimiento que valida el tiempo, la dedicación y el amor por la música de Adele, inmortalizando el nombre del ganador en la historia del fandom.",
                 nom_titulo: "Comunidades y Creadores Nominados", colab_titulo: "Colaboradores de los Premios",
-                popup_title: `Subscribe for <span style="color: var(--primary-color);">ADELE</span> updates`,
+                popup_title: `Suscríbete a actualizaciones de <span style="color: var(--primary-color);">ADELE</span>`,
                 popup_desc: "Suscríbete a nuestro boletín para no perderte las últimas noticias y anuncios de los premios."
             },
             en: {
@@ -610,10 +710,10 @@
                 galardon_titulo: "The Value of the Award", galardon_desc: "More than just a distinction, winning a Daydreamer Award represents the highest status of respect within the community: a recognition that validates time, dedication, and love for Adele's music, immortalizing the winner's name in fandom history.",
                 nom_titulo: "Nominated Communities and Creators", colab_titulo: "Award Collaborators",
                 popup_title: `Subscribe for <span style="color: var(--primary-color);">ADELE</span> updates`,
-                popup_desc: "Subscribe to this newsletter so you don’t miss out on the latest news and announcements."
+                popup_desc: "Subscribe to this newsletter so you don't miss out on the latest news and announcements."
             }
         };
-
+ 
         function aplicarIdioma() {
             document.querySelectorAll('[data-i18n]').forEach(el => {
                 const key = el.getAttribute('data-i18n');
@@ -632,7 +732,10 @@
         }
         window.addEventListener('load', () => aplicarIdioma());
         function toggleLang() { currentLang = currentLang === 'es' ? 'en' : 'es'; aplicarIdioma(); }
-
+ 
+        // ==========================================
+        // FIREBASE DATABASE READING
+        // ==========================================
         function cargarNominados() {
             const { db, appId, collection, onSnapshot } = window.fb;
             const nomineesRef = collection(db, 'artifacts', appId, 'public', 'data', 'awards_nominees');
@@ -646,22 +749,25 @@
                     const data = doc.data();
                     contenedor.innerHTML += `
                         <div class="card-base glass-effect">
-                            <img src="${data.imagenUrl}" alt="${data.nombre}" class="avatar-img">
+                            <img src="${data.imagenUrl}" alt="${data.nombre}" class="avatar-img" loading="lazy">
                             <h3 class="card-name">${data.nombre}</h3>
                             <p class="card-meta"><i class="fas fa-tag" style="color:var(--primary-color);"></i> ${data.categoria}</p>
-                            <a href="votaciones.html" class="btn-action"><i class="fas fa-vote-yea"></i> Votar</a>
+                            <p class="card-meta" style="font-weight: 800; margin-top: 5px; color: var(--text-dark);">
+                                <i class="fas fa-star" style="color:var(--primary-color);"></i> ${data.votos || 0} Votes
+                            </p>
+                            <a href="votaciones.html" class="btn-action"><i class="fas fa-vote-yea"></i> Vote / Details</a>
                         </div>`;
                 });
             });
         }
-
+ 
         function cargarColaboradores() {
             const { db, appId, collection, onSnapshot } = window.fb;
             const colabRef = collection(db, 'artifacts', appId, 'public', 'data', 'awards_colaboradores');
             onSnapshot(colabRef, (snapshot) => {
                 const contenedor = document.getElementById('contenedor-colaboradores');
                 if(snapshot.empty) {
-                    contenedor.innerHTML = `<div class="estado-vacio glass-effect"><i class="fas fa-tools"></i> Sección en construcción para nuestros futuros colaboradores y patrocinadores.</div>`; return;
+                    contenedor.innerHTML = `<div class="estado-vacio glass-effect"><i class="fas fa-tools"></i> Under construction for future collaborators.</div>`; return;
                 }
                 contenedor.innerHTML = '';
                 snapshot.forEach(doc => {
@@ -676,36 +782,35 @@
                 });
             });
         }
-
+ 
         function cargarNoticias() {
             const { db, appId, collection, onSnapshot, query, orderBy } = window.fb;
             const noticiasRef = query(collection(db, 'artifacts', appId, 'public', 'data', 'awards_noticias'), orderBy('fechaRegistro', 'desc'));
             const contenedor = document.getElementById('contenedor-noticias');
-
+ 
             onSnapshot(noticiasRef, (snapshot) => {
                 if(snapshot.empty) {
-                    contenedor.innerHTML = `<div class="estado-vacio glass-effect"><i class="fas fa-envelope-open-text"></i>We’ll soon be posting new news and announcements.</div>`; return;
+                    contenedor.innerHTML = `<div class="estado-vacio glass-effect"><i class="fas fa-envelope-open-text"></i> We'll soon be posting new news and announcements.</div>`; return;
                 }
                 contenedor.innerHTML = '';
                 snapshot.forEach(documento => {
                     const data = documento.data();
                     const id = documento.id;
-                    let btnHTML = data.enlace ? `<a href="${data.enlace}" target="_blank" class="btn-action" style="margin-bottom: 10px;"><i class="fas fa-link"></i> Más Información</a>` : '';
+                    let btnHTML = data.enlace ? `<a href="${data.enlace}" target="_blank" class="btn-action" style="margin-bottom: 10px;"><i class="fas fa-link"></i> More Info</a>` : '';
                     
-                    // Si es Administrador, agregamos botones de control a la noticia
                     let adminControls = '';
                     if (window.isAdmin) {
                         adminControls = `
                             <div class="admin-controls-news">
-                                <button class="btn-edit" onclick="editarNoticia('${id}', '${data.titulo.replace(/'/g, "\\'")}', '${data.informacion.replace(/'/g, "\\'")}', '${data.enlace || ''}')"><i class="fas fa-edit"></i> Editar</button>
-                                <button class="btn-delete" onclick="eliminarNoticia('${id}')"><i class="fas fa-trash"></i> Eliminar</button>
+                                <button class="btn-edit" onclick="editarNoticia('${id}', '${data.titulo.replace(/'/g, "\\'")}', '${data.informacion.replace(/'/g, "\\'")}', '${data.enlace || ''}')"><i class="fas fa-edit"></i> Edit</button>
+                                <button class="btn-delete" onclick="eliminarNoticia('${id}')"><i class="fas fa-trash"></i> Delete</button>
                             </div>
                         `;
                     }
-
+ 
                     contenedor.innerHTML += `
                         <div class="news-card">
-                            <img src="${data.imagenUrl}" alt="Noticia" class="news-img" loading="lazy">
+                            <img src="${data.imagenUrl}" alt="News" class="news-img" loading="lazy">
                             <div class="news-content">
                                 <h3>${data.titulo}</h3>
                                 <p class="news-date"><i class="fas fa-clock"></i> ${new Date(data.fechaRegistro).toLocaleDateString()}</p>
@@ -718,42 +823,42 @@
                 });
             });
         }
-
-        // --- FUNCIONES DE EDICIÓN Y ELIMINACIÓN DE NOTICIAS ---
+ 
+        // --- NEWS EDITING AND DELETION FUNCTIONS ---
         window.eliminarNoticia = async function(id) {
-            if(confirm("¿Estás seguro de eliminar este anuncio permanentemente?")) {
+            if(confirm("Are you sure you want to permanently delete this announcement?")) {
                 try {
                     const { db, appId, doc, deleteDoc } = window.fb;
                     await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'awards_noticias', id));
-                    mostrarAlerta("Noticia eliminada correctamente", "fa-check", "#4CAF50");
+                    mostrarAlerta("News successfully deleted", "fa-check", "#4CAF50");
                 } catch(e) {
-                    mostrarAlerta("Error al eliminar", "fa-times", "#ff4444");
+                    mostrarAlerta("Error deleting", "fa-times", "#ff4444");
                 }
             }
         }
-
+ 
         window.editarNoticia = function(id, tituloActual, infoActual, enlaceActual) {
             const adminContent = document.getElementById('adminModalContent');
             adminContent.innerHTML = `
-                <h3 class="modal-title"><i class="fas fa-edit"></i> Editar Noticia</h3>
+                <h3 class="modal-title"><i class="fas fa-edit"></i> Edit News</h3>
                 <div class="form-group">
-                    <label>Título</label>
+                    <label>Title</label>
                     <input type="text" id="editNotiTitulo" value="${tituloActual}">
                 </div>
                 <div class="form-group">
-                    <label>Información</label>
+                    <label>Information</label>
                     <textarea id="editNotiInfo">${infoActual}</textarea>
                 </div>
                 <div class="form-group">
-                    <label>Enlace</label>
+                    <label>Link</label>
                     <input type="url" id="editNotiEnlace" value="${enlaceActual}">
                 </div>
-                <button class="btn-modal" onclick="guardarEdicionNoticia('${id}')"><i class="fas fa-save"></i> Guardar Cambios</button>
-                <button class="btn-modal cancel" onclick="cerrarAdminModal()"><i class="fas fa-times"></i> Cancelar</button>
+                <button class="btn-modal" onclick="guardarEdicionNoticia('${id}')"><i class="fas fa-save"></i> Save Changes</button>
+                <button class="btn-modal cancel" onclick="cerrarAdminModal()"><i class="fas fa-times"></i> Cancel</button>
             `;
             document.getElementById('adminModalOverlay').classList.add('active');
         }
-
+ 
         window.guardarEdicionNoticia = async function(id) {
             const titulo = document.getElementById('editNotiTitulo').value;
             const info = document.getElementById('editNotiInfo').value;
@@ -764,71 +869,103 @@
                 const notiRef = doc(db, 'artifacts', appId, 'public', 'data', 'awards_noticias', id);
                 await updateDoc(notiRef, { titulo: titulo, informacion: info, enlace: enlace });
                 cerrarAdminModal();
-                mostrarAlerta("Noticia actualizada", "fa-check", "#4CAF50");
+                mostrarAlerta("News updated", "fa-check", "#4CAF50");
             } catch(e) {
-                mostrarAlerta("Error al actualizar", "fa-times", "#ff4444");
+                mostrarAlerta("Update error", "fa-times", "#ff4444");
             }
         }
-
-        // --- PANEL DE ADMIN ORIGINAL ---
+ 
+        // --- ADMIN PANEL ---
         const adminOverlay = document.getElementById('adminModalOverlay');
         const adminContent = document.getElementById('adminModalContent');
         function cerrarAdminModal() { adminOverlay.classList.remove('active'); }
         adminOverlay.addEventListener('click', (e) => { if (e.target === adminOverlay) cerrarAdminModal(); });
-
+ 
         window.pedirPasswordAdmin = function() {
             adminContent.innerHTML = `
-                <h3 class="modal-title"><i class="fas fa-lock"></i> Acceso Administrador</h3>
-                <p style="font-size: 14px; margin-bottom:15px; color:var(--text-dark); font-weight:bold;">Panel para publicar y editar.</p>
-                <div class="form-group"><input type="password" id="adminPass" placeholder="Contraseña..." onkeypress="if(event.key === 'Enter') verificarAdmin()"></div>
-                <button class="btn-modal" onclick="verificarAdmin()"><i class="fas fa-sign-in-alt"></i> Entrar</button>
-                <button class="btn-modal cancel" onclick="cerrarAdminModal()"><i class="fas fa-times"></i> Cancelar</button>
+                <h3 class="modal-title"><i class="fas fa-lock"></i> Admin Access</h3>
+                <p style="font-size: 14px; margin-bottom:15px; color:var(--text-dark); font-weight:bold;">Panel for managing the site.</p>
+                <div class="form-group"><input type="password" id="adminPass" placeholder="Password..." onkeypress="if(event.key === 'Enter') verificarAdmin()"></div>
+                <button class="btn-modal" onclick="verificarAdmin()"><i class="fas fa-sign-in-alt"></i> Enter</button>
+                <button class="btn-modal cancel" onclick="cerrarAdminModal()"><i class="fas fa-times"></i> Cancel</button>
             `;
             adminOverlay.classList.add('active');
         }
-
+ 
         window.verificarAdmin = function() {
             if (document.getElementById('adminPass').value === 'admin540') {
-                window.isAdmin = true; // Activa modo admin visual
+                window.isAdmin = true; 
                 mostrarMenuAdmin();
-                cargarNoticias(); // Recarga noticias para inyectar botones de editar/borrar
+                cargarNoticias(); 
             } else {
-                mostrarAlerta("Contraseña incorrecta", "fa-times-circle", "#ff4444"); cerrarAdminModal();
+                mostrarAlerta("Incorrect password", "fa-times-circle", "#ff4444"); cerrarAdminModal();
             }
         }
-
+ 
         function mostrarMenuAdmin() {
             adminContent.innerHTML = `
-                <h3 class="modal-title"><i class="fas fa-cogs"></i> Panel de Control</h3>
-                <div class="admin-options">
-                    <button class="btn-modal" onclick="mostrarFormularioNoticia()"><i class="fas fa-newspaper"></i> Publicar Nueva Noticia</button>
-                    <button class="btn-modal" onclick="mostrarFormularioColab()"><i class="fas fa-handshake"></i> Añadir Colaborador</button>
+                <h3 class="modal-title"><i class="fas fa-cogs"></i> Control Panel</h3>
+                
+                <div class="admin-stats">
+                    <i class="fas fa-eye" style="font-size: 1.5rem; color: var(--primary-color);"></i>
+                    <h4 style="margin-top: 5px;">Total Unique Site Views</h4>
+                    <p style="font-size: 1.2rem; font-weight: bold;">${window.statsViews}</p>
                 </div>
-                <button class="btn-modal cancel" onclick="cerrarAdminModal(); window.isAdmin=false; cargarNoticias();"><i class="fas fa-sign-out-alt"></i> Salir del Modo Admin</button>
+ 
+                <div class="admin-options">
+                    <button class="btn-modal" onclick="mostrarFormularioMarquee()"><i class="fas fa-text-width"></i> Edit Scrolling Text (Marquee)</button>
+                    <button class="btn-modal" onclick="mostrarFormularioNoticia()"><i class="fas fa-newspaper"></i> Publish New News</button>
+                    <button class="btn-modal" onclick="mostrarFormularioColab()"><i class="fas fa-handshake"></i> Add Collaborator</button>
+                    <a href="votaciones.html" class="btn-modal" style="display:block; background:#4CAF50; color:white; text-decoration:none;"><i class="fas fa-vote-yea"></i> Go to Voting Dashboard</a>
+                </div>
+                <button class="btn-modal cancel" onclick="cerrarAdminModal(); window.isAdmin=false; cargarNoticias();"><i class="fas fa-sign-out-alt"></i> Exit Admin Mode</button>
             `;
         }
-
+ 
+        window.mostrarFormularioMarquee = function() {
+            const currentText = document.getElementById('marqueeText').innerText;
+            adminContent.innerHTML = `
+                <h3 class="modal-title"><i class="fas fa-text-width"></i> Scrolling Text</h3>
+                <div class="form-group"><label>Marquee Top Bar Text</label><textarea id="editMarqueeInput">${currentText}</textarea></div>
+                <button class="btn-modal" onclick="guardarMarqueeText()"><i class="fas fa-save"></i> Save Text</button>
+                <button class="btn-modal cancel" onclick="mostrarMenuAdmin()"><i class="fas fa-arrow-left"></i> Go Back</button>
+            `;
+        }
+ 
+        window.guardarMarqueeText = async function() {
+            const text = document.getElementById('editMarqueeInput').value.trim();
+            try {
+                const { db, appId, doc, setDoc } = window.fb;
+                const configRef = doc(db, 'artifacts', appId, 'public', 'data', 'awards_settings', 'config');
+                await setDoc(configRef, { marqueeText: text }, { merge: true });
+                mostrarMenuAdmin(); 
+                mostrarAlerta("Top bar text updated", "fa-check", "#4CAF50");
+            } catch(e) {
+                mostrarAlerta("Error saving text", "fa-times", "red");
+            }
+        }
+ 
         window.mostrarFormularioNoticia = function() {
             adminContent.innerHTML = `
-                <h3 class="modal-title"><i class="fas fa-bullhorn"></i> Publicar Noticia</h3>
-                <div class="form-group"><label>Título</label><input type="text" id="notiTitulo"></div>
-                <div class="form-group"><label>Información</label><textarea id="notiInfo"></textarea></div>
-                <div class="form-group"><label>Enlace (Opcional)</label><input type="url" id="notiEnlace"></div>
-                <div class="form-group"><label>Imagen (Obligatoria)</label><input type="file" id="notiFile" accept="image/*" style="padding: 8px;"></div>
-                <div id="loaderAdmin"><i class="fas fa-spinner fa-spin"></i> Subiendo y guardando...</div>
-                <button class="btn-modal" id="btnGuardarNoti" onclick="guardarNoticia()"><i class="fas fa-paper-plane"></i> Publicar Noticia</button>
-                <button class="btn-modal cancel" onclick="mostrarMenuAdmin()"><i class="fas fa-arrow-left"></i> Volver</button>
+                <h3 class="modal-title"><i class="fas fa-bullhorn"></i> Publish News</h3>
+                <div class="form-group"><label>Title</label><input type="text" id="notiTitulo"></div>
+                <div class="form-group"><label>Information</label><textarea id="notiInfo"></textarea></div>
+                <div class="form-group"><label>Link (Optional)</label><input type="url" id="notiEnlace"></div>
+                <div class="form-group"><label>Image (Required)</label><input type="file" id="notiFile" accept="image/*" style="padding: 8px;"></div>
+                <div id="loaderAdmin"><i class="fas fa-spinner fa-spin"></i> Uploading...</div>
+                <button class="btn-modal" id="btnGuardarNoti" onclick="guardarNoticia()"><i class="fas fa-paper-plane"></i> Publish News</button>
+                <button class="btn-modal cancel" onclick="mostrarMenuAdmin()"><i class="fas fa-arrow-left"></i> Go Back</button>
             `;
         }
-
+ 
         window.guardarNoticia = async function() {
             const titulo = document.getElementById('notiTitulo').value.trim(); const info = document.getElementById('notiInfo').value.trim();
             const enlace = document.getElementById('notiEnlace').value.trim(); const fileInput = document.getElementById('notiFile');
-            if (!titulo || !info || fileInput.files.length === 0) return mostrarAlerta("Faltan datos o imagen", "fa-exclamation", "orange");
-
+            if (!titulo || !info || fileInput.files.length === 0) return mostrarAlerta("Missing data or image", "fa-exclamation", "orange");
+ 
             const loader = document.getElementById('loaderAdmin'); document.getElementById('btnGuardarNoti').disabled = true; loader.style.display = 'block';
             const formData = new FormData(); formData.append('image', fileInput.files[0]);
-
+ 
             try {
                 const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, { method: 'POST', body: formData });
                 const { data } = await res.json();
@@ -836,30 +973,29 @@
                 await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'awards_noticias'), {
                     titulo: titulo, informacion: info, enlace: enlace, imagenUrl: data.url, fechaRegistro: new Date().toISOString()
                 });
-                mostrarMenuAdmin(); mostrarAlerta("Noticia publicada", "fa-check", "#4CAF50");
+                mostrarMenuAdmin(); mostrarAlerta("News published", "fa-check", "#4CAF50");
             } catch (e) {
-                mostrarAlerta("Error al subir", "fa-times", "red"); loader.style.display = 'none'; document.getElementById('btnGuardarNoti').disabled = false;
+                mostrarAlerta("Error uploading", "fa-times", "red"); loader.style.display = 'none'; document.getElementById('btnGuardarNoti').disabled = false;
             }
         }
-
-        // Formulario de colaboradores mantenido intacto...
+ 
         window.mostrarFormularioColab = function() {
             adminContent.innerHTML = `
-                <h3 class="modal-title"><i class="fas fa-user-plus"></i> Añadir Colaborador</h3>
-                <div class="form-group"><label>Nombre</label><input type="text" id="colabNombre"></div>
-                <div class="form-group"><label>Enlace</label><input type="url" id="colabEnlace"></div>
-                <div class="form-group"><label>Foto (Obligatoria)</label><input type="file" id="colabFile" accept="image/*"></div>
-                <div id="loaderAdmin"><i class="fas fa-spinner fa-spin"></i> Guardando...</div>
-                <button class="btn-modal" id="btnGuardarColab" onclick="guardarColaborador()"><i class="fas fa-save"></i> Guardar</button>
-                <button class="btn-modal cancel" onclick="mostrarMenuAdmin()">Volver</button>
+                <h3 class="modal-title"><i class="fas fa-user-plus"></i> Add Collaborator</h3>
+                <div class="form-group"><label>Name</label><input type="text" id="colabNombre"></div>
+                <div class="form-group"><label>Link</label><input type="url" id="colabEnlace"></div>
+                <div class="form-group"><label>Photo (Required)</label><input type="file" id="colabFile" accept="image/*"></div>
+                <div id="loaderAdmin"><i class="fas fa-spinner fa-spin"></i> Saving...</div>
+                <button class="btn-modal" id="btnGuardarColab" onclick="guardarColaborador()"><i class="fas fa-save"></i> Save</button>
+                <button class="btn-modal cancel" onclick="mostrarMenuAdmin()">Go Back</button>
             `;
         }
         
         window.guardarColaborador = async function() {
             const nombre = document.getElementById('colabNombre').value; const enlace = document.getElementById('colabEnlace').value;
             const fileInput = document.getElementById('colabFile');
-            if (!nombre || !enlace || fileInput.files.length === 0) return mostrarAlerta("Faltan datos.", "fa-exclamation", "orange");
-
+            if (!nombre || !enlace || fileInput.files.length === 0) return mostrarAlerta("Missing data.", "fa-exclamation", "orange");
+ 
             const loader = document.getElementById('loaderAdmin'); document.getElementById('btnGuardarColab').disabled = true; loader.style.display = 'block';
             const formData = new FormData(); formData.append('image', fileInput.files[0]);
             try {
@@ -867,7 +1003,7 @@
                 const { data } = await res.json();
                 const { db, appId, collection, addDoc } = window.fb;
                 await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'awards_colaboradores'), { nombre, enlace, imagenUrl: data.url, fechaRegistro: new Date().toISOString() });
-                mostrarMenuAdmin(); mostrarAlerta("Colaborador añadido", "fa-check", "#4CAF50");
+                mostrarMenuAdmin(); mostrarAlerta("Collaborator added", "fa-check", "#4CAF50");
             } catch (e) { mostrarAlerta("Error", "fa-times", "red"); loader.style.display = 'none'; document.getElementById('btnGuardarColab').disabled = false; }
         }
     </script>
