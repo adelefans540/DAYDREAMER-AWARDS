@@ -6,12 +6,14 @@
     <title>DAYDREAMERS AWARDS - Votaciones</title>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Librería para generar la Share Card -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { 
-            getFirestore, collection, addDoc, doc, updateDoc, increment, onSnapshot 
+            getFirestore, collection, addDoc, doc, updateDoc, increment, onSnapshot, arrayUnion, setDoc 
         } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // Configuración de Firebase
@@ -30,12 +32,14 @@
         const db = getFirestore(app);
         const appId = 'adele-fans-app';
 
-        window.fb = { db, appId, collection, addDoc, doc, updateDoc, increment, onSnapshot };
+        window.fb = { db, appId, collection, addDoc, doc, updateDoc, increment, onSnapshot, arrayUnion, setDoc };
 
-        // Autenticación
+        // Autenticación Anónima (Previene votos duplicados cruzando con UID)
+        window.currentUserUid = null;
         signInAnonymously(auth).catch((error) => console.error("Error Auth Firebase:", error));
         onAuthStateChanged(auth, (user) => {
             if (user) {
+                window.currentUserUid = user.uid;
                 initAwardsLogic();
             }
         });
@@ -71,42 +75,48 @@
         .logo-text { font-size: 22px; font-weight: bold; letter-spacing: 2px; color: var(--gold); }
 
         /* === HEADER DE PREMIOS === */
-        .awards-header {
-            margin-top: 120px; text-align: center; padding: 0 20px;
-        }
+        .awards-header { margin-top: 100px; text-align: center; padding: 0 20px; }
         .awards-title { font-size: 42px; color: var(--gold); text-transform: uppercase; letter-spacing: 3px; text-shadow: 0 2px 10px rgba(212, 175, 55, 0.2); }
         .awards-subtitle { font-size: 16px; color: #555555; margin-top: 10px; max-width: 600px; margin-left: auto; margin-right: auto; }
 
-        /* === CONTENEDOR DE CATEGORÍAS === */
-        .categories-container {
-            max-width: 1200px; margin: 40px auto; padding: 0 20px; display: flex; flex-direction: column; gap: 50px;
+        /* === DASHBOARD DE UX (NUEVO) === */
+        .dashboard-ux {
+            max-width: 1200px; margin: 20px auto; padding: 20px; background: var(--glass-bg);
+            border-radius: 15px; border: 1px solid var(--glass-border); box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            display: flex; flex-direction: column; gap: 15px;
         }
+        .dashboard-top { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; }
+        
+        .countdown-timer { font-size: 18px; font-weight: bold; color: #e74c3c; display: flex; align-items: center; gap: 8px; }
+        
+        .progress-container { flex-grow: 1; max-width: 500px; }
+        .progress-text { font-size: 14px; font-weight: bold; color: var(--gold); margin-bottom: 5px; }
+        .progress-bar-bg { width: 100%; height: 10px; background: #e0e0e0; border-radius: 5px; overflow: hidden; }
+        .progress-bar-fill { height: 100%; background: var(--gold); width: 0%; transition: width 0.5s ease; }
+        
+        .search-filters { display: flex; gap: 10px; width: 100%; }
+        .search-input, .filter-select {
+            padding: 10px 15px; border-radius: 20px; border: 1px solid var(--glass-border); outline: none;
+            background: #fff; flex-grow: 1;
+        }
+        .filter-select { flex-grow: 0; min-width: 200px; cursor: pointer; color: var(--text-main); }
 
-        .category-section {
-            background: var(--glass-bg); backdrop-filter: blur(10px); border: 1px solid var(--glass-border);
-            border-radius: 20px; padding: 30px; box-shadow: 0 10px 30px rgba(212, 175, 55, 0.1);
-        }
-        .category-title {
-            font-size: 26px; color: var(--gold); margin-bottom: 25px; border-bottom: 2px solid var(--gold);
-            padding-bottom: 10px; display: inline-block; font-weight: bold;
-        }
+        /* === CONTENEDOR DE CATEGORÍAS === */
+        .categories-container { max-width: 1200px; margin: 20px auto 100px; padding: 0 20px; display: flex; flex-direction: column; gap: 50px; }
+        .category-section { background: var(--glass-bg); backdrop-filter: blur(10px); border: 1px solid var(--glass-border); border-radius: 20px; padding: 30px; box-shadow: 0 10px 30px rgba(212, 175, 55, 0.1); }
+        .category-title { font-size: 26px; color: var(--gold); margin-bottom: 25px; border-bottom: 2px solid var(--gold); padding-bottom: 10px; display: inline-block; font-weight: bold; }
 
         /* === GRILLA DE NOMINADOS === */
-        .nominees-grid {
-            display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 25px;
-        }
-
+        .nominees-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 25px; }
         .nominee-card {
             background: #ffffff; border: 1px solid var(--glass-border); border-radius: 15px;
             overflow: hidden; text-align: center; transition: 0.3s; position: relative;
             box-shadow: 0 4px 15px rgba(0,0,0,0.05); display: flex; flex-direction: column; justify-content: space-between;
         }
         .nominee-card:hover { transform: translateY(-10px); border-color: var(--gold); box-shadow: 0 10px 20px rgba(212, 175, 55, 0.2); }
-        
         .nominee-img-wrapper { width: 100%; aspect-ratio: 1; overflow: hidden; background: #f5f5f5; }
         .nominee-img { width: 100%; height: 100%; object-fit: cover; transition: 0.5s; }
         .nominee-card:hover .nominee-img { transform: scale(1.1); }
-
         .nominee-info { padding: 15px; display: flex; flex-direction: column; flex-grow: 1; justify-content: space-between; }
         .nominee-name { font-size: 18px; font-weight: bold; margin-bottom: 5px; color: var(--text-main); }
         .nominee-followers { font-size: 12px; color: #666; margin-bottom: 8px; }
@@ -120,7 +130,6 @@
         }
         .btn-vote:hover { opacity: 0.85; transform: scale(1.05); }
         .btn-vote:disabled { background: #e0e0e0; color: #888; cursor: not-allowed; transform: none; }
-        
         .voted-badge { background: #4CAF50; color: white !important; }
 
         .btn-edit-nominee {
@@ -130,6 +139,30 @@
             cursor: pointer; transition: 0.3s; z-index: 10;
         }
         .btn-edit-nominee:hover { background: var(--gold); color: #fff; }
+
+        /* === BARRAS DE PORCENTAJE (RESULTADOS) === */
+        .result-bar-container { width: 100%; margin-top: 10px; text-align: left; }
+        .result-bar-bg { width: 100%; height: 8px; background: #eee; border-radius: 4px; overflow: hidden; margin-bottom: 5px; }
+        .result-bar-fill { height: 100%; background: var(--gold); width: 0%; transition: width 1s ease-in-out; }
+        .result-text { font-size: 12px; font-weight: bold; color: #555; display: flex; justify-content: space-between; }
+
+        /* === SHARE CARD === */
+        .btn-share-card {
+            display: block; width: fit-content; margin: 20px auto; padding: 15px 30px;
+            background: linear-gradient(135deg, var(--gold), #b8860b); color: white; border: none;
+            border-radius: 30px; font-size: 16px; font-weight: bold; cursor: pointer; box-shadow: 0 5px 15px rgba(212,175,55,0.4);
+            transition: 0.3s;
+        }
+        .btn-share-card:hover { transform: scale(1.05); box-shadow: 0 8px 20px rgba(212,175,55,0.6); }
+
+        #shareCardRender {
+            background: linear-gradient(135deg, #111, #333); color: var(--gold); padding: 30px; border-radius: 15px;
+            width: 400px; text-align: center; border: 2px solid var(--gold); position: absolute; left: -9999px; top: 0;
+        }
+        #shareCardRender h2 { margin-bottom: 20px; text-transform: uppercase; letter-spacing: 2px; }
+        .share-item { background: rgba(255,255,255,0.1); padding: 10px; border-radius: 8px; margin-bottom: 10px; border-left: 3px solid var(--gold); text-align: left;}
+        .share-item span { display: block; font-size: 12px; color: #ccc; }
+        .share-item strong { font-size: 16px; color: #fff; }
 
         /* === BOTÓN Y MODAL ADMIN === */
         .admin-btn {
@@ -155,10 +188,11 @@
         
         .form-group { margin-bottom: 15px; text-align: left; }
         .form-group label { display: block; font-size: 13px; color: var(--gold); margin-bottom: 6px; font-weight: bold; }
-        .form-group input {
+        .form-group input, .form-group textarea {
             width: 100%; padding: 12px; border-radius: 10px; background: #fdfdfd;
             border: 1px solid var(--glass-border); color: #333; outline: none; font-size: 14px;
         }
+        .form-group textarea { resize: none; height: 80px; }
         input[type="file"] { padding: 8px; background: #fdfdfd; }
         
         .btn-modal {
@@ -166,9 +200,9 @@
             font-size: 15px; font-weight: bold; border-radius: 25px; cursor: pointer; transition: 0.3s; width: 100%; margin-top: 10px;
         }
         .btn-modal.cancel { background: transparent; color: #555; border: 1px solid #555; }
+        .btn-modal.danger { background: #e74c3c; color: white; }
         .btn-modal:hover { opacity: 0.9; transform: scale(1.02); }
 
-        /* Loader */
         .loader { display: none; text-align: center; margin-top: 15px; color: var(--gold); font-weight: bold; }
     </style>
 </head>
@@ -187,9 +221,39 @@
         <p class="awards-subtitle">Support your favorite creators, communities, and moments. Votes decide the season winners.</p>
     </header>
 
+    <!-- DASHBOARD DE UX Y DINAMISMO -->
+    <div class="dashboard-ux">
+        <div class="dashboard-top">
+            <div id="countdown" class="countdown-timer"><i class="fas fa-clock"></i>Calculating closure...</div>
+            <div class="progress-container">
+                <p class="progress-text" id="progressText">You have voted in 0 out of 0 categories</p>
+                <div class="progress-bar-bg">
+                    <div class="progress-bar-fill" id="progressFill"></div>
+                </div>
+            </div>
+        </div>
+        <div class="search-filters">
+            <input type="text" id="searchInput" class="search-input" placeholder="Buscar nominado por nombre..." onkeyup="aplicarFiltros()">
+            <select id="categoryFilter" class="filter-select" onchange="aplicarFiltros()">
+                <option value="ALL">All Categories</option>
+            </select>
+        </div>
+    </div>
+
     <main class="categories-container" id="categoriesContainer">
         <div style="text-align: center; color: var(--gold); font-size: 20px;"><i class="fas fa-spinner fa-spin"></i> Loading nominees...</div>
     </main>
+
+    <button class="btn-share-card" id="btnGenerarShare" style="display:none;" onclick="generarShareCard()">
+        <i class="fas fa-camera"></i>Generate My Voting Card
+    </button>
+
+    <!-- CONTENEDOR OCULTO PARA RENDERIZAR LA TARJETA EN CANVAS -->
+    <div id="shareCardRender">
+        <h2>My Votes Daydreamers Awards</h2>
+        <div id="shareCardItems"></div>
+        <p style="margin-top: 15px; font-size: 12px; color: #aaa;">Join the vote!</p>
+    </div>
 
     <div class="admin-btn" onclick="pedirPasswordAdmin('menu')" title="Administrar Nominados">
         <i class="fas fa-crown"></i>
@@ -204,10 +268,14 @@
         // API Key de ImgBB proporcionada
         const IMGBB_API_KEY = "f5567fb36a6232aae841ea9aac0ee139";
 
-        // Estado del Administrador
+        // Variables Globales
         let esAdmin = false;
+        let nominadosData = [];
+        let configGlobal = { votacionesCerradas: false };
+        let totalCategoriasGlobal = 0;
+        let categoriasVotadasGlobal = 0;
+        let fechaCierre = new Date("2026-10-01T00:00:00").getTime();
 
-        // Referencia a modales
         const modalOverlay = document.getElementById('modalOverlay');
         const modalContenido = document.getElementById('modalContenido');
         const categoriesContainer = document.getElementById('categoriesContainer');
@@ -220,21 +288,99 @@
         modalOverlay.addEventListener('click', (e) => { if (e.target === modalOverlay) cerrarModal(); });
 
         // ==========================================
-        // LÓGICA PRINCIPAL (FIREBASE)
+        // INICIO Y CONFIGURACIÓN FIREBASE
         // ==========================================
-        let nominadosData = [];
-
         function initAwardsLogic() {
-            const { db, appId, collection, onSnapshot } = window.fb;
-            const nomineesRef = collection(db, 'artifacts', appId, 'public', 'data', 'awards_nominees');
+            const { db, appId, collection, doc, onSnapshot } = window.fb;
+            
+            // Escuchar Configuración (Mantenimiento/Cierre)
+            const configRef = doc(db, 'artifacts', appId, 'public', 'data', 'awards_settings', 'config');
+            onSnapshot(configRef, (docSnap) => {
+                if (docSnap.exists()) {
+                    configGlobal = docSnap.data();
+                }
+                iniciarCuentaRegresiva();
+                renderizarVotaciones();
+            });
 
-            // Escuchar cambios en la base de datos en tiempo real
+            // Escuchar Nominados
+            const nomineesRef = collection(db, 'artifacts', appId, 'public', 'data', 'awards_nominees');
             onSnapshot(nomineesRef, (snapshot) => {
                 nominadosData = [];
                 snapshot.forEach(doc => {
                     nominadosData.push({ id: doc.id, ...doc.data() });
                 });
+                actualizarFiltros();
                 renderizarVotaciones();
+            });
+        }
+
+        // ==========================================
+        // CUENTA REGRESIVA Y CIERRE AUTOMÁTICO
+        // ==========================================
+        function iniciarCuentaRegresiva() {
+            const timerElement = document.getElementById('countdown');
+            const intervalo = setInterval(() => {
+                if(configGlobal.votacionesCerradas) {
+                    timerElement.innerHTML = `<i class="fas fa-lock"></i> VOTING CLOSED`;
+                    clearInterval(intervalo);
+                    return;
+                }
+                const now = new Date().getTime();
+                const distance = fechaCierre - now;
+
+                if (distance < 0) {
+                    timerElement.innerHTML = `<i class="fas fa-lock"></i> VOTING CLOSED`;
+                    clearInterval(intervalo);
+                    if(!configGlobal.votacionesCerradas) {
+                        configGlobal.votacionesCerradas = true; // Auto cierre visual
+                        renderizarVotaciones();
+                    }
+                    return;
+                }
+
+                const d = Math.floor(distance / (1000 * 60 * 60 * 24));
+                const h = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const m = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                timerElement.innerHTML = `<i class="fas fa-clock"></i> Cierre: ${d}d ${h}h ${m}m`;
+            }, 1000);
+        }
+
+        // ==========================================
+        // FILTROS Y BÚSQUEDA DINÁMICA
+        // ==========================================
+        function actualizarFiltros() {
+            const select = document.getElementById('categoryFilter');
+            const categoriasUnicas = [...new Set(nominadosData.map(n => n.categoria.toUpperCase()))];
+            select.innerHTML = '<option value="ALL">All Categories</option>';
+            categoriasUnicas.forEach(c => {
+                select.innerHTML += `<option value="${c}">${c}</option>`;
+            });
+        }
+
+        window.aplicarFiltros = function() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const selectedCat = document.getElementById('categoryFilter').value;
+            
+            const secciones = document.querySelectorAll('.category-section');
+            secciones.forEach(sec => {
+                const catTitle = sec.getAttribute('data-categoria');
+                const cards = sec.querySelectorAll('.nominee-card');
+                let cardsVisibles = 0;
+
+                cards.forEach(card => {
+                    const name = card.getAttribute('data-name').toLowerCase();
+                    const coincideNombre = name.includes(searchTerm);
+                    const coincideCat = (selectedCat === 'ALL' || selectedCat === catTitle);
+
+                    if (coincideNombre && coincideCat) {
+                        card.style.display = 'flex';
+                        cardsVisibles++;
+                    } else {
+                        card.style.display = 'none';
+                    }
+                });
+                sec.style.display = (cardsVisibles > 0) ? 'block' : 'none';
             });
         }
 
@@ -243,11 +389,10 @@
         // ==========================================
         function renderizarVotaciones() {
             if (nominadosData.length === 0) {
-                categoriesContainer.innerHTML = `<p style="text-align:center; color:#555555;">There are no nominees registered yet. Admins can add them..</p>`;
+                categoriesContainer.innerHTML = `<p style="text-align:center; color:#555555;">There are no nominees registered yet. Admins can add them.</p>`;
                 return;
             }
 
-            // Agrupar por categorías
             const categoriasObj = {};
             nominadosData.forEach(nom => {
                 const cat = nom.categoria.toUpperCase();
@@ -255,36 +400,61 @@
                 categoriasObj[cat].push(nom);
             });
 
-            categoriesContainer.innerHTML = ''; // Limpiar contenedor
+            totalCategoriasGlobal = Object.keys(categoriasObj).length;
+            categoriasVotadasGlobal = 0;
+            categoriesContainer.innerHTML = ''; 
 
-            // Generar HTML por categoría
+            if(configGlobal.votacionesCerradas) {
+                categoriesContainer.innerHTML = `<div style="text-align:center; background:#ffeb3b; color:#333; padding:15px; border-radius:10px; font-weight:bold; margin-bottom:20px;">¡Thanks for participating! Voting has closed. The winners will be announced soon.</div>`;
+            }
+
             for (const [categoria, nominados] of Object.entries(categoriasObj)) {
-                // Ordenar nominados por votos (mayor a menor)
                 nominados.sort((a, b) => (b.votos || 0) - (a.votos || 0));
 
-                // Verificar si el usuario ya votó en esta categoría (desde localStorage)
-                const votoGuardado = localStorage.getItem(`voto_awards_${categoria}`);
+                const claveLocal = `voto_awards_${categoria}`;
+                let votoGuardadoId = localStorage.getItem(claveLocal);
+                
+                // Compatibilidad cruzada con UID por seguridad
+                if (window.currentUserUid && localStorage.getItem(`${claveLocal}_uid`) !== window.currentUserUid) {
+                    // Si el usuario cambia de cuenta anonima, se limpia el local storage visual (aunque backend rechazaría si hubiera reglas estrictas)
+                }
+                
+                const categoriaYaVotada = votoGuardadoId !== null;
+                if(categoriaYaVotada) categoriasVotadasGlobal++;
+
+                // Total de votos en esta categoría para calcular porcentajes
+                const totalVotosCat = nominados.reduce((sum, n) => sum + (n.votos || 0), 0);
 
                 let htmlTarjetas = '';
                 nominados.forEach(nom => {
-                    const esMiVoto = votoGuardado === nom.id;
-                    const blockBtn = votoGuardado ? 'disabled' : '';
-                    const btnClass = esMiVoto ? 'btn-vote voted-badge' : 'btn-vote';
-                    const btnTexto = esMiVoto ? '<i class="fas fa-check"></i> Votado' : 'Votar';
+                    const esMiVoto = votoGuardadoId === nom.id;
+                    const porcentaje = totalVotosCat > 0 ? ((nom.votos / totalVotosCat) * 100).toFixed(1) : 0;
+                    
+                    const editBtnHtml = esAdmin ? `<button class="btn-edit-nominee" onclick="editarNominado('${nom.id}')" title="Editar Nominado"><i class="fas fa-pen"></i></button>` : '';
+                    const seguidoresHtml = nom.seguidores ? `<p class="nominee-followers"><i class="fas fa-users"></i> ${nom.seguidores} followers</p>` : '';
+                    const enlaceHtml = nom.enlace ? `<a href="${nom.enlace}" target="_blank" class="nominee-link"><i class="fas fa-external-link-alt"></i> See Page</a>` : '';
 
-                    // Bloque para botón de edición si es admin
-                    const editBtnHtml = esAdmin 
-                        ? `<button class="btn-edit-nominee" onclick="editarNominado('${nom.id}')" title="Editar Nominado"><i class="fas fa-pen"></i></button>` 
-                        : '';
-
-                    // Bloque de Seguidores
-                    const seguidoresHtml = nom.seguidores ? `<p class="nominee-followers"><i class="fas fa-users"></i> ${nom.seguidores} seguidores</p>` : '';
-
-                    // Bloque de Enlace
-                    const enlaceHtml = nom.enlace ? `<a href="${nom.enlace}" target="_blank" class="nominee-link"><i class="fas fa-external-link-alt"></i> Ver Página</a>` : '';
+                    let accionHtml = '';
+                    
+                    if (configGlobal.votacionesCerradas || categoriaYaVotada) {
+                        // Mostrar Resultados en Tiempo Real
+                        accionHtml = `
+                            <div class="result-bar-container">
+                                <div class="result-text"><span>${esMiVoto ? '⭐ Your vote' : 'Votos'}</span> <span>${porcentaje}%</span></div>
+                                <div class="result-bar-bg"><div class="result-bar-fill" style="width: ${porcentaje}%;"></div></div>
+                                <div class="nominee-votes" style="margin-top:5px; text-align:right;">${nom.votos || 0} Votes</div>
+                            </div>
+                        `;
+                    } else {
+                        // Mostrar Botón de Votar
+                        accionHtml = `
+                            <p class="nominee-votes"><i class="fas fa-star"></i> ${nom.votos || 0} Votes</p>
+                            <button class="btn-vote" onclick="confirmarVotoModal('${nom.id}', '${categoria}', '${nom.nombre}')">To vote</button>
+                        `;
+                    }
 
                     htmlTarjetas += `
-                        <div class="nominee-card">
+                        <div class="nominee-card" data-name="${nom.nombre}">
                             ${editBtnHtml}
                             <div class="nominee-img-wrapper">
                                 <img src="${nom.imagenUrl}" alt="${nom.nombre}" class="nominee-img" loading="lazy">
@@ -296,10 +466,7 @@
                                     ${enlaceHtml}
                                 </div>
                                 <div>
-                                    <p class="nominee-votes"><i class="fas fa-star"></i> ${nom.votos || 0} Votes</p>
-                                    <button class="${btnClass}" ${blockBtn} onclick="votar('${nom.id}', '${categoria}')">
-                                        ${btnTexto}
-                                    </button>
+                                    ${accionHtml}
                                 </div>
                             </div>
                         </div>
@@ -308,6 +475,7 @@
 
                 const seccionCat = document.createElement('div');
                 seccionCat.className = 'category-section';
+                seccionCat.setAttribute('data-categoria', categoria);
                 seccionCat.innerHTML = `
                     <h2 class="category-title">${categoria}</h2>
                     <div class="nominees-grid">
@@ -316,49 +484,132 @@
                 `;
                 categoriesContainer.appendChild(seccionCat);
             }
+
+            // Actualizar Barra de Progreso
+            document.getElementById('progressText').innerText = `You have voted in ${categoriasVotadasGlobal}of ${totalCategoriasGlobal} categories`;
+            const progreso = totalCategoriasGlobal > 0 ? (categoriasVotadasGlobal / totalCategoriasGlobal) * 100 : 0;
+            document.getElementById('progressFill').style.width = `${progreso}%`;
+
+            // Mostrar botón de Share Card si votó en todo o si están cerradas y participó
+            if(categoriasVotadasGlobal > 0) {
+                document.getElementById('btnGenerarShare').style.display = 'block';
+            }
+
+            aplicarFiltros(); // Reaplicar filtros al re-renderizar
         }
 
         // ==========================================
-        // SISTEMA DE VOTACIÓN
+        // SISTEMA DE VOTACIÓN (CON CONFIRMACIÓN Y COMENTARIO)
         // ==========================================
-        window.votar = function(nomineeId, categoria) {
-            // Seguridad básica del lado del cliente
-            if (localStorage.getItem(`voto_awards_${categoria}`)) {
-                alert("You’ve already voted in this category.");
-                return;
-            }
+        window.confirmarVotoModal = function(nomineeId, categoria, nomineeNombre) {
+            if (configGlobal.votacionesCerradas) { alert("The voting has closed."); return; }
 
-            const { db, appId, doc, updateDoc, increment } = window.fb;
+            abrirModalHTML(`
+                <h3 class="modal-title"><i class="fas fa-check-circle"></i> Confirm Vote</h3>
+                <p style="text-align:center; font-size:16px; margin-bottom:15px;">You are about to vote for <strong>${nomineeNombre}</strong> in <strong>${categoria}</strong>.</p>
+                <div class="form-group">
+                    <label>Leave a supportive message (Optional)</label>
+                    <textarea id="comentarioVoto" placeholder="I love their content!..."></textarea>
+                </div>
+                <button class="btn-modal" onclick="ejecutarVoto('${nomineeId}', '${categoria}')">Confirm Vote</button>
+                <button class="btn-modal cancel" onclick="cerrarModal()">Cancel</button>
+            `);
+        }
+
+        window.ejecutarVoto = function(nomineeId, categoria) {
+            const comentario = document.getElementById('comentarioVoto').value.trim();
+            const { db, appId, doc, updateDoc, increment, arrayUnion } = window.fb;
             const nomRef = doc(db, 'artifacts', appId, 'public', 'data', 'awards_nominees', nomineeId);
 
-            updateDoc(nomRef, {
-                votos: increment(1)
-            }).then(() => {
-                // Registrar localmente para bloquear otros votos en la misma categoría
+            let dataActualizar = { votos: increment(1) };
+            if (comentario !== "") {
+                dataActualizar.comentarios = arrayUnion(comentario);
+            }
+
+            updateDoc(nomRef, dataActualizar).then(() => {
                 localStorage.setItem(`voto_awards_${categoria}`, nomineeId);
-                // La UI se actualizará sola gracias a onSnapshot de Firebase
+                if (window.currentUserUid) {
+                    localStorage.setItem(`voto_awards_${categoria}_uid`, window.currentUserUid);
+                }
+                
+                abrirModalHTML(`
+                    <h3 class="modal-title" style="color: #4CAF50;"><i class="fas fa-thumbs-up"></i> Vote Registered!</h3>
+                    <p style="text-align:center;">Your vote has been successfully counted.</p>
+                    <button class="btn-modal" onclick="cerrarModal()">Continue</button>
+                `);
             }).catch(err => {
-                console.error("Error while voting: ", err);
-                alert("There was an error recording your vote.");
+                console.error("Error al votar: ", err);
+                alert("Hubo un error registrando tu voto.");
             });
         }
 
         // ==========================================
-        // PANEL DE ADMINISTRADOR & IMGBB UPLOAD
+        // GENERAR TARJETA DE VOTANTE (SHARE CARD)
+        // ==========================================
+        window.generarShareCard = function() {
+            const containerItems = document.getElementById('shareCardItems');
+            containerItems.innerHTML = '';
+            
+            // Recopilar selecciones del usuario
+            let votosRealizados = 0;
+            nominadosData.forEach(nom => {
+                const categoria = nom.categoria.toUpperCase();
+                if(localStorage.getItem(`voto_awards_${categoria}`) === nom.id) {
+                    votosRealizados++;
+                    containerItems.innerHTML += `
+                        <div class="share-item">
+                            <span>${categoria}</span>
+                            <strong>${nom.nombre}</strong>
+                        </div>
+                    `;
+                }
+            });
+
+            if(votosRealizados === 0) {
+                alert("You haven't voted for any nominee yet.");
+                return;
+            }
+
+            const elementoCanvas = document.getElementById('shareCardRender');
+            elementoCanvas.style.left = "0"; // Traer al viewport oculto detrás del modal para renderizar bien
+            elementoCanvas.style.zIndex = "-1";
+
+            abrirModalHTML(`
+                <h3 class="modal-title"><i class="fas fa-spinner fa-spin"></i> Generating Card...</h3>
+            `);
+
+            setTimeout(() => {
+                html2canvas(elementoCanvas, { backgroundColor: '#111' }).then(canvas => {
+                    elementoCanvas.style.left = "-9999px"; // Ocultar de nuevo
+                    const imgData = canvas.toDataURL('image/png');
+                    
+                    abrirModalHTML(`
+                        <h3 class="modal-title"><i class="fas fa-share-alt"></i> Your Voter Card</h3>
+                        <div style="text-align:center; margin-bottom:15px;">
+                            <img src="${imgData}" style="width:100%; border-radius:10px; max-width:350px;">
+                        </div>
+                        <a href="${imgData}" download="My_Daydreamers_Votes.png" class="btn-modal" style="display:block; text-align:center; text-decoration:none;">
+                            <i class="fas fa-download"></i> Download Image
+                        </a>
+                        <button class="btn-modal cancel" onclick="cerrarModal()">Close</button>
+                    `);
+                });
+            }, 500);
+        }
+
+        // ==========================================
+        // PANEL DE ADMINISTRADOR & EXPORTACIÓN CSV
         // ==========================================
         window.pedirPasswordAdmin = function(accion = 'menu', nomineeId = null) {
             if (esAdmin) {
-                if (accion === 'editar') {
-                    mostrarFormularioEditar(nomineeId);
-                } else {
-                    mostrarFormularioAdmin();
-                }
+                if (accion === 'editar') mostrarFormularioEditar(nomineeId);
+                else mostrarFormularioAdmin();
                 return;
             }
 
             abrirModalHTML(`
                 <h3 class="modal-title"><i class="fas fa-lock"></i> Acceso Admin Awards</h3>
-                <p style="text-align: center; margin-bottom: 15px; font-size: 14px; color: #555555;">Solo administradores pueden realizar esta acción.</p>
+                <p style="text-align: center; margin-bottom: 15px; font-size: 14px; color: #555555;">Solo administradores.</p>
                 <div class="form-group">
                     <input type="password" id="adminPassAwards" placeholder="Contraseña..." onkeypress="if(event.key === 'Enter') verificarAdminAwards('${accion}', '${nomineeId || ''}')">
                 </div>
@@ -368,223 +619,166 @@
         }
 
         window.verificarAdminAwards = function(accion = 'menu', nomineeId = null) {
-            const pass = document.getElementById('adminPassAwards').value;
-            if (pass === 'admin540') {
+            if (document.getElementById('adminPassAwards').value === 'admin540') {
                 esAdmin = true;
-                renderizarVotaciones(); // Mostrar botones de edición
-                if (accion === 'editar' && nomineeId) {
-                    mostrarFormularioEditar(nomineeId);
-                } else {
-                    mostrarFormularioAdmin();
-                }
+                renderizarVotaciones();
+                if (accion === 'editar' && nomineeId) mostrarFormularioEditar(nomineeId);
+                else mostrarFormularioAdmin();
             } else {
-                abrirModalHTML(`
-                    <h3 class="modal-title" style="color: #ff4444;"><i class="fas fa-times-circle"></i> Incorrecto</h3>
-                    <button class="btn-modal" onclick="cerrarModal()">Cerrar</button>
-                `);
+                abrirModalHTML(`<h3 class="modal-title" style="color:#ff4444;">Incorrecto</h3><button class="btn-modal" onclick="cerrarModal()">Cerrar</button>`);
             }
         }
 
         function mostrarFormularioAdmin() {
+            const btnEstadoVotaciones = configGlobal.votacionesCerradas 
+                ? `<button class="btn-modal" style="background:#27ae60;" onclick="toggleEstadoVotaciones(false)"><i class="fas fa-play"></i> Reabrir Votaciones</button>`
+                : `<button class="btn-modal danger" onclick="toggleEstadoVotaciones(true)"><i class="fas fa-stop"></i> Cerrar Votaciones</button>`;
+
             abrirModalHTML(`
-                <h3 class="modal-title"><i class="fas fa-user-plus"></i> Añadir Nominado</h3>
-                <div class="form-group">
-                    <label>Nombre (Creador, Comunidad, etc.)</label>
-                    <input type="text" id="addNomNombre" placeholder="Ej: Adele Global">
-                </div>
-                <div class="form-group">
-                    <label>Categoría</label>
-                    <input type="text" id="addNomCategoria" placeholder="Ej: Mejor Comunidad Fan">
-                </div>
-                <div class="form-group">
-                    <label>Seguidores (Opcional)</label>
-                    <input type="text" id="addNomSeguidores" placeholder="Ej: 10.5K o 100,000">
-                </div>
-                <div class="form-group">
-                    <label>Enlace a Página/Perfil (Opcional)</label>
-                    <input type="url" id="addNomEnlace" placeholder="https://instagram.com/tu-pagina">
-                </div>
-                <div class="form-group">
-                    <label>Fotografía (Se subirá a ImgBB)</label>
-                    <input type="file" id="addNomFile" accept="image/*">
-                </div>
+                <h3 class="modal-title"><i class="fas fa-crown"></i> Panel de Administración</h3>
                 
-                <div id="uploadLoader" class="loader"><i class="fas fa-spinner fa-spin"></i> Subiendo imagen y guardando...</div>
+                <div style="display:flex; gap:10px; margin-bottom: 20px;">
+                    <button class="btn-modal" style="margin-top:0;" onclick="exportarResultadosCSV()"><i class="fas fa-file-csv"></i> Exportar CSV</button>
+                    ${btnEstadoVotaciones}
+                </div>
+
+                <hr style="border:0; border-top:1px solid #ddd; margin-bottom:20px;">
+                <h4 style="color:var(--gold); margin-bottom:10px;">Añadir Nuevo Nominado</h4>
+
+                <div class="form-group"><input type="text" id="addNomNombre" placeholder="Nombre (Ej: Adele Global)"></div>
+                <div class="form-group"><input type="text" id="addNomCategoria" placeholder="Categoría (Ej: Mejor Comunidad)"></div>
+                <div class="form-group"><input type="text" id="addNomSeguidores" placeholder="Seguidores (Ej: 10.5K)"></div>
+                <div class="form-group"><input type="url" id="addNomEnlace" placeholder="Enlace a Página/Perfil"></div>
+                <div class="form-group"><label>Fotografía (ImgBB)</label><input type="file" id="addNomFile" accept="image/*"></div>
+                
+                <div id="uploadLoader" class="loader"><i class="fas fa-spinner fa-spin"></i> Procesando...</div>
                 
                 <button class="btn-modal" id="btnGuardarNom" onclick="guardarNominado()"><i class="fas fa-save"></i> Publicar Nominado</button>
-                <button class="btn-modal cancel" onclick="cerrarModal()">Cancelar</button>
+                <button class="btn-modal cancel" onclick="cerrarModal()">Cerrar Panel</button>
             `);
+        }
+
+        window.toggleEstadoVotaciones = async function(cerrar) {
+            const { db, appId, doc, setDoc } = window.fb;
+            const configRef = doc(db, 'artifacts', appId, 'public', 'data', 'awards_settings', 'config');
+            await setDoc(configRef, { votacionesCerradas: cerrar }, { merge: true });
+            alert(cerrar ? "Voting officially closed." : "Voting reopened.");
+            mostrarFormularioAdmin();
+        }
+
+        window.exportarResultadosCSV = function() {
+            let csvContent = "ID,Nombre,Categoria,Votos,Seguidores,Enlace\n";
+            // Ordenar por categoría y luego por votos
+            let dataExportar = [...nominadosData].sort((a, b) => {
+                if(a.categoria === b.categoria) return (b.votos || 0) - (a.votos || 0);
+                return a.categoria.localeCompare(b.categoria);
+            });
+
+            dataExportar.forEach(n => {
+                const name = (n.nombre || "").replace(/"/g, '""');
+                const cat = (n.categoria || "").replace(/"/g, '""');
+                csvContent += `${n.id},"${name}","${cat}",${n.votos || 0},"${n.seguidores || ''}","${n.enlace || ''}"\n`;
+            });
+
+            const blob = new Blob([new Uint8Array([0xEF, 0xBB, 0xBF]), csvContent], { type: "text/csv;charset=utf-8;" }); // BOM para Excel
+            const link = document.createElement("a");
+            const url = URL.createObjectURL(blob);
+            link.setAttribute("href", url);
+            const fechaTxt = new Date().toISOString().split('T')[0];
+            link.setAttribute("download", `resultados_votaciones_${fechaTxt}.csv`);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
         }
 
         window.guardarNominado = async function() {
             const nombre = document.getElementById('addNomNombre').value.trim();
             const categoria = document.getElementById('addNomCategoria').value.trim();
-            const seguidores = document.getElementById('addNomSeguidores').value.trim();
-            const enlace = document.getElementById('addNomEnlace').value.trim();
             const fileInput = document.getElementById('addNomFile');
             const loader = document.getElementById('uploadLoader');
             const btnGuardar = document.getElementById('btnGuardarNom');
 
             if (!nombre || !categoria || fileInput.files.length === 0) {
-                alert("Por favor, completa todos los campos requeridos y selecciona una imagen.");
-                return;
+                alert("Completa nombre, categoría e imagen."); return;
             }
 
-            // Deshabilitar botón y mostrar loader
-            btnGuardar.disabled = true;
-            btnGuardar.style.opacity = '0.5';
-            loader.style.display = 'block';
-
-            const file = fileInput.files[0];
-            const formData = new FormData();
-            formData.append('image', file);
+            btnGuardar.disabled = true; loader.style.display = 'block';
 
             try {
-                // 1. Subir imagen a ImgBB
-                const imgbbResponse = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
-                    method: 'POST',
-                    body: formData
-                });
+                const formData = new FormData(); formData.append('image', fileInput.files[0]);
+                const imgbbResponse = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, { method: 'POST', body: formData });
                 const imgbbData = await imgbbResponse.json();
                 
-                if (!imgbbData.success) {
-                    throw new Error("Error al subir a ImgBB");
-                }
+                if (!imgbbData.success) throw new Error("Error ImgBB");
                 
-                const imageUrl = imgbbData.data.url;
-
-                // 2. Guardar en Firebase
                 const { db, appId, collection, addDoc } = window.fb;
                 await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'awards_nominees'), {
-                    nombre: nombre,
-                    categoria: categoria,
-                    seguidores: seguidores,
-                    enlace: enlace,
-                    imagenUrl: imageUrl,
-                    votos: 0,
-                    fechaRegistro: new Date().toISOString()
+                    nombre: nombre, categoria: categoria,
+                    seguidores: document.getElementById('addNomSeguidores').value.trim(),
+                    enlace: document.getElementById('addNomEnlace').value.trim(),
+                    imagenUrl: imgbbData.data.url, votos: 0, fechaRegistro: new Date().toISOString()
                 });
 
-                // Éxito
-                abrirModalHTML(`
-                    <h3 class="modal-title" style="color: #4CAF50;"><i class="fas fa-check-circle"></i> Nominado Añadido</h3>
-                    <p style="text-align: center; margin-bottom: 20px;">El nominado ya está disponible para recibir votos.</p>
-                    <button class="btn-modal" onclick="mostrarFormularioAdmin()">Añadir Otro</button>
-                    <button class="btn-modal cancel" onclick="cerrarModal()">Cerrar</button>
-                `);
-
+                abrirModalHTML(`<h3 class="modal-title" style="color:#4CAF50;">Nominado Añadido</h3><button class="btn-modal" onclick="mostrarFormularioAdmin()">Añadir Otro</button>`);
             } catch (error) {
-                console.error(error);
-                alert("Hubo un error en el proceso. Revisa tu conexión.");
-                btnGuardar.disabled = false;
-                btnGuardar.style.opacity = '1';
-                loader.style.display = 'none';
+                console.error(error); alert("Error en el proceso.");
+                btnGuardar.disabled = false; loader.style.display = 'none';
             }
         }
 
         // ==========================================
-        // EDITAR NOMINADO (SOLO ADMINS)
+        // EDITAR NOMINADO
         // ==========================================
         window.editarNominado = function(nomineeId) {
-            if (!esAdmin) {
-                pedirPasswordAdmin('editar', nomineeId);
-            } else {
-                mostrarFormularioEditar(nomineeId);
-            }
+            if (!esAdmin) pedirPasswordAdmin('editar', nomineeId);
+            else mostrarFormularioEditar(nomineeId);
         }
 
         function mostrarFormularioEditar(nomineeId) {
             const nom = nominadosData.find(n => n.id === nomineeId);
             if (!nom) return;
-
             abrirModalHTML(`
                 <h3 class="modal-title"><i class="fas fa-pen"></i> Editar Nominado</h3>
-                <div class="form-group">
-                    <label>Nombre</label>
-                    <input type="text" id="editNomNombre" value="${nom.nombre || ''}">
-                </div>
-                <div class="form-group">
-                    <label>Categoría</label>
-                    <input type="text" id="editNomCategoria" value="${nom.categoria || ''}">
-                </div>
-                <div class="form-group">
-                    <label>Seguidores</label>
-                    <input type="text" id="editNomSeguidores" value="${nom.seguidores || ''}" placeholder="Ej: 10.5K">
-                </div>
-                <div class="form-group">
-                    <label>Enlace a Página/Perfil</label>
-                    <input type="url" id="editNomEnlace" value="${nom.enlace || ''}" placeholder="https://instagram.com/tu-pagina">
-                </div>
-                <div class="form-group">
-                    <label>Nueva Fotografía (Opcional - ImgBB)</label>
-                    <input type="file" id="editNomFile" accept="image/*">
-                </div>
-                
-                <div id="uploadLoader" class="loader"><i class="fas fa-spinner fa-spin"></i> Actualizando nominado...</div>
-                
+                <div class="form-group"><label>Nombre</label><input type="text" id="editNomNombre" value="${nom.nombre || ''}"></div>
+                <div class="form-group"><label>Categoría</label><input type="text" id="editNomCategoria" value="${nom.categoria || ''}"></div>
+                <div class="form-group"><label>Seguidores</label><input type="text" id="editNomSeguidores" value="${nom.seguidores || ''}"></div>
+                <div class="form-group"><label>Enlace</label><input type="url" id="editNomEnlace" value="${nom.enlace || ''}"></div>
+                <div class="form-group"><label>Nueva Fotografía (Opcional)</label><input type="file" id="editNomFile" accept="image/*"></div>
+                <div id="uploadLoader" class="loader"><i class="fas fa-spinner fa-spin"></i> Actualizando...</div>
                 <button class="btn-modal" id="btnActualizarNom" onclick="actualizarNominado('${nom.id}', '${nom.imagenUrl}')"><i class="fas fa-save"></i> Guardar Cambios</button>
                 <button class="btn-modal cancel" onclick="cerrarModal()">Cancelar</button>
             `);
         }
 
         window.actualizarNominado = async function(nomineeId, imagenUrlActual) {
-            const nombre = document.getElementById('editNomNombre').value.trim();
-            const categoria = document.getElementById('editNomCategoria').value.trim();
-            const seguidores = document.getElementById('editNomSeguidores').value.trim();
-            const enlace = document.getElementById('editNomEnlace').value.trim();
-            const fileInput = document.getElementById('editNomFile');
-            const loader = document.getElementById('uploadLoader');
             const btnGuardar = document.getElementById('btnActualizarNom');
+            const loader = document.getElementById('uploadLoader');
+            const fileInput = document.getElementById('editNomFile');
 
-            if (!nombre || !categoria) {
-                alert("Por favor completa al menos el nombre y la categoría.");
-                return;
-            }
-
-            btnGuardar.disabled = true;
-            btnGuardar.style.opacity = '0.5';
-            loader.style.display = 'block';
-
+            btnGuardar.disabled = true; loader.style.display = 'block';
             let imageUrl = imagenUrlActual;
 
             try {
-                // Si el usuario seleccionó una nueva imagen
                 if (fileInput.files.length > 0) {
-                    const file = fileInput.files[0];
-                    const formData = new FormData();
-                    formData.append('image', file);
-
-                    const imgbbResponse = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
-                        method: 'POST',
-                        body: formData
-                    });
-                    const imgbbData = await imgbbResponse.json();
-                    
-                    if (imgbbData.success) {
-                        imageUrl = imgbbData.data.url;
-                    }
+                    const formData = new FormData(); formData.append('image', fileInput.files[0]);
+                    const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, { method: 'POST', body: formData });
+                    const data = await res.json();
+                    if (data.success) imageUrl = data.data.url;
                 }
 
-                // Actualizar en Firebase
                 const { db, appId, doc, updateDoc } = window.fb;
-                const nomRef = doc(db, 'artifacts', appId, 'public', 'data', 'awards_nominees', nomineeId);
-
-                await updateDoc(nomRef, {
-                    nombre: nombre,
-                    categoria: categoria,
-                    seguidores: seguidores,
-                    enlace: enlace,
+                await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'awards_nominees', nomineeId), {
+                    nombre: document.getElementById('editNomNombre').value.trim(),
+                    categoria: document.getElementById('editNomCategoria').value.trim(),
+                    seguidores: document.getElementById('editNomSeguidores').value.trim(),
+                    enlace: document.getElementById('editNomEnlace').value.trim(),
                     imagenUrl: imageUrl
                 });
-
                 cerrarModal();
-
             } catch (error) {
-                console.error("Error al actualizar: ", error);
-                alert("Hubo un error al actualizar los datos del nominado.");
-                btnGuardar.disabled = false;
-                btnGuardar.style.opacity = '1';
-                loader.style.display = 'none';
+                console.error(error); alert("Error al actualizar.");
+                btnGuardar.disabled = false; loader.style.display = 'none';
             }
         }
     </script>
