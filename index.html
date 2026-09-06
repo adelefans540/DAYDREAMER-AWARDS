@@ -10,9 +10,8 @@
  
     <!-- Firebase SDK -->
     <script type="module">
-        import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, signInAnonymously, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { 
             getFirestore, collection, addDoc, onSnapshot, query, orderBy, doc, updateDoc, deleteDoc, setDoc, increment
         } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
@@ -29,11 +28,10 @@
  
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
-        window.fb = { ...window.fb, auth, signInWithEmailAndPassword }; 
         const db = getFirestore(app);
         const appId = 'adele-fans-app';
        
-        window.fb = { db, appId, collection, addDoc, onSnapshot, query, orderBy, doc, updateDoc, deleteDoc, setDoc, increment };
+        window.fb = { db, appId, collection, addDoc, onSnapshot, query, orderBy, doc, updateDoc, deleteDoc, setDoc, increment, auth, signInWithEmailAndPassword };
         window.isAdmin = false; // Flag to know if user entered the password
  
         signInAnonymously(auth).catch((error) => console.error("Firebase Auth Error:", error));
@@ -532,7 +530,6 @@
     </section>
  
     <!-- FOOTER -->
-    <!-- FOOTER -->
     <footer class="glass-effect">
         <div class="footer-icons">
             <a href="https://www.instagram.com/adele_fans540/"><i class="fab fa-instagram"></i></a>
@@ -540,9 +537,9 @@
             <a href="https://www.facebook.com/Adele%20Daydreamer"><i class="fab fa-facebook"></i></a>
         </div>
         <p class="footer-text"><i class="fas fa-copyright"></i> 2026 Daydreamers Awards. All rights reserved by the Adele community.</p>
-<p style="font-size: 0.75rem; color: #888; max-width: 600px; margin: 0 auto 10px auto; text-align: center;">
-    This site is a non-profit project created by fans for the community. It is not officially affiliated with, sponsored by, or linked to Adele, XL Recordings, or Columbia Records.
-</p>
+        <p style="font-size: 0.75rem; color: #888; max-width: 600px; margin: 0 auto 10px auto; text-align: center;">
+            This site is a non-profit project created by fans for the community. It is not officially affiliated with, sponsored by, or linked to Adele, XL Recordings, or Columbia Records.
+        </p>
         <!-- ENLACES DE TÉRMINOS Y PRIVACIDAD -->
         <div class="footer-legal" style="margin-top: 15px; display: flex; justify-content: center; gap: 20px; font-size: 0.85rem;">
             <a href="#" onclick="mostrarTerminos(event)" style="color: var(--primary-color); text-decoration: underline;">Terms and Conditions</a>
@@ -555,14 +552,14 @@
         <i class="fas fa-crown"></i>
     </div>
  
-    <!-- MAIN ADMIN MODAL -->
-    <button class="btn-admin" onclick="mostrarLoginAdmin()">
-    <i class="fas fa-cog"></i> Panel Admin
-</button>
- 
     <!-- ALERT MODAL -->
     <div class="custom-overlay" id="alertOverlay" style="z-index: 3000;">
         <div class="custom-modal glass-effect" id="alertContent"></div>
+    </div>
+
+    <!-- ADMIN MODAL -->
+    <div class="custom-overlay" id="adminModalOverlay" style="z-index: 2800;">
+        <div class="custom-modal glass-effect" id="adminModalContent"></div>
     </div>
  
     <!-- SUBSCRIPTION POPUP -->
@@ -648,11 +645,11 @@
             }
         });
  
-       function mostrarAlerta(mensaje, icono = "fa-info-circle", color = "var(--primary-color)") {
+        function mostrarAlerta(mensaje, icono = "fa-info-circle", color = "var(--primary-color)") {
             const overlay = document.getElementById('alertOverlay');
             const content = document.getElementById('alertContent');
-            content.style.maxWidth = '500px'; // Restablece el ancho estándar
-            content.style.textAlign = 'center'; // Restablece la alineación centrada
+            content.style.maxWidth = '500px';
+            content.style.textAlign = 'center';
             content.innerHTML = `
                 <i class="fas ${icono}" style="font-size: 3rem; color: ${color}; margin-bottom: 1rem;"></i>
                 <p style="font-size: 1.1rem; margin-bottom: 1.5rem; color: var(--text-dark); font-weight:bold;">${mensaje}</p>
@@ -1088,40 +1085,43 @@
             `;
             overlay.classList.add('active');
         }
+        
         window.mostrarLoginAdmin = function() {
-    const adminContent = document.getElementById('adminModalContent');
-    adminContent.innerHTML = `
-        <h3 class="modal-title" style="color: var(--primary-color);"><i class="fas fa-lock"></i> Acceso Restringido</h3>
-        <p style="text-align:center; font-size:0.9rem; margin-bottom:15px;">Solo personal autorizado</p>
-        <div class="form-group">
-            <label>Correo Electrónico</label>
-            <input type="email" id="loginEmail" placeholder="admin@daydreamers.com" style="width:100%; padding:10px; margin-top:5px; border-radius:5px; border:1px solid #ccc;">
-        </div>
-        <div class="form-group">
-            <label>Contraseña</label>
-            <input type="password" id="loginPass" placeholder="******" style="width:100%; padding:10px; margin-top:5px; border-radius:5px; border:1px solid #ccc;">
-        </div>
-        <div id="loginError" style="color:red; font-size:0.85rem; text-align:center; display:none;">Credenciales incorrectas</div>
-        <button class="btn-action" onclick="procesarLogin()" style="width:100%; margin-top:15px;"><i class="fas fa-sign-in-alt"></i> Iniciar Sesión</button>
-    `;
-}
-window.procesarLogin = async function() {
-    const email = document.getElementById('loginEmail').value;
-    const pass = document.getElementById('loginPass').value;
-    const { auth, signInWithEmailAndPassword } = window.fb;
+            const adminContent = document.getElementById('adminModalContent');
+            adminContent.innerHTML = `
+                <h3 class="modal-title" style="color: var(--primary-color);"><i class="fas fa-lock"></i> Acceso Restringido</h3>
+                <p style="text-align:center; font-size:0.9rem; margin-bottom:15px;">Solo personal autorizado</p>
+                <div class="form-group">
+                    <label>Correo Electrónico</label>
+                    <input type="email" id="loginEmail" placeholder="admin@daydreamers.com" style="width:100%; padding:10px; margin-top:5px; border-radius:5px; border:1px solid #ccc;">
+                </div>
+                <div class="form-group">
+                    <label>Contraseña</label>
+                    <input type="password" id="loginPass" placeholder="******" style="width:100%; padding:10px; margin-top:5px; border-radius:5px; border:1px solid #ccc;">
+                </div>
+                <div id="loginError" style="color:red; font-size:0.85rem; text-align:center; display:none;">Credenciales incorrectas</div>
+                <button class="btn-action" onclick="procesarLogin()" style="width:100%; margin-top:15px;"><i class="fas fa-sign-in-alt"></i> Iniciar Sesión</button>
+            `;
+        }
+        
+        window.procesarLogin = async function() {
+            const email = document.getElementById('loginEmail').value;
+            const pass = document.getElementById('loginPass').value;
+            const { auth, signInWithEmailAndPassword } = window.fb;
 
-    try {
-        // Intenta iniciar sesión en Firebase
-        await signInWithEmailAndPassword(auth, email, pass);
-        
-        // Si es exitoso, te muestra el Menú de Admin que ya tenías programado
-        mostrarMenuAdmin(); 
-        
-    } catch (error) {
-        // Si fallas la contraseña, muestra error
-        document.getElementById('loginError').style.display = 'block';
-    }
-}
+            try {
+                // Intenta iniciar sesión en Firebase
+                await signInWithEmailAndPassword(auth, email, pass);
+                
+                // Si es exitoso, te muestra el Menú de Admin que ya tenías programado
+                window.isAdmin = true;
+                mostrarMenuAdmin(); 
+                
+            } catch (error) {
+                // Si fallas la contraseña, muestra error
+                document.getElementById('loginError').style.display = 'block';
+            }
+        }
     </script>
 </body>
 </html>
