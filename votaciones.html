@@ -5,6 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DAYDREAMERS AWARDS - Votaciones</title>
     
+    <!-- Poppins Font para un diseño más elegante -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Librería para generar la Share Card -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -16,7 +21,7 @@
             getFirestore, collection, addDoc, doc, updateDoc, increment, onSnapshot, arrayUnion, setDoc 
         } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // Configuración de Firebase
+        // Configuración de Firebase (Intacta)
         const firebaseConfig = {
             apiKey: "AIzaSyAAW-bBHn7MXXJNsVW0EAiH5kf69C9DAeg",
             authDomain: "app-de-proyectos-3279c.firebaseapp.com",
@@ -34,7 +39,7 @@
 
         window.fb = { db, appId, collection, addDoc, doc, updateDoc, increment, onSnapshot, arrayUnion, setDoc };
 
-        // Autenticación Anónima (Previene votos duplicados cruzando con UID)
+        // Autenticación Anónima
         window.currentUserUid = null;
         signInAnonymously(auth).catch((error) => console.error("Error Auth Firebase:", error));
         onAuthStateChanged(auth, (user) => {
@@ -46,18 +51,33 @@
     </script>
 
     <style>
-        /* === VARIABLES Y TEMAS === */
+        /* === VARIABLES Y TEMAS (Mejorados con Modo Oscuro) === */
         :root {
-            --light-bg: #ffffff;
-            --gradient-bg: #f8f6f0;
-            --text-main: #333333;
-            --glass-bg: rgba(255, 255, 255, 0.9);
-            --glass-border: rgba(212, 175, 55, 0.4);
+            --light-bg: #fdfbf7;
+            --gradient-bg: #f4f0e6;
+            --text-main: #2c2c2c;
+            --glass-bg: rgba(255, 255, 255, 0.85);
+            --glass-border: rgba(212, 175, 55, 0.3);
             --gold: #d4af37;
-            --font-family: 'Helvetica Neue', Arial, sans-serif;
+            --gold-hover: #b8860b;
+            --card-bg: #ffffff;
+            --font-family: 'Poppins', sans-serif;
+            --shadow-color: rgba(0, 0, 0, 0.06);
+            --input-bg: #ffffff;
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: var(--font-family); }
+        [data-theme="dark"] {
+            --light-bg: #0f0f0f;
+            --gradient-bg: #1a1a1a;
+            --text-main: #f5f5f5;
+            --glass-bg: rgba(30, 30, 30, 0.85);
+            --glass-border: rgba(212, 175, 55, 0.4);
+            --card-bg: #222222;
+            --shadow-color: rgba(0, 0, 0, 0.3);
+            --input-bg: #2a2a2a;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: var(--font-family); transition: background-color 0.4s ease, color 0.4s ease; }
         
         body {
             background: linear-gradient(135deg, var(--light-bg), var(--gradient-bg));
@@ -67,192 +87,298 @@
         /* === NAVEGACIÓN === */
         nav {
             position: fixed; top: 0; width: 100%; height: 80px; display: flex; justify-content: space-between; align-items: center;
-            padding: 0 5%; z-index: 1000; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(12px); border-bottom: 1px solid var(--glass-border);
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            padding: 0 5%; z-index: 1000; background: var(--glass-bg); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); 
+            border-bottom: 1px solid var(--glass-border); box-shadow: 0 4px 20px var(--shadow-color);
         }
         .logo-container { display: flex; align-items: center; gap: 15px; text-decoration: none; }
-        .perfil-img { width: 48px; height: 48px; border-radius: 50%; object-fit: cover; border: 2px solid var(--gold); }
-        .logo-text { font-size: 22px; font-weight: bold; letter-spacing: 2px; color: var(--gold); }
+        .perfil-img { width: 48px; height: 48px; border-radius: 50%; object-fit: cover; border: 2px solid var(--gold); box-shadow: 0 0 10px rgba(212,175,55,0.3); }
+        .logo-text { font-size: 20px; font-weight: 700; letter-spacing: 1px; color: var(--gold); }
 
-        /* === HEADER DE PREMIOS === */
-        .awards-header { margin-top: 100px; text-align: center; padding: 0 20px; }
-        .awards-title { font-size: 42px; color: var(--gold); text-transform: uppercase; letter-spacing: 3px; text-shadow: 0 2px 10px rgba(212, 175, 55, 0.2); }
-        .awards-subtitle { font-size: 16px; color: #555555; margin-top: 10px; max-width: 600px; margin-left: auto; margin-right: auto; }
-
-        /* === DASHBOARD DE UX (NUEVO) === */
-        .dashboard-ux {
-            max-width: 1200px; margin: 20px auto; padding: 20px; background: var(--glass-bg);
-            border-radius: 15px; border: 1px solid var(--glass-border); box-shadow: 0 5px 15px rgba(0,0,0,0.05);
-            display: flex; flex-direction: column; gap: 15px;
+        .nav-controls { display: flex; align-items: center; gap: 15px; }
+        .icon-btn { 
+            background: transparent; border: 1px solid var(--gold); color: var(--gold); 
+            width: 36px; height: 36px; border-radius: 50%; display: flex; justify-content: center; align-items: center;
+            cursor: pointer; font-size: 14px; font-weight: bold; transition: 0.3s;
         }
-        .dashboard-top { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; }
+        .icon-btn:hover { background: var(--gold); color: #fff; }
+        .return-link { color: var(--gold); text-decoration: none; font-weight: 600; font-size: 14px; display: flex; align-items: center; gap: 6px; }
+        .return-link:hover { opacity: 0.8; }
+
+        /* === HEADER DE PREMIOS (Con Banner Elegante) === */
+        .awards-header { margin-top: 110px; text-align: center; padding: 0 20px; }
+        .banner-wrapper { 
+            width: 100%; max-width: 900px; margin: 0 auto 20px; border-radius: 20px; 
+            overflow: hidden; box-shadow: 0 15px 40px var(--shadow-color); border: 1px solid var(--glass-border);
+            background: #000;
+        }
+        .awards-banner { width: 100%; height: auto; display: block; object-fit: contain; }
+        .awards-subtitle { font-size: 16px; color: var(--text-main); opacity: 0.8; margin-top: 10px; max-width: 600px; margin-left: auto; margin-right: auto; font-weight: 300; }
+        .opening-notice { font-size: 16px; font-weight: 600; color: #e74c3c; margin-top: 15px; display: none; padding: 10px; background: rgba(231, 76, 60, 0.1); border-radius: 10px; max-width: max-content; margin-inline: auto; }
+
+        /* === DASHBOARD DE UX === */
+        .dashboard-ux {
+            max-width: 1200px; margin: 30px auto 20px; padding: 25px; background: var(--glass-bg);
+            backdrop-filter: blur(10px); border-radius: 20px; border: 1px solid var(--glass-border); 
+            box-shadow: 0 10px 30px var(--shadow-color); display: flex; flex-direction: column; gap: 20px;
+        }
+        .dashboard-top { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px; }
         
-        .countdown-timer { font-size: 18px; font-weight: bold; color: #e74c3c; display: flex; align-items: center; gap: 8px; }
+        .countdown-timer { font-size: 18px; font-weight: 600; color: #e74c3c; display: flex; align-items: center; gap: 8px; background: rgba(231, 76, 60, 0.05); padding: 8px 16px; border-radius: 20px; border: 1px solid rgba(231, 76, 60, 0.2); }
         
         .progress-container { flex-grow: 1; max-width: 500px; }
-        .progress-text { font-size: 14px; font-weight: bold; color: var(--gold); margin-bottom: 5px; }
-        .progress-bar-bg { width: 100%; height: 10px; background: #e0e0e0; border-radius: 5px; overflow: hidden; }
-        .progress-bar-fill { height: 100%; background: var(--gold); width: 0%; transition: width 0.5s ease; }
+        .progress-text { font-size: 14px; font-weight: 600; color: var(--gold); margin-bottom: 8px; }
+        .progress-bar-bg { width: 100%; height: 8px; background: var(--input-bg); border-radius: 10px; overflow: hidden; border: 1px solid var(--glass-border); }
+        .progress-bar-fill { height: 100%; background: linear-gradient(90deg, var(--gold), #ffdf73); width: 0%; transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1); }
         
-        .search-filters { display: flex; gap: 10px; width: 100%; }
+        .search-filters { display: flex; gap: 15px; width: 100%; }
         .search-input, .filter-select {
-            padding: 10px 15px; border-radius: 20px; border: 1px solid var(--glass-border); outline: none;
-            background: #fff; flex-grow: 1;
+            padding: 12px 20px; border-radius: 25px; border: 1px solid var(--glass-border); outline: none;
+            background: var(--input-bg); color: var(--text-main); flex-grow: 1; font-size: 14px; box-shadow: inset 0 2px 5px var(--shadow-color);
         }
-        .filter-select { flex-grow: 0; min-width: 200px; cursor: pointer; color: var(--text-main); }
+        .filter-select { flex-grow: 0; min-width: 220px; cursor: pointer; }
 
         /* === CONTENEDOR DE CATEGORÍAS === */
         .categories-container { max-width: 1200px; margin: 20px auto 100px; padding: 0 20px; display: flex; flex-direction: column; gap: 50px; }
-        .category-section { background: var(--glass-bg); backdrop-filter: blur(10px); border: 1px solid var(--glass-border); border-radius: 20px; padding: 30px; box-shadow: 0 10px 30px rgba(212, 175, 55, 0.1); }
-        .category-title { font-size: 26px; color: var(--gold); margin-bottom: 25px; border-bottom: 2px solid var(--gold); padding-bottom: 10px; display: inline-block; font-weight: bold; }
+        .category-section { background: var(--glass-bg); backdrop-filter: blur(12px); border: 1px solid var(--glass-border); border-radius: 25px; padding: 40px 30px; box-shadow: 0 15px 40px var(--shadow-color); }
+        .category-title { font-size: 24px; color: var(--gold); margin-bottom: 30px; border-bottom: 2px solid rgba(212,175,55,0.2); padding-bottom: 15px; font-weight: 700; letter-spacing: 1px; }
 
         /* === GRILLA DE NOMINADOS === */
-        .nominees-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 25px; }
+        .nominees-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 30px; }
         .nominee-card {
-            background: #ffffff; border: 1px solid var(--glass-border); border-radius: 15px;
-            overflow: hidden; text-align: center; transition: 0.3s; position: relative;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.05); display: flex; flex-direction: column; justify-content: space-between;
+            background: var(--card-bg); border: 1px solid var(--glass-border); border-radius: 20px;
+            overflow: hidden; text-align: center; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); position: relative;
+            box-shadow: 0 8px 25px var(--shadow-color); display: flex; flex-direction: column; justify-content: space-between;
         }
-        .nominee-card:hover { transform: translateY(-10px); border-color: var(--gold); box-shadow: 0 10px 20px rgba(212, 175, 55, 0.2); }
-        .nominee-img-wrapper { width: 100%; aspect-ratio: 1; overflow: hidden; background: #f5f5f5; }
-        .nominee-img { width: 100%; height: 100%; object-fit: cover; transition: 0.5s; }
-        .nominee-card:hover .nominee-img { transform: scale(1.1); }
-        .nominee-info { padding: 15px; display: flex; flex-direction: column; flex-grow: 1; justify-content: space-between; }
-        .nominee-name { font-size: 18px; font-weight: bold; margin-bottom: 5px; color: var(--text-main); }
-        .nominee-followers { font-size: 12px; color: #666; margin-bottom: 8px; }
-        .nominee-link { font-size: 13px; color: var(--gold); text-decoration: none; font-weight: bold; margin-bottom: 10px; display: inline-block; }
-        .nominee-link:hover { text-decoration: underline; }
-        .nominee-votes { font-size: 13px; color: var(--gold); margin-bottom: 15px; font-weight: bold; }
+        .nominee-card:hover { transform: translateY(-12px); border-color: var(--gold); box-shadow: 0 15px 35px rgba(212, 175, 55, 0.15); }
+        .nominee-img-wrapper { width: 100%; aspect-ratio: 1; overflow: hidden; background: #000; }
+        .nominee-img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.6s ease; opacity: 0.95; }
+        .nominee-card:hover .nominee-img { transform: scale(1.08); opacity: 1; }
+        .nominee-info { padding: 20px; display: flex; flex-direction: column; flex-grow: 1; justify-content: space-between; gap: 10px; }
+        .nominee-name { font-size: 18px; font-weight: 700; color: var(--text-main); }
+        .nominee-followers { font-size: 13px; color: var(--text-main); opacity: 0.6; }
+        .nominee-link { font-size: 13px; color: var(--gold); text-decoration: none; font-weight: 600; display: inline-block; }
+        .nominee-link:hover { text-decoration: underline; color: var(--gold-hover); }
+        .nominee-votes { font-size: 14px; color: var(--gold); font-weight: 700; margin-bottom: 5px; }
         
         .btn-vote {
-            background: var(--gold); color: #fff; border: none; padding: 10px 20px; width: 100%;
-            border-radius: 25px; font-size: 15px; font-weight: bold; cursor: pointer; transition: 0.3s;
+            background: linear-gradient(135deg, var(--gold), var(--gold-hover)); color: #fff; border: none; padding: 12px 20px; width: 100%;
+            border-radius: 25px; font-size: 15px; font-weight: 600; cursor: pointer; transition: 0.3s; box-shadow: 0 4px 15px rgba(212,175,55,0.3);
         }
-        .btn-vote:hover { opacity: 0.85; transform: scale(1.05); }
-        .btn-vote:disabled { background: #e0e0e0; color: #888; cursor: not-allowed; transform: none; }
-        .voted-badge { background: #4CAF50; color: white !important; }
+        .btn-vote:hover:not(:disabled) { box-shadow: 0 6px 20px rgba(212,175,55,0.5); transform: translateY(-2px); }
+        .btn-vote:disabled { background: var(--input-bg); color: gray; cursor: not-allowed; transform: none; box-shadow: none; border: 1px solid var(--glass-border); opacity: 0.6; }
 
         .btn-edit-nominee {
-            position: absolute; top: 10px; right: 10px; background: rgba(255, 255, 255, 0.9);
-            border: 1px solid var(--gold); color: var(--gold); width: 32px; height: 32px;
+            position: absolute; top: 12px; right: 12px; background: rgba(255, 255, 255, 0.9);
+            border: 1px solid var(--gold); color: var(--gold); width: 36px; height: 36px;
             border-radius: 50%; display: flex; align-items: center; justify-content: center;
-            cursor: pointer; transition: 0.3s; z-index: 10;
+            cursor: pointer; transition: 0.3s; z-index: 10; box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
         .btn-edit-nominee:hover { background: var(--gold); color: #fff; }
 
-        /* === BARRAS DE PORCENTAJE (RESULTADOS) === */
+        /* === BARRAS DE PORCENTAJE === */
         .result-bar-container { width: 100%; margin-top: 10px; text-align: left; }
-        .result-bar-bg { width: 100%; height: 8px; background: #eee; border-radius: 4px; overflow: hidden; margin-bottom: 5px; }
+        .result-bar-bg { width: 100%; height: 8px; background: var(--input-bg); border: 1px solid var(--glass-border); border-radius: 4px; overflow: hidden; margin-bottom: 5px; }
         .result-bar-fill { height: 100%; background: var(--gold); width: 0%; transition: width 1s ease-in-out; }
-        .result-text { font-size: 12px; font-weight: bold; color: #555; display: flex; justify-content: space-between; }
+        .result-text { font-size: 12px; font-weight: 600; color: var(--text-main); opacity: 0.8; display: flex; justify-content: space-between; margin-bottom: 4px; }
 
-        /* === SHARE CARD === */
+        /* === SHARE CARD BOTÓN === */
         .btn-share-card {
-            display: block; width: fit-content; margin: 20px auto; padding: 15px 30px;
-            background: linear-gradient(135deg, var(--gold), #b8860b); color: white; border: none;
-            border-radius: 30px; font-size: 16px; font-weight: bold; cursor: pointer; box-shadow: 0 5px 15px rgba(212,175,55,0.4);
-            transition: 0.3s;
+            display: block; width: fit-content; margin: 0 auto 40px; padding: 15px 35px;
+            background: linear-gradient(135deg, var(--gold), var(--gold-hover)); color: white; border: none;
+            border-radius: 30px; font-size: 16px; font-weight: 700; cursor: pointer; box-shadow: 0 8px 25px rgba(212,175,55,0.4);
+            transition: all 0.3s ease; letter-spacing: 0.5px;
         }
-        .btn-share-card:hover { transform: scale(1.05); box-shadow: 0 8px 20px rgba(212,175,55,0.6); }
+        .btn-share-card:hover { transform: translateY(-3px); box-shadow: 0 12px 30px rgba(212,175,55,0.6); }
 
         #shareCardRender {
-            background: linear-gradient(135deg, #111, #333); color: var(--gold); padding: 30px; border-radius: 15px;
-            width: 400px; text-align: center; border: 2px solid var(--gold); position: absolute; left: -9999px; top: 0;
+            background: linear-gradient(135deg, #121212, #2a2a2a); color: var(--gold); padding: 40px; border-radius: 20px;
+            width: 420px; text-align: center; border: 2px solid var(--gold); position: absolute; left: -9999px; top: 0; font-family: 'Poppins', sans-serif;
         }
-        #shareCardRender h2 { margin-bottom: 20px; text-transform: uppercase; letter-spacing: 2px; }
-        .share-item { background: rgba(255,255,255,0.1); padding: 10px; border-radius: 8px; margin-bottom: 10px; border-left: 3px solid var(--gold); text-align: left;}
-        .share-item span { display: block; font-size: 12px; color: #ccc; }
+        #shareCardRender h2 { margin-bottom: 25px; text-transform: uppercase; letter-spacing: 2px; font-size: 22px; }
+        .share-item { background: rgba(255,255,255,0.05); padding: 12px; border-radius: 10px; margin-bottom: 12px; border-left: 4px solid var(--gold); text-align: left;}
+        .share-item span { display: block; font-size: 12px; color: #bbb; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
         .share-item strong { font-size: 16px; color: #fff; }
 
-        /* === BOTÓN Y MODAL ADMIN === */
+        /* === MODAL ADMIN Y GENERAL === */
         .admin-btn {
-            position: fixed; bottom: 30px; left: 30px; width: 55px; height: 55px;
-            background: #ffffff; color: var(--gold); border: 2px solid var(--gold);
-            border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 20px;
-            cursor: pointer; z-index: 1500; transition: 0.3s; backdrop-filter: blur(5px);
-            box-shadow: 0 4px 10px rgba(212, 175, 55, 0.3);
+            position: fixed; bottom: 30px; left: 30px; width: 60px; height: 60px;
+            background: var(--glass-bg); color: var(--gold); border: 2px solid var(--gold);
+            border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 22px;
+            cursor: pointer; z-index: 1500; transition: 0.3s; backdrop-filter: blur(10px);
+            box-shadow: 0 8px 20px var(--shadow-color);
         }
-        .admin-btn:hover { background: var(--gold); color: white; transform: scale(1.1); }
+        .admin-btn:hover { background: var(--gold); color: white; transform: translateY(-5px); }
 
         .custom-modal-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(10px); display: none;
+            background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(8px); display: none;
             justify-content: center; align-items: center; z-index: 2500; padding: 20px;
         }
         .custom-modal {
-            background: #ffffff; padding: 30px; border-radius: 20px; border: 2px solid var(--gold);
-            max-width: 500px; width: 100%; box-shadow: 0 20px 50px rgba(212, 175, 55, 0.2); color: var(--text-main);
-            max-height: 90vh; overflow-y: auto;
+            background: var(--card-bg); padding: 40px; border-radius: 25px; border: 1px solid var(--glass-border);
+            max-width: 500px; width: 100%; box-shadow: 0 25px 60px rgba(0,0,0,0.4); color: var(--text-main);
+            max-height: 90vh; overflow-y: auto; position: relative;
         }
-        .modal-title { color: var(--gold); font-size: 22px; margin-bottom: 20px; text-align: center; font-weight: bold; }
+        .modal-title { color: var(--gold); font-size: 24px; margin-bottom: 25px; text-align: center; font-weight: 700; }
         
-        .form-group { margin-bottom: 15px; text-align: left; }
-        .form-group label { display: block; font-size: 13px; color: var(--gold); margin-bottom: 6px; font-weight: bold; }
+        .form-group { margin-bottom: 18px; text-align: left; }
+        .form-group label { display: block; font-size: 13px; color: var(--gold); margin-bottom: 8px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
         .form-group input, .form-group textarea {
-            width: 100%; padding: 12px; border-radius: 10px; background: #fdfdfd;
-            border: 1px solid var(--glass-border); color: #333; outline: none; font-size: 14px;
+            width: 100%; padding: 14px; border-radius: 12px; background: var(--input-bg);
+            border: 1px solid var(--glass-border); color: var(--text-main); outline: none; font-size: 14px; transition: 0.3s;
         }
-        .form-group textarea { resize: none; height: 80px; }
-        input[type="file"] { padding: 8px; background: #fdfdfd; }
+        .form-group input:focus, .form-group textarea:focus { border-color: var(--gold); box-shadow: 0 0 10px rgba(212,175,55,0.2); }
+        .form-group textarea { resize: none; height: 90px; }
+        input[type="file"] { padding: 10px; background: var(--input-bg); }
         
         .btn-modal {
-            background: var(--gold); color: #fff; border: none; padding: 12px;
-            font-size: 15px; font-weight: bold; border-radius: 25px; cursor: pointer; transition: 0.3s; width: 100%; margin-top: 10px;
+            background: linear-gradient(135deg, var(--gold), var(--gold-hover)); color: #fff; border: none; padding: 14px;
+            font-size: 15px; font-weight: 600; border-radius: 25px; cursor: pointer; transition: 0.3s; width: 100%; margin-top: 10px;
         }
-        .btn-modal.cancel { background: transparent; color: #555; border: 1px solid #555; }
+        .btn-modal.cancel { background: transparent; color: var(--text-main); border: 1px solid var(--text-main); opacity: 0.7; }
         .btn-modal.danger { background: #e74c3c; color: white; }
-        .btn-modal:hover { opacity: 0.9; transform: scale(1.02); }
+        .btn-modal:hover { opacity: 0.9; transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
 
-        .loader { display: none; text-align: center; margin-top: 15px; color: var(--gold); font-weight: bold; }
+        .admin-spinner { display: none; text-align: center; margin-top: 15px; color: var(--gold); font-weight: bold; }
+
+        /* === ANIMACIÓN GENERATOR DE TARJETA (USER PROVIDED) === */
+        .loader-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 120px;
+            width: auto;
+            margin: 2rem auto;
+            font-family: "Poppins", sans-serif;
+            font-size: 1.6em;
+            font-weight: 600;
+            user-select: none;
+            color: var(--gold); /* Adaptado al color de la app */
+            scale: 1.5; /* Ajuste para que encaje bien en el modal */
+        }
+
+        .loader {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            width: 100%;
+            z-index: 1;
+            background-color: transparent;
+            mask: repeating-linear-gradient( 90deg, transparent 0, transparent 6px, black 7px, black 8px );
+            -webkit-mask: repeating-linear-gradient( 90deg, transparent 0, transparent 6px, black 7px, black 8px );
+        }
+
+        .loader::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: radial-gradient(circle at 50% 50%, var(--gold) 0%, transparent 50%),
+                              radial-gradient(circle at 45% 45%, var(--gold-hover) 0%, transparent 45%),
+                              radial-gradient(circle at 55% 55%, #fff 0%, transparent 45%),
+                              radial-gradient(circle at 45% 55%, var(--gold) 0%, transparent 45%),
+                              radial-gradient(circle at 55% 45%, var(--gold-hover) 0%, transparent 45%);
+            mask: radial-gradient( circle at 50% 50%, transparent 0%, transparent 10%, black 25% );
+            -webkit-mask: radial-gradient( circle at 50% 50%, transparent 0%, transparent 10%, black 25% );
+            animation: transform-animation 2s infinite alternate, opacity-animation 4s infinite;
+            animation-timing-function: cubic-bezier(0.6, 0.8, 0.5, 1);
+        }
+
+        @keyframes transform-animation {
+            0% { transform: translate(-55%); }
+            100% { transform: translate(55%); }
+        }
+
+        @keyframes opacity-animation {
+            0%, 100% { opacity: 0; }
+            15% { opacity: 1; }
+            65% { opacity: 0; }
+        }
+
+        .loader-letter {
+            display: inline-block;
+            opacity: 0;
+            animation: loader-letter-anim 4s infinite linear;
+            z-index: 2;
+        }
+
+        .loader-letter:nth-child(1) { animation-delay: 0.1s; }
+        .loader-letter:nth-child(2) { animation-delay: 0.205s; }
+        .loader-letter:nth-child(3) { animation-delay: 0.31s; }
+        .loader-letter:nth-child(4) { animation-delay: 0.415s; }
+        .loader-letter:nth-child(5) { animation-delay: 0.521s; }
+        .loader-letter:nth-child(6) { animation-delay: 0.626s; }
+        .loader-letter:nth-child(7) { animation-delay: 0.731s; }
+        .loader-letter:nth-child(8) { animation-delay: 0.837s; }
+        .loader-letter:nth-child(9) { animation-delay: 0.942s; }
+        .loader-letter:nth-child(10) { animation-delay: 1.047s; }
+
+        @keyframes loader-letter-anim {
+            0% { opacity: 0; }
+            5% { opacity: 1; text-shadow: 0 0 4px var(--gold); transform: scale(1.1) translateY(-2px); }
+            20% { opacity: 0.2; }
+            100% { opacity: 0; }
+        }
     </style>
 </head>
 <body>
 
     <nav>
         <a href="index.html" class="logo-container">
-            <img src="daydreamer.jpeg" alt="Perfil" class="perfil-img">
+            <img src="icono.adele.jpeg" alt="Perfil" class="perfil-img">
             <span class="logo-text">DAYDREAMERS AWARDS</span>
         </a>
-        <a href="index.html" style="color: var(--gold); text-decoration: none; font-weight: bold; font-size: 14px;"><i class="fas fa-arrow-left"></i> Return</a>
+        <div class="nav-controls">
+            <button id="themeToggle" class="icon-btn" onclick="toggleTheme()" title="Toggle Dark/Light Mode"><i class="fas fa-moon"></i></button>
+            <button id="langToggle" class="icon-btn" onclick="toggleLanguage()" title="Change Language">ES</button>
+            <a href="index.html" class="return-link" data-i18n="return"><i class="fas fa-arrow-left"></i> Return</a>
+        </div>
     </nav>
 
     <header class="awards-header">
-        <h1 class="awards-title"><i class="fas fa-trophy"></i> DAYDREAMERS AWARDS</h1>
-        <p class="awards-subtitle">Support your favorite creators, communities, and moments. Votes decide the season winners.</p>
+        <div class="banner-wrapper">
+            <img src="adele-fans.jpeg" alt="Daydreamers Awards 2026" class="awards-banner">
+        </div>
+        <p class="awards-subtitle" data-i18n="subtitle">Support your favorite creators, communities, and moments. Votes decide the season winners.</p>
+        <p class="opening-notice" id="openingNotice" data-i18n="opening_notice"><i class="fas fa-calendar-alt"></i> Voting opens on September 15th!</p>
     </header>
 
     <!-- DASHBOARD DE UX Y DINAMISMO -->
     <div class="dashboard-ux">
         <div class="dashboard-top">
-            <div id="countdown" class="countdown-timer"><i class="fas fa-clock"></i>Calculating closure...</div>
+            <div id="countdown" class="countdown-timer"><i class="fas fa-clock"></i> <span data-i18n="calculating">Calculating...</span></div>
             <div class="progress-container">
-                <p class="progress-text" id="progressText">You have voted in 0 out of 0 categories</p>
+                <p class="progress-text" id="progressText" data-i18n="voted_in_zero">You have voted in 0 out of 0 categories</p>
                 <div class="progress-bar-bg">
                     <div class="progress-bar-fill" id="progressFill"></div>
                 </div>
             </div>
         </div>
         <div class="search-filters">
-            <input type="text" id="searchInput" class="search-input" placeholder="Buscar nominado por nombre..." onkeyup="aplicarFiltros()">
+            <input type="text" id="searchInput" class="search-input" data-i18n-placeholder="search_placeholder" placeholder="Buscar nominado por nombre..." onkeyup="aplicarFiltros()">
             <select id="categoryFilter" class="filter-select" onchange="aplicarFiltros()">
-                <option value="ALL">All Categories</option>
+                <option value="ALL" data-i18n="all_categories">All Categories</option>
             </select>
         </div>
     </div>
 
     <main class="categories-container" id="categoriesContainer">
-        <div style="text-align: center; color: var(--gold); font-size: 20px;"><i class="fas fa-spinner fa-spin"></i> Loading nominees...</div>
+        <div style="text-align: center; color: var(--gold); font-size: 20px;"><i class="fas fa-spinner fa-spin"></i> <span data-i18n="loading_nominees">Loading nominees...</span></div>
     </main>
 
     <button class="btn-share-card" id="btnGenerarShare" style="display:none;" onclick="generarShareCard()">
-        <i class="fas fa-camera"></i>Generate My Voting Card
+        <i class="fas fa-camera"></i> <span data-i18n="generate_card">Generate My Voting Card</span>
     </button>
 
     <!-- CONTENEDOR OCULTO PARA RENDERIZAR LA TARJETA EN CANVAS -->
     <div id="shareCardRender">
         <h2>My Votes Daydreamers Awards</h2>
         <div id="shareCardItems"></div>
-        <p style="margin-top: 15px; font-size: 12px; color: #aaa;">Join the vote!</p>
+        <p style="margin-top: 20px; font-size: 13px; color: #bbb; letter-spacing: 1px;">Join the vote!</p>
     </div>
 
     <div class="admin-btn" onclick="pedirPasswordAdmin('menu')" title="Administrar Nominados">
@@ -268,13 +394,99 @@
         // API Key de ImgBB proporcionada
         const IMGBB_API_KEY = "f5567fb36a6232aae841ea9aac0ee139";
 
+        // ==========================================
+        // DICCIONARIO DE IDIOMAS Y THEME
+        // ==========================================
+        const i18n = {
+            en: {
+                return: '<i class="fas fa-arrow-left"></i> Return',
+                subtitle: 'Support your favorite creators, communities, and moments. Votes decide the season winners.',
+                opening_notice: '<i class="fas fa-calendar-check"></i> Voting opens on September 15th!',
+                calculating: 'Calculating...',
+                search_placeholder: 'Search nominee by name...',
+                all_categories: 'All Categories',
+                no_nominees: 'There are no nominees registered yet. Admins can add them.',
+                voting_closed_thanks: '¡Thanks for participating! Voting has closed. The winners will be announced soon.',
+                voted_in: 'You have voted in',
+                out_of: 'out of',
+                categories: 'categories',
+                generate_card: 'Generate My Voting Card',
+                closed: '<i class="fas fa-lock"></i> VOTING CLOSED',
+                opens_in: '<i class="fas fa-clock"></i> Opens in:',
+                closes_in: '<i class="fas fa-clock"></i> Closes in:',
+                vote_btn: 'To vote',
+                your_vote: '⭐ Your vote',
+                votes_word: 'Votes',
+                loading_nominees: 'Loading nominees...'
+            },
+            es: {
+                return: '<i class="fas fa-arrow-left"></i> Volver',
+                subtitle: 'Apoya a tus creadores, comunidades y momentos favoritos. Los votos deciden a los ganadores.',
+                opening_notice: '<i class="fas fa-calendar-check"></i> ¡Las votaciones se abren el 15 de septiembre!',
+                calculating: 'Calculando...',
+                search_placeholder: 'Buscar nominado por nombre...',
+                all_categories: 'Todas las Categorías',
+                no_nominees: 'Aún no hay nominados registrados. Los administradores pueden añadirlos.',
+                voting_closed_thanks: '¡Gracias por participar! Las votaciones han cerrado. Los ganadores serán anunciados pronto.',
+                voted_in: 'Has votado en',
+                out_of: 'de',
+                categories: 'categorías',
+                generate_card: 'Generar Mi Tarjeta',
+                closed: '<i class="fas fa-lock"></i> VOTACIONES CERRADAS',
+                opens_in: '<i class="fas fa-clock"></i> Abre en:',
+                closes_in: '<i class="fas fa-clock"></i> Cierra en:',
+                vote_btn: 'Votar',
+                your_vote: '⭐ Tu voto',
+                votes_word: 'Votos',
+                loading_nominees: 'Cargando nominados...'
+            }
+        };
+
+        let currentLang = 'en';
+        let currentTheme = 'light';
+
+        function toggleTheme() {
+            currentTheme = currentTheme === 'light' ? 'dark' : 'light';
+            document.documentElement.setAttribute('data-theme', currentTheme);
+            const icon = currentTheme === 'dark' ? 'fa-sun' : 'fa-moon';
+            document.getElementById('themeToggle').innerHTML = `<i class="fas ${icon}"></i>`;
+        }
+
+        function toggleLanguage() {
+            currentLang = currentLang === 'en' ? 'es' : 'en';
+            document.getElementById('langToggle').innerText = currentLang === 'en' ? 'ES' : 'EN';
+            actualizarTextosUI();
+            renderizarVotaciones(); // Re-renderizar para actualizar textos de botones/resultados
+            actualizarFiltros();
+        }
+
+        function actualizarTextosUI() {
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (i18n[currentLang][key]) {
+                    el.innerHTML = i18n[currentLang][key];
+                }
+            });
+            document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+                const key = el.getAttribute('data-i18n-placeholder');
+                if (i18n[currentLang][key]) {
+                    el.setAttribute('placeholder', i18n[currentLang][key]);
+                }
+            });
+            actualizarTextoProgreso();
+        }
+
         // Variables Globales
         let esAdmin = false;
         let nominadosData = [];
         let configGlobal = { votacionesCerradas: false };
         let totalCategoriasGlobal = 0;
         let categoriasVotadasGlobal = 0;
-        let fechaCierre = new Date("2026-10-01T00:00:00").getTime();
+        
+        // FECHAS DE APERTURA Y CIERRE
+        const fechaAperturaFija = new Date("2026-09-15T00:00:00").getTime();
+        const fechaCierre = new Date("2026-10-01T00:00:00").getTime();
+        let votacionesAbiertasPorFecha = false;
 
         const modalOverlay = document.getElementById('modalOverlay');
         const modalContenido = document.getElementById('modalContenido');
@@ -291,9 +503,9 @@
         // INICIO Y CONFIGURACIÓN FIREBASE
         // ==========================================
         function initAwardsLogic() {
+            actualizarTextosUI();
             const { db, appId, collection, doc, onSnapshot } = window.fb;
             
-            // Escuchar Configuración (Mantenimiento/Cierre)
             const configRef = doc(db, 'artifacts', appId, 'public', 'data', 'awards_settings', 'config');
             onSnapshot(configRef, (docSnap) => {
                 if (docSnap.exists()) {
@@ -303,7 +515,6 @@
                 renderizarVotaciones();
             });
 
-            // Escuchar Nominados
             const nomineesRef = collection(db, 'artifacts', appId, 'public', 'data', 'awards_nominees');
             onSnapshot(nomineesRef, (snapshot) => {
                 nominadosData = [];
@@ -316,33 +527,54 @@
         }
 
         // ==========================================
-        // CUENTA REGRESIVA Y CIERRE AUTOMÁTICO
+        // CUENTA REGRESIVA Y CONTROL DE FECHAS
         // ==========================================
         function iniciarCuentaRegresiva() {
             const timerElement = document.getElementById('countdown');
+            const noticeElement = document.getElementById('openingNotice');
+
             const intervalo = setInterval(() => {
                 if(configGlobal.votacionesCerradas) {
-                    timerElement.innerHTML = `<i class="fas fa-lock"></i> VOTING CLOSED`;
+                    timerElement.innerHTML = i18n[currentLang].closed;
+                    noticeElement.style.display = 'none';
                     clearInterval(intervalo);
                     return;
                 }
+                
                 const now = new Date().getTime();
-                const distance = fechaCierre - now;
+                let anteriorEstado = votacionesAbiertasPorFecha;
 
-                if (distance < 0) {
-                    timerElement.innerHTML = `<i class="fas fa-lock"></i> VOTING CLOSED`;
+                if (now < fechaAperturaFija) {
+                    votacionesAbiertasPorFecha = false;
+                    noticeElement.style.display = 'block';
+                    const distance = fechaAperturaFija - now;
+                    const d = Math.floor(distance / (1000 * 60 * 60 * 24));
+                    const h = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                    const m = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                    timerElement.innerHTML = `${i18n[currentLang].opens_in} ${d}d ${h}h ${m}m`;
+                } else if (now < fechaCierre) {
+                    votacionesAbiertasPorFecha = true;
+                    noticeElement.style.display = 'none';
+                    const distance = fechaCierre - now;
+                    const d = Math.floor(distance / (1000 * 60 * 60 * 24));
+                    const h = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                    const m = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                    timerElement.innerHTML = `${i18n[currentLang].closes_in} ${d}d ${h}h ${m}m`;
+                } else {
+                    votacionesAbiertasPorFecha = false;
+                    timerElement.innerHTML = i18n[currentLang].closed;
+                    noticeElement.style.display = 'none';
                     clearInterval(intervalo);
                     if(!configGlobal.votacionesCerradas) {
-                        configGlobal.votacionesCerradas = true; // Auto cierre visual
+                        configGlobal.votacionesCerradas = true;
                         renderizarVotaciones();
                     }
-                    return;
                 }
 
-                const d = Math.floor(distance / (1000 * 60 * 60 * 24));
-                const h = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-                const m = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-                timerElement.innerHTML = `<i class="fas fa-clock"></i> Cierre: ${d}d ${h}h ${m}m`;
+                // Re-renderizar sutilmente si el estado cambia (llega el 15 de sep)
+                if (anteriorEstado !== votacionesAbiertasPorFecha) {
+                    renderizarVotaciones();
+                }
             }, 1000);
         }
 
@@ -352,7 +584,7 @@
         function actualizarFiltros() {
             const select = document.getElementById('categoryFilter');
             const categoriasUnicas = [...new Set(nominadosData.map(n => n.categoria.toUpperCase()))];
-            select.innerHTML = '<option value="ALL">All Categories</option>';
+            select.innerHTML = `<option value="ALL">${i18n[currentLang].all_categories}</option>`;
             categoriasUnicas.forEach(c => {
                 select.innerHTML += `<option value="${c}">${c}</option>`;
             });
@@ -384,12 +616,16 @@
             });
         }
 
+        function actualizarTextoProgreso() {
+            document.getElementById('progressText').innerText = `${i18n[currentLang].voted_in} ${categoriasVotadasGlobal} ${i18n[currentLang].out_of} ${totalCategoriasGlobal} ${i18n[currentLang].categories}`;
+        }
+
         // ==========================================
         // RENDERIZAR CATEGORÍAS Y NOMINADOS
         // ==========================================
         function renderizarVotaciones() {
             if (nominadosData.length === 0) {
-                categoriesContainer.innerHTML = `<p style="text-align:center; color:#555555;">There are no nominees registered yet. Admins can add them.</p>`;
+                categoriesContainer.innerHTML = `<p style="text-align:center; color:var(--text-main); font-weight: 300;">${i18n[currentLang].no_nominees}</p>`;
                 return;
             }
 
@@ -405,8 +641,10 @@
             categoriesContainer.innerHTML = ''; 
 
             if(configGlobal.votacionesCerradas) {
-                categoriesContainer.innerHTML = `<div style="text-align:center; background:#ffeb3b; color:#333; padding:15px; border-radius:10px; font-weight:bold; margin-bottom:20px;">¡Thanks for participating! Voting has closed. The winners will be announced soon.</div>`;
+                categoriesContainer.innerHTML = `<div style="text-align:center; background:rgba(212,175,55,0.1); color:var(--gold); padding:20px; border-radius:15px; font-weight:600; margin-bottom:20px; border: 1px solid var(--gold);">${i18n[currentLang].voting_closed_thanks}</div>`;
             }
+
+            const isLocked = !votacionesAbiertasPorFecha && !configGlobal.votacionesCerradas;
 
             for (const [categoria, nominados] of Object.entries(categoriasObj)) {
                 nominados.sort((a, b) => (b.votos || 0) - (a.votos || 0));
@@ -414,15 +652,13 @@
                 const claveLocal = `voto_awards_${categoria}`;
                 let votoGuardadoId = localStorage.getItem(claveLocal);
                 
-                // Compatibilidad cruzada con UID por seguridad
                 if (window.currentUserUid && localStorage.getItem(`${claveLocal}_uid`) !== window.currentUserUid) {
-                    // Si el usuario cambia de cuenta anonima, se limpia el local storage visual (aunque backend rechazaría si hubiera reglas estrictas)
+                    // Prevención cuenta anonima
                 }
                 
                 const categoriaYaVotada = votoGuardadoId !== null;
                 if(categoriaYaVotada) categoriasVotadasGlobal++;
 
-                // Total de votos en esta categoría para calcular porcentajes
                 const totalVotosCat = nominados.reduce((sum, n) => sum + (n.votos || 0), 0);
 
                 let htmlTarjetas = '';
@@ -431,25 +667,24 @@
                     const porcentaje = totalVotosCat > 0 ? ((nom.votos / totalVotosCat) * 100).toFixed(1) : 0;
                     
                     const editBtnHtml = esAdmin ? `<button class="btn-edit-nominee" onclick="editarNominado('${nom.id}')" title="Editar Nominado"><i class="fas fa-pen"></i></button>` : '';
-                    const seguidoresHtml = nom.seguidores ? `<p class="nominee-followers"><i class="fas fa-users"></i> ${nom.seguidores} followers</p>` : '';
-                    const enlaceHtml = nom.enlace ? `<a href="${nom.enlace}" target="_blank" class="nominee-link"><i class="fas fa-external-link-alt"></i> See Page</a>` : '';
+                    const seguidoresHtml = nom.seguidores ? `<p class="nominee-followers"><i class="fas fa-users"></i> ${nom.seguidores}</p>` : '';
+                    const enlaceHtml = nom.enlace ? `<a href="${nom.enlace}" target="_blank" class="nominee-link"><i class="fas fa-external-link-alt"></i> Ver</a>` : '';
 
                     let accionHtml = '';
                     
                     if (configGlobal.votacionesCerradas || categoriaYaVotada) {
-                        // Mostrar Resultados en Tiempo Real
                         accionHtml = `
                             <div class="result-bar-container">
-                                <div class="result-text"><span>${esMiVoto ? '⭐ Your vote' : 'Votos'}</span> <span>${porcentaje}%</span></div>
+                                <div class="result-text"><span>${esMiVoto ? i18n[currentLang].your_vote : i18n[currentLang].votes_word}</span> <span>${porcentaje}%</span></div>
                                 <div class="result-bar-bg"><div class="result-bar-fill" style="width: ${porcentaje}%;"></div></div>
-                                <div class="nominee-votes" style="margin-top:5px; text-align:right;">${nom.votos || 0} Votes</div>
+                                <div class="nominee-votes" style="margin-top:5px; text-align:right;">${nom.votos || 0} ${i18n[currentLang].votes_word}</div>
                             </div>
                         `;
                     } else {
-                        // Mostrar Botón de Votar
+                        const disabledAttr = isLocked ? 'disabled title="Votaciones aún no abiertas"' : '';
                         accionHtml = `
-                            <p class="nominee-votes"><i class="fas fa-star"></i> ${nom.votos || 0} Votes</p>
-                            <button class="btn-vote" onclick="confirmarVotoModal('${nom.id}', '${categoria}', '${nom.nombre}')">To vote</button>
+                            <p class="nominee-votes"><i class="fas fa-star"></i> ${nom.votos || 0} ${i18n[currentLang].votes_word}</p>
+                            <button class="btn-vote" ${disabledAttr} onclick="confirmarVotoModal('${nom.id}', '${categoria}', '${nom.nombre.replace(/'/g, "\\'")}')">${i18n[currentLang].vote_btn}</button>
                         `;
                     }
 
@@ -485,34 +720,38 @@
                 categoriesContainer.appendChild(seccionCat);
             }
 
-            // Actualizar Barra de Progreso
-            document.getElementById('progressText').innerText = `You have voted in ${categoriasVotadasGlobal}of ${totalCategoriasGlobal} categories`;
+            actualizarTextoProgreso();
             const progreso = totalCategoriasGlobal > 0 ? (categoriasVotadasGlobal / totalCategoriasGlobal) * 100 : 0;
             document.getElementById('progressFill').style.width = `${progreso}%`;
 
-            // Mostrar botón de Share Card si votó en todo o si están cerradas y participó
             if(categoriasVotadasGlobal > 0) {
                 document.getElementById('btnGenerarShare').style.display = 'block';
             }
 
-            aplicarFiltros(); // Reaplicar filtros al re-renderizar
+            aplicarFiltros(); 
         }
 
         // ==========================================
-        // SISTEMA DE VOTACIÓN (CON CONFIRMACIÓN Y COMENTARIO)
+        // SISTEMA DE VOTACIÓN (CON CONFIRMACIÓN)
         // ==========================================
         window.confirmarVotoModal = function(nomineeId, categoria, nomineeNombre) {
-            if (configGlobal.votacionesCerradas) { alert("The voting has closed."); return; }
+            if (configGlobal.votacionesCerradas || !votacionesAbiertasPorFecha) { return; }
+
+            const btnConfirm = currentLang === 'en' ? 'Confirm Vote' : 'Confirmar Voto';
+            const btnCancel = currentLang === 'en' ? 'Cancel' : 'Cancelar';
+            const commentPlaceholder = currentLang === 'en' ? 'Optional supportive message...' : 'Mensaje de apoyo opcional...';
 
             abrirModalHTML(`
-                <h3 class="modal-title"><i class="fas fa-check-circle"></i> Confirm Vote</h3>
-                <p style="text-align:center; font-size:16px; margin-bottom:15px;">You are about to vote for <strong>${nomineeNombre}</strong> in <strong>${categoria}</strong>.</p>
+                <h3 class="modal-title"><i class="fas fa-check-circle"></i> ${btnConfirm}</h3>
+                <p style="text-align:center; font-size:16px; margin-bottom:20px;">
+                    ${currentLang === 'en' ? 'You are about to vote for' : 'Estás a punto de votar por'} <strong style="color:var(--gold);">${nomineeNombre}</strong> 
+                    ${currentLang === 'en' ? 'in' : 'en'} <strong>${categoria}</strong>.
+                </p>
                 <div class="form-group">
-                    <label>Leave a supportive message (Optional)</label>
-                    <textarea id="comentarioVoto" placeholder="I love their content!..."></textarea>
+                    <textarea id="comentarioVoto" placeholder="${commentPlaceholder}"></textarea>
                 </div>
-                <button class="btn-modal" onclick="ejecutarVoto('${nomineeId}', '${categoria}')">Confirm Vote</button>
-                <button class="btn-modal cancel" onclick="cerrarModal()">Cancel</button>
+                <button class="btn-modal" onclick="ejecutarVoto('${nomineeId}', '${categoria}')">${btnConfirm}</button>
+                <button class="btn-modal cancel" onclick="cerrarModal()">${btnCancel}</button>
             `);
         }
 
@@ -532,10 +771,13 @@
                     localStorage.setItem(`voto_awards_${categoria}_uid`, window.currentUserUid);
                 }
                 
+                const titleSuccess = currentLang === 'en' ? 'Vote Registered!' : '¡Voto Registrado!';
+                const msgSuccess = currentLang === 'en' ? 'Your vote has been successfully counted.' : 'Tu voto se ha contabilizado con éxito.';
+                
                 abrirModalHTML(`
-                    <h3 class="modal-title" style="color: #4CAF50;"><i class="fas fa-thumbs-up"></i> Vote Registered!</h3>
-                    <p style="text-align:center;">Your vote has been successfully counted.</p>
-                    <button class="btn-modal" onclick="cerrarModal()">Continue</button>
+                    <h3 class="modal-title" style="color: #4CAF50;"><i class="fas fa-thumbs-up"></i> ${titleSuccess}</h3>
+                    <p style="text-align:center;">${msgSuccess}</p>
+                    <button class="btn-modal" style="margin-top:20px;" onclick="cerrarModal()">${currentLang === 'en' ? 'Continue' : 'Continuar'}</button>
                 `);
             }).catch(err => {
                 console.error("Error al votar: ", err);
@@ -544,13 +786,12 @@
         }
 
         // ==========================================
-        // GENERAR TARJETA DE VOTANTE (SHARE CARD)
+        // GENERAR TARJETA DE VOTANTE (SHARE CARD + CUSTOM ANIMATION)
         // ==========================================
         window.generarShareCard = function() {
             const containerItems = document.getElementById('shareCardItems');
             containerItems.innerHTML = '';
             
-            // Recopilar selecciones del usuario
             let votosRealizados = 0;
             nominadosData.forEach(nom => {
                 const categoria = nom.categoria.toUpperCase();
@@ -566,35 +807,53 @@
             });
 
             if(votosRealizados === 0) {
-                alert("You haven't voted for any nominee yet.");
+                alert(currentLang === 'en' ? "You haven't voted for any nominee yet." : "No has votado por ningún nominado aún.");
                 return;
             }
 
             const elementoCanvas = document.getElementById('shareCardRender');
-            elementoCanvas.style.left = "0"; // Traer al viewport oculto detrás del modal para renderizar bien
+            elementoCanvas.style.left = "0";
             elementoCanvas.style.zIndex = "-1";
 
+            // Animación Personalizada solicitada por el usuario
             abrirModalHTML(`
-                <h3 class="modal-title"><i class="fas fa-spinner fa-spin"></i> Generating Card...</h3>
+                <div class="loader-wrapper">
+                    <span class="loader-letter">G</span>
+                    <span class="loader-letter">e</span>
+                    <span class="loader-letter">n</span>
+                    <span class="loader-letter">e</span>
+                    <span class="loader-letter">r</span>
+                    <span class="loader-letter">a</span>
+                    <span class="loader-letter">t</span>
+                    <span class="loader-letter">i</span>
+                    <span class="loader-letter">n</span>
+                    <span class="loader-letter">g</span>
+                    <div class="loader"></div>
+                </div>
             `);
 
+            // Simular un poco de tiempo para apreciar la animación
             setTimeout(() => {
                 html2canvas(elementoCanvas, { backgroundColor: '#111' }).then(canvas => {
-                    elementoCanvas.style.left = "-9999px"; // Ocultar de nuevo
+                    elementoCanvas.style.left = "-9999px"; 
                     const imgData = canvas.toDataURL('image/png');
                     
+                    const titleCard = currentLang === 'en' ? 'Your Voter Card' : 'Tu Tarjeta de Votante';
+                    const btnDown = currentLang === 'en' ? 'Download Image' : 'Descargar Imagen';
+                    const btnClose = currentLang === 'en' ? 'Close' : 'Cerrar';
+
                     abrirModalHTML(`
-                        <h3 class="modal-title"><i class="fas fa-share-alt"></i> Your Voter Card</h3>
-                        <div style="text-align:center; margin-bottom:15px;">
-                            <img src="${imgData}" style="width:100%; border-radius:10px; max-width:350px;">
+                        <h3 class="modal-title"><i class="fas fa-share-alt"></i> ${titleCard}</h3>
+                        <div style="text-align:center; margin-bottom:20px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); border-radius:12px; overflow:hidden;">
+                            <img src="${imgData}" style="width:100%; max-width:380px; display:block;">
                         </div>
                         <a href="${imgData}" download="My_Daydreamers_Votes.png" class="btn-modal" style="display:block; text-align:center; text-decoration:none;">
-                            <i class="fas fa-download"></i> Download Image
+                            <i class="fas fa-download"></i> ${btnDown}
                         </a>
-                        <button class="btn-modal cancel" onclick="cerrarModal()">Close</button>
+                        <button class="btn-modal cancel" onclick="cerrarModal()">${btnClose}</button>
                     `);
                 });
-            }, 500);
+            }, 2500); // 2.5s para ver la animación de Generating...
         }
 
         // ==========================================
@@ -608,13 +867,12 @@
             }
 
             abrirModalHTML(`
-                <h3 class="modal-title"><i class="fas fa-lock"></i> Acceso Admin Awards</h3>
-                <p style="text-align: center; margin-bottom: 15px; font-size: 14px; color: #555555;">Solo administradores.</p>
+                <h3 class="modal-title"><i class="fas fa-lock"></i> Admin Access</h3>
                 <div class="form-group">
-                    <input type="password" id="adminPassAwards" placeholder="Contraseña..." onkeypress="if(event.key === 'Enter') verificarAdminAwards('${accion}', '${nomineeId || ''}')">
+                    <input type="password" id="adminPassAwards" placeholder="Password..." onkeypress="if(event.key === 'Enter') verificarAdminAwards('${accion}', '${nomineeId || ''}')">
                 </div>
-                <button class="btn-modal" onclick="verificarAdminAwards('${accion}', '${nomineeId || ''}')">Entrar</button>
-                <button class="btn-modal cancel" onclick="cerrarModal()">Cancelar</button>
+                <button class="btn-modal" onclick="verificarAdminAwards('${accion}', '${nomineeId || ''}')">Enter</button>
+                <button class="btn-modal cancel" onclick="cerrarModal()">Cancel</button>
             `);
         }
 
@@ -625,14 +883,14 @@
                 if (accion === 'editar' && nomineeId) mostrarFormularioEditar(nomineeId);
                 else mostrarFormularioAdmin();
             } else {
-                abrirModalHTML(`<h3 class="modal-title" style="color:#ff4444;">Incorrecto</h3><button class="btn-modal" onclick="cerrarModal()">Cerrar</button>`);
+                abrirModalHTML(`<h3 class="modal-title" style="color:#ff4444;">Incorrect</h3><button class="btn-modal" onclick="cerrarModal()">Close</button>`);
             }
         }
 
         function mostrarFormularioAdmin() {
             const btnEstadoVotaciones = configGlobal.votacionesCerradas 
                 ? `<button class="btn-modal" style="background:#27ae60;" onclick="toggleEstadoVotaciones(false)"><i class="fas fa-play"></i> Reabrir Votaciones</button>`
-                : `<button class="btn-modal danger" onclick="toggleEstadoVotaciones(true)"><i class="fas fa-stop"></i> Cerrar Votaciones</button>`;
+                : `<button class="btn-modal danger" onclick="toggleEstadoVotaciones(true)"><i class="fas fa-stop"></i> Cerrar Forzoso (Fin)</button>`;
 
             abrirModalHTML(`
                 <h3 class="modal-title"><i class="fas fa-crown"></i> Panel de Administración</h3>
@@ -642,16 +900,16 @@
                     ${btnEstadoVotaciones}
                 </div>
 
-                <hr style="border:0; border-top:1px solid #ddd; margin-bottom:20px;">
-                <h4 style="color:var(--gold); margin-bottom:10px;">Añadir Nuevo Nominado</h4>
+                <hr style="border:0; border-top:1px solid var(--glass-border); margin-bottom:20px;">
+                <h4 style="color:var(--gold); margin-bottom:15px;">Añadir Nuevo Nominado</h4>
 
                 <div class="form-group"><input type="text" id="addNomNombre" placeholder="Nombre (Ej: Adele Global)"></div>
                 <div class="form-group"><input type="text" id="addNomCategoria" placeholder="Categoría (Ej: Mejor Comunidad)"></div>
-                <div class="form-group"><input type="text" id="addNomSeguidores" placeholder="Seguidores (Ej: 10.5K)"></div>
-                <div class="form-group"><input type="url" id="addNomEnlace" placeholder="Enlace a Página/Perfil"></div>
+                <div class="form-group"><input type="text" id="addNomSeguidores" placeholder="Subtítulo/Seguidores (Ej: 10.5K)"></div>
+                <div class="form-group"><input type="url" id="addNomEnlace" placeholder="Enlace a Página/Perfil (Opcional)"></div>
                 <div class="form-group"><label>Fotografía (ImgBB)</label><input type="file" id="addNomFile" accept="image/*"></div>
                 
-                <div id="uploadLoader" class="loader"><i class="fas fa-spinner fa-spin"></i> Procesando...</div>
+                <div id="uploadLoader" class="admin-spinner"><i class="fas fa-spinner fa-spin"></i> Procesando imagen...</div>
                 
                 <button class="btn-modal" id="btnGuardarNom" onclick="guardarNominado()"><i class="fas fa-save"></i> Publicar Nominado</button>
                 <button class="btn-modal cancel" onclick="cerrarModal()">Cerrar Panel</button>
@@ -662,13 +920,12 @@
             const { db, appId, doc, setDoc } = window.fb;
             const configRef = doc(db, 'artifacts', appId, 'public', 'data', 'awards_settings', 'config');
             await setDoc(configRef, { votacionesCerradas: cerrar }, { merge: true });
-            alert(cerrar ? "Voting officially closed." : "Voting reopened.");
+            alert(cerrar ? "Votaciones cerradas manualmente." : "Votaciones reabiertas.");
             mostrarFormularioAdmin();
         }
 
         window.exportarResultadosCSV = function() {
             let csvContent = "ID,Nombre,Categoria,Votos,Seguidores,Enlace\n";
-            // Ordenar por categoría y luego por votos
             let dataExportar = [...nominadosData].sort((a, b) => {
                 if(a.categoria === b.categoria) return (b.votos || 0) - (a.votos || 0);
                 return a.categoria.localeCompare(b.categoria);
@@ -680,7 +937,7 @@
                 csvContent += `${n.id},"${name}","${cat}",${n.votos || 0},"${n.seguidores || ''}","${n.enlace || ''}"\n`;
             });
 
-            const blob = new Blob([new Uint8Array([0xEF, 0xBB, 0xBF]), csvContent], { type: "text/csv;charset=utf-8;" }); // BOM para Excel
+            const blob = new Blob([new Uint8Array([0xEF, 0xBB, 0xBF]), csvContent], { type: "text/csv;charset=utf-8;" }); 
             const link = document.createElement("a");
             const url = URL.createObjectURL(blob);
             link.setAttribute("href", url);
@@ -742,10 +999,10 @@
                 <h3 class="modal-title"><i class="fas fa-pen"></i> Editar Nominado</h3>
                 <div class="form-group"><label>Nombre</label><input type="text" id="editNomNombre" value="${nom.nombre || ''}"></div>
                 <div class="form-group"><label>Categoría</label><input type="text" id="editNomCategoria" value="${nom.categoria || ''}"></div>
-                <div class="form-group"><label>Seguidores</label><input type="text" id="editNomSeguidores" value="${nom.seguidores || ''}"></div>
+                <div class="form-group"><label>Subtítulo/Seguidores</label><input type="text" id="editNomSeguidores" value="${nom.seguidores || ''}"></div>
                 <div class="form-group"><label>Enlace</label><input type="url" id="editNomEnlace" value="${nom.enlace || ''}"></div>
                 <div class="form-group"><label>Nueva Fotografía (Opcional)</label><input type="file" id="editNomFile" accept="image/*"></div>
-                <div id="uploadLoader" class="loader"><i class="fas fa-spinner fa-spin"></i> Actualizando...</div>
+                <div id="uploadLoader" class="admin-spinner"><i class="fas fa-spinner fa-spin"></i> Actualizando...</div>
                 <button class="btn-modal" id="btnActualizarNom" onclick="actualizarNominado('${nom.id}', '${nom.imagenUrl}')"><i class="fas fa-save"></i> Guardar Cambios</button>
                 <button class="btn-modal cancel" onclick="cerrarModal()">Cancelar</button>
             `);
