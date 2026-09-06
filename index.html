@@ -530,13 +530,22 @@
     </section>
  
     <!-- FOOTER -->
+    <!-- FOOTER -->
     <footer class="glass-effect">
         <div class="footer-icons">
-            <a href="#"><i class="fab fa-instagram"></i></a>
-            <a href="#"><i class="fab fa-tiktok"></i></a>
-            <a href="#"><i class="fab fa-twitter"></i></a>
+            <a href="https://www.instagram.com/adele_fans540/"><i class="fab fa-instagram"></i></a>
+            <a href="https://www.tiktok.com/@adele_fans542?is_from_webapp=1&sender_device=pc"><i class="fab fa-tiktok"></i></a>
+            <a href="https://www.facebook.com/Adele%20Daydreamer"><i class="fab fa-facebook"></i></a>
         </div>
         <p class="footer-text"><i class="fas fa-copyright"></i> 2026 Daydreamers Awards. All rights reserved by the Adele community.</p>
+<p style="font-size: 0.75rem; color: #888; max-width: 600px; margin: 0 auto 10px auto; text-align: center;">
+    This site is a non-profit project created by fans for the community. It is not officially affiliated with, sponsored by, or linked to Adele, XL Recordings, or Columbia Records.
+</p>
+        <!-- ENLACES DE TÉRMINOS Y PRIVACIDAD -->
+        <div class="footer-legal" style="margin-top: 15px; display: flex; justify-content: center; gap: 20px; font-size: 0.85rem;">
+            <a href="#" onclick="mostrarTerminos(event)" style="color: var(--primary-color); text-decoration: underline;">Terms and Conditions</a>
+            <a href="#" onclick="mostrarPrivacidad(event)" style="color: var(--primary-color); text-decoration: underline;">Privacy Policy</a>
+        </div>
     </footer>
  
     <!-- ADMIN BUTTON -->
@@ -637,9 +646,11 @@
             }
         });
  
-        function mostrarAlerta(mensaje, icono = "fa-info-circle", color = "var(--primary-color)") {
+       function mostrarAlerta(mensaje, icono = "fa-info-circle", color = "var(--primary-color)") {
             const overlay = document.getElementById('alertOverlay');
             const content = document.getElementById('alertContent');
+            content.style.maxWidth = '500px'; // Restablece el ancho estándar
+            content.style.textAlign = 'center'; // Restablece la alineación centrada
             content.innerHTML = `
                 <i class="fas ${icono}" style="font-size: 3rem; color: ${color}; margin-bottom: 1rem;"></i>
                 <p style="font-size: 1.1rem; margin-bottom: 1.5rem; color: var(--text-dark); font-weight:bold;">${mensaje}</p>
@@ -647,7 +658,6 @@
             `;
             overlay.classList.add('active');
         }
- 
         const observer = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
                 if (entry.isIntersecting) entry.target.classList.add('visible');
@@ -1005,6 +1015,76 @@
                 await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'awards_colaboradores'), { nombre, enlace, imagenUrl: data.url, fechaRegistro: new Date().toISOString() });
                 mostrarMenuAdmin(); mostrarAlerta("Collaborator added", "fa-check", "#4CAF50");
             } catch (e) { mostrarAlerta("Error", "fa-times", "red"); loader.style.display = 'none'; document.getElementById('btnGuardarColab').disabled = false; }
+        }
+        // ==========================================
+        // VENTANAS EMERGENTES: TÉRMINOS Y PRIVACIDAD
+        // ==========================================
+        function mostrarTerminos(e) {
+            if(e) e.preventDefault();
+            const overlay = document.getElementById('alertOverlay');
+            const content = document.getElementById('alertContent');
+            content.style.maxWidth = '650px';
+            content.style.textAlign = 'left';
+            
+            content.innerHTML = `
+                <h3 style="color: var(--primary-color); margin-bottom: 1rem; text-align: center;"><i class="fas fa-file-contract"></i> Términos y Condiciones</h3>
+                <div style="max-height: 60vh; overflow-y: auto; font-size: 0.9rem; line-height: 1.6; padding-right: 10px; color: var(--text-dark);">
+                    <p><strong>1. Aceptación de los Términos</strong><br>Al acceder y utilizar este sitio web (Daydreamers Awards), aceptas cumplir y estar sujeto a los presentes Términos y Condiciones. Si no estás de acuerdo con alguna parte de estos términos, te sugerimos no utilizar la plataforma.</p>
+                    <br>
+                    <p><strong>2. Naturaleza del Proyecto</strong><br>Daydreamers Awards es un proyecto independiente creado por y para la comunidad global de seguidores de la artista Adele. Este sitio web tiene un carácter strictly recreativo, de reconocimiento y comunitario. No cuenta con afiliación oficial, patrocinio ni respaldo comercial directo por parte de Adele, sus representantes legales o sus sellos discográficos.</p>
+                    <br>
+                    <p><strong>3. Normas de Participación y Votación</strong></p>
+                    <ul style="margin-left: 20px; margin-top: 5px;">
+                        <li>Las votaciones y registros están abiertos a todos los miembros de la comunidad bajo las reglas establecidas para cada edición.</li>
+                        <li>Cualquier intento de fraude, manipulación de votos mediante sistemas automatizados (bots) o alteración malintencionada del sistema dará lugar a la descalificación inmediata del nominado o al bloqueo de la participación.</li>
+                        <li>Los organizadores se reservan el derecho de modificar, suspender o cancelar las categorías o las votaciones en caso de fuerza mayor o fallos técnicos.</li>
+                    </ul>
+                    <br>
+                    <p><strong>4. Propiedad Intelectual</strong></p>
+                    <ul style="margin-left: 20px; margin-top: 5px;">
+                        <li>Las imágenes, nombres, logotipos y referencias a la artista Adele pertenecen a sus respectivos dueños y titulares de derechos de autor; su uso en este sitio tiene fines exclusivamente ilustrativos y de homenaje dentro del marco del uso legítimo de club de fans.</li>
+                        <li>Los elementos gráficos originales del proyecto (como el logotipo de los Daydreamers Awards y diseños exclusivos de la plataforma) son propiedad de la organización comunitaria.</li>
+                    </ul>
+                    <br>
+                    <p><strong>5. Limitación de Responsabilidad</strong><br>Los administradores del sitio no se hacen responsables de interrupciones temporales del servicio, fallos de conexión, pérdida de datos ajena a nuestro control directo o el mal uso que terceros puedan hacer de la plataforma.</p>
+                </div>
+                <button class="btn-action" style="margin-top: 1.5rem;" onclick="document.getElementById('alertOverlay').classList.remove('active')"><i class="fas fa-check"></i> Entendido</button>
+            `;
+            overlay.classList.add('active');
+        }
+
+        function mostrarPrivacidad(e) {
+            if(e) e.preventDefault();
+            const overlay = document.getElementById('alertOverlay');
+            const content = document.getElementById('alertContent');
+            content.style.maxWidth = '650px';
+            content.style.textAlign = 'left';
+            
+            content.innerHTML = `
+                <h3 style="color: var(--primary-color); margin-bottom: 1rem; text-align: center;"><i class="fas fa-user-shield"></i> Política de Privacidad</h3>
+                <div style="max-height: 60vh; overflow-y: auto; font-size: 0.9rem; line-height: 1.6; padding-right: 10px; color: var(--text-dark);">
+                    <p><strong>1. Responsable del Tratamiento de Datos</strong><br>El equipo organizador de los Daydreamers Awards es el responsable de la gestión y protección de los datos personales recopilados a través de este sitio web.</p>
+                    <br>
+                    <p><strong>2. Datos que Recopilamos</strong></p>
+                    <ul style="margin-left: 20px; margin-top: 5px;">
+                        <li><strong>Correo electrónico:</strong> Únicamente cuando te suscribes voluntariamente a nuestro boletín de noticias o alertas de los premios a través de los formularios habilitados.</li>
+                        <li><strong>Datos de navegación:</strong> Información técnica básica recopilada con fines analíticos y de mejora de la experiencia de usuario (como el tipo de dispositivo o navegador).</li>
+                    </ul>
+                    <br>
+                    <p><strong>3. Finalidad del Uso de los Datos</strong><br>Los datos recopilados (principalmente el correo electrónico) serán utilizados exclusivamente para:</p>
+                    <ul style="margin-left: 20px; margin-top: 5px;">
+                        <li>Enviar notificaciones sobre el desarrollo de los premios, apertura y cierre de votaciones.</li>
+                        <li>Informar sobre novedades, anuncios importantes o actualizaciones de la comunidad.</li>
+                        <li>No compartimos, vendemos ni cedemos información personal a terceros bajo ninguna circunstancia comercial.</li>
+                    </ul>
+                    <br>
+                    <p><strong>4. Derechos del Usuario</strong><br>En cualquier momento, los usuarios pueden solicitar el acceso, rectificación o eliminación de su correo electrónico de nuestra base de datos de suscriptores contactando a través de los canales oficiales de la comunidad indicados en la web.</p>
+                    <br>
+                    <p><strong>5. Uso de Cookies</strong><br>El sitio puede utilizar almacenamiento local o cookies técnicas estrictamente necesarias para recordar preferencias de navegación (como el modo oscuro o el idioma seleccionado).</p>
+                </div>
+                <button class="btn-action" style="margin-top: 1.5rem;" onclick="document.getElementById('alertOverlay').classList.remove('active')"><i class="fas fa-check"></i> Entendido</button>
+            `;
+            overlay.classList.add('active');
         }
     </script>
 </body>
