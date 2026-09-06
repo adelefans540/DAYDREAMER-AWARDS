@@ -5,13 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DAYDREAMERS AWARDS - Votaciones</title>
     
-    <!-- Poppins Font para un diseño más elegante -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Librería para generar la Share Card -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
     <script type="module">
@@ -117,7 +115,7 @@
 
         /* === DASHBOARD DE UX === */
         .dashboard-ux {
-            max-width: 1200px; margin: 30px auto 20px; padding: 25px; background: var(--glass-bg);
+            max-width: 1200px; width: 90%; margin: 30px auto 20px; padding: 25px; background: var(--glass-bg);
             backdrop-filter: blur(10px); border-radius: 20px; border: 1px solid var(--glass-border); 
             box-shadow: 0 10px 30px var(--shadow-color); display: flex; flex-direction: column; gap: 20px;
         }
@@ -125,7 +123,7 @@
         
         .countdown-timer { font-size: 18px; font-weight: 600; color: #e74c3c; display: flex; align-items: center; gap: 8px; background: rgba(231, 76, 60, 0.05); padding: 8px 16px; border-radius: 20px; border: 1px solid rgba(231, 76, 60, 0.2); }
         
-        .progress-container { flex-grow: 1; max-width: 500px; }
+        .progress-container { flex-grow: 1; max-width: 500px; width: 100%; }
         .progress-text { font-size: 14px; font-weight: 600; color: var(--gold); margin-bottom: 8px; }
         .progress-bar-bg { width: 100%; height: 8px; background: var(--input-bg); border-radius: 10px; overflow: hidden; border: 1px solid var(--glass-border); }
         .progress-bar-fill { height: 100%; background: linear-gradient(90deg, var(--gold), #ffdf73); width: 0%; transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1); }
@@ -138,9 +136,9 @@
         .filter-select { flex-grow: 0; min-width: 220px; cursor: pointer; }
 
         /* === CONTENEDOR DE CATEGORÍAS === */
-        .categories-container { max-width: 1200px; margin: 20px auto 100px; padding: 0 20px; display: flex; flex-direction: column; gap: 50px; }
+        .categories-container { max-width: 1200px; width: 95%; margin: 20px auto 100px; padding: 0 10px; display: flex; flex-direction: column; gap: 40px; }
         .category-section { background: var(--glass-bg); backdrop-filter: blur(12px); border: 1px solid var(--glass-border); border-radius: 25px; padding: 40px 30px; box-shadow: 0 15px 40px var(--shadow-color); }
-        .category-title { font-size: 24px; color: var(--gold); margin-bottom: 30px; border-bottom: 2px solid rgba(212,175,55,0.2); padding-bottom: 15px; font-weight: 700; letter-spacing: 1px; }
+        .category-title { font-size: 24px; color: var(--gold); margin-bottom: 30px; border-bottom: 2px solid rgba(212,175,55,0.2); padding-bottom: 15px; font-weight: 700; letter-spacing: 1px; word-wrap: break-word; }
 
         /* === GRILLA DE NOMINADOS === */
         .nominees-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 30px; }
@@ -219,7 +217,7 @@
             max-width: 500px; width: 100%; box-shadow: 0 25px 60px rgba(0,0,0,0.4); color: var(--text-main);
             max-height: 90vh; overflow-y: auto; position: relative;
         }
-        .modal-title { color: var(--gold); font-size: 24px; margin-bottom: 25px; text-align: center; font-weight: 700; }
+        .modal-title { color: var(--gold); font-size: 24px; margin-bottom: 25px; text-align: center; font-weight: 700; word-wrap: break-word; }
         
         .form-group { margin-bottom: 18px; text-align: left; }
         .form-group label { display: block; font-size: 13px; color: var(--gold); margin-bottom: 8px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
@@ -229,7 +227,7 @@
         }
         .form-group input:focus, .form-group textarea:focus { border-color: var(--gold); box-shadow: 0 0 10px rgba(212,175,55,0.2); }
         .form-group textarea { resize: none; height: 90px; }
-        input[type="file"] { padding: 10px; background: var(--input-bg); }
+        input[type="file"] { padding: 10px; background: var(--input-bg); width: 100%; }
         
         .btn-modal {
             background: linear-gradient(135deg, var(--gold), var(--gold-hover)); color: #fff; border: none; padding: 14px;
@@ -254,8 +252,8 @@
             font-size: 1.6em;
             font-weight: 600;
             user-select: none;
-            color: var(--gold); /* Adaptado al color de la app */
-            scale: 1.5; /* Ajuste para que encaje bien en el modal */
+            color: var(--gold);
+            scale: 1.5; 
         }
 
         .loader {
@@ -323,6 +321,44 @@
             20% { opacity: 0.2; }
             100% { opacity: 0; }
         }
+
+        /* ==========================================
+           DISEÑO RESPONSIVE (MEDIA QUERIES)
+        ========================================== */
+        @media (max-width: 768px) {
+            nav { padding: 0 15px; height: 70px; }
+            .logo-text { font-size: 16px; }
+            .perfil-img { width: 36px; height: 36px; }
+            .awards-header { margin-top: 90px; padding: 0 15px; }
+            .awards-subtitle { font-size: 14px; }
+            
+            .dashboard-ux { width: 95%; margin: 20px auto; padding: 20px 15px; }
+            .dashboard-top { flex-direction: column; align-items: stretch; gap: 15px; }
+            .countdown-timer { justify-content: center; }
+            .search-filters { flex-direction: column; gap: 10px; }
+            .filter-select { min-width: 100%; }
+            
+            .category-section { padding: 25px 20px; }
+            .category-title { font-size: 20px; }
+            .nominees-grid { gap: 20px; }
+            
+            .custom-modal { padding: 25px 20px; width: 95%; }
+            .loader-wrapper { scale: 1; margin: 1rem auto; font-size: 1.2em; }
+            
+            .admin-btn { bottom: 20px; left: 20px; width: 50px; height: 50px; font-size: 18px; }
+        }
+
+        @media (max-width: 480px) {
+            .logo-text { display: none; /* Oculta el texto en pantallas muy pequeñas para evitar que se desborde */ }
+            .nav-controls { gap: 10px; }
+            .icon-btn { width: 32px; height: 32px; font-size: 12px; }
+            
+            .nominees-grid { grid-template-columns: 1fr; /* Fuerza 1 columna en móviles pequeños */ }
+            .nominee-card { max-width: 100%; }
+            
+            .btn-share-card { width: 90%; padding: 12px 20px; font-size: 14px; }
+            .modal-title { font-size: 20px; }
+        }
     </style>
 </head>
 <body>
@@ -347,7 +383,6 @@
         <p class="opening-notice" id="openingNotice" data-i18n="opening_notice"><i class="fas fa-calendar-alt"></i> Voting opens on September 15th!</p>
     </header>
 
-    <!-- DASHBOARD DE UX Y DINAMISMO -->
     <div class="dashboard-ux">
         <div class="dashboard-top">
             <div id="countdown" class="countdown-timer"><i class="fas fa-clock"></i> <span data-i18n="calculating">Calculating...</span></div>
@@ -374,7 +409,6 @@
         <i class="fas fa-camera"></i> <span data-i18n="generate_card">Generate My Voting Card</span>
     </button>
 
-    <!-- CONTENEDOR OCULTO PARA RENDERIZAR LA TARJETA EN CANVAS -->
     <div id="shareCardRender">
         <h2>My Votes Daydreamers Awards</h2>
         <div id="shareCardItems"></div>
@@ -845,7 +879,7 @@
                     abrirModalHTML(`
                         <h3 class="modal-title"><i class="fas fa-share-alt"></i> ${titleCard}</h3>
                         <div style="text-align:center; margin-bottom:20px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); border-radius:12px; overflow:hidden;">
-                            <img src="${imgData}" style="width:100%; max-width:380px; display:block;">
+                            <img src="${imgData}" style="width:100%; max-width:380px; display:block; margin: 0 auto;">
                         </div>
                         <a href="${imgData}" download="My_Daydreamers_Votes.png" class="btn-modal" style="display:block; text-align:center; text-decoration:none;">
                             <i class="fas fa-download"></i> ${btnDown}
@@ -895,13 +929,13 @@
             abrirModalHTML(`
                 <h3 class="modal-title"><i class="fas fa-crown"></i> Panel de Administración</h3>
                 
-                <div style="display:flex; gap:10px; margin-bottom: 20px;">
+                <div style="display:flex; flex-direction:column; gap:10px; margin-bottom: 20px;">
                     <button class="btn-modal" style="margin-top:0;" onclick="exportarResultadosCSV()"><i class="fas fa-file-csv"></i> Exportar CSV</button>
                     ${btnEstadoVotaciones}
                 </div>
 
                 <hr style="border:0; border-top:1px solid var(--glass-border); margin-bottom:20px;">
-                <h4 style="color:var(--gold); margin-bottom:15px;">Añadir Nuevo Nominado</h4>
+                <h4 style="color:var(--gold); margin-bottom:15px; text-align: center;">Añadir Nuevo Nominado</h4>
 
                 <div class="form-group"><input type="text" id="addNomNombre" placeholder="Nombre (Ej: Adele Global)"></div>
                 <div class="form-group"><input type="text" id="addNomCategoria" placeholder="Categoría (Ej: Mejor Comunidad)"></div>
