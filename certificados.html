@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daydreamers Awards - Certificates</title>
+    
+    <!-- FontAwesome Icons Library -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Montserrat:wght@300;400;500;700&family=Poppins:wght@500&display=swap" rel="stylesheet">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <style>
+        /* =========================================
+           VARIABLES AND THEMES
+           ========================================= */
+        :root {
+            --primary-color: #d4af37;
+            --bg-dark: #000000;
+            --bg-light: #ffffff;
+            --text-dark: #333333;
+            --text-light: #f4f4f4;
+            --body-bg-gradient: linear-gradient(135deg, #f0f0f0, #d9d9d9);
+            --header-text: #555;
+            --glass-bg: rgba(255, 255, 255, 0.85);
+            --glass-border: rgba(212, 175, 55, 0.4);
+            --glass-shadow: rgba(0, 0, 0, 0.1);
+            --nav-bg: rgba(255, 255, 255, 0.95);
+            --admin-card: #ffffff;
+        }
+
+        [data-theme="dark"] {
+            --body-bg-gradient: linear-gradient(135deg, #0f0f0f, #220000);
+            --bg-light: #1a1a1a;
+            --text-dark: #e0e0e0;
+            --header-text: #aaaaaa;
+            --glass-bg: rgba(10, 10, 10, 0.85);
+            --glass-border: rgba(212, 175, 55, 0.4);
+            --glass-shadow: rgba(0, 0, 0, 0.5);
+            --nav-bg: rgba(10, 10, 10, 0.95);
+            --admin-card: #1f1f1f;
+        }
+
+        body {
+            font-family: 'Montserrat', sans-serif;
+            line-height: 1.6;
+            color: var(--text-dark);
+            background: var(--body-bg-gradient);
+            background-attachment: fixed;
+            transition: background 0.3s, color 0.3s;
+            margin: 0;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* ANIMATIONS */
+        .fade-in {
+            animation: fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        @keyframes fadeIn {
+            0% { opacity: 0; transform: translateY(15px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+
+        .glass-effect {
+            background: var(--glass-bg);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 8px 32px var(--glass-shadow);
+            border-radius: 12px;
+        }
+
+        /* TOP BAR & NAV */
+        .marquee-container {
+            width: 100%; background: var(--primary-color); color: #000;
+            padding: 8px 0; overflow: hidden; position: relative; z-index: 1001;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+        .marquee-content {
+            white-space: nowrap; display: inline-block; font-weight: bold; font-size: 14px;
+            animation: marquee 20s linear infinite; text-transform: uppercase; letter-spacing: 1px;
+        }
+        @keyframes marquee { 0% { transform: translateX(100vw); } 100% { transform: translateX(-100%); } }
+
+        .top-bar {
+            position: sticky; top: 0; height: 65px; display: flex; align-items: center;
+            justify-content: space-between; padding: 0 1.5rem; z-index: 1000;
+            background: var(--nav-bg); backdrop-filter: blur(10px); border-bottom: 1px solid var(--glass-border);
+        }
+        .hamburger { display: flex; flex-direction: column; gap: 6px; cursor: pointer; z-index: 1002; }
+        .hamburger span { width: 30px; height: 3px; background-color: var(--primary-color); transition: 0.3s; border-radius: 3px; }
+        .hamburger.active span:nth-child(1) { transform: translateY(9px) rotate(45deg); }
+        .hamburger.active span:nth-child(2) { opacity: 0; }
+        .hamburger.active span:nth-child(3) { transform: translateY(-9px) rotate(-45deg); }
+
+        .controls { display: flex; gap: 0.8rem; z-index: 1002; }
+        .icon-btn {
+            background: transparent; border: 1px solid var(--primary-color); color: var(--primary-color);
+            padding: 0.4rem 0.8rem; cursor: pointer; font-weight: bold; border-radius: 8px; transition: 0.3s;
+        }
+        .icon-btn:hover { background: var(--primary-color); color: #000; }
+
+        nav {
+            position: fixed; top: 0; left: -100%; width: 300px; max-width: 80%; height: 100vh;
+            display: flex; flex-direction: column; padding: 100px 2rem 2rem 2rem;
+            transition: left 0.4s cubic-bezier(0.16, 1, 0.3, 1); z-index: 999; gap: 1.5rem;
+            overflow-y: auto;
+        }
+        nav.open { left: 0; }
+        nav a {
+            color: var(--primary-color); text-decoration: none; font-weight: bold; text-transform: uppercase;
+            font-size: 1rem; letter-spacing: 1px; padding-bottom: 5px; border-bottom: 1px solid transparent; transition: 0.2s;
+        }
+        nav a:hover { color: var(--text-dark); border-bottom: 1px solid var(--text-dark); }
+
+        /* SEARCH INPUT */
+        .search-container-wrapper {
+            position: relative; width: 100%; height: 120px; display: flex;
+            justify-content: center; align-items: center; overflow: hidden;
+            border-radius: 12px; margin-bottom: 20px;
+        }
+        .grid {
+            height: 100%; width: 100%;
+            background-image: linear-gradient(to right, rgba(212, 175, 55, 0.1) 1px, transparent 1px),
+              linear-gradient(to bottom, rgba(212, 175, 55, 0.1) 1px, transparent 1px);
+            background-size: 1rem 1rem; background-position: center center;
+            position: absolute; z-index: 0; filter: blur(1px);
+        }
+        .white, .border, .darkBorderBg, .glow {
+            max-height: 70px; max-width: 314px; height: 100%; width: 100%;
+            position: absolute; overflow: hidden; z-index: 0; border-radius: 12px; filter: blur(3px);
+        }
+        .input {
+            background-color: #010201 !important; border: none; width: 301px; height: 56px;
+            border-radius: 10px; color: white !important; padding-inline: 59px; font-size: 18px;
+            position: relative; z-index: 2; font-family: inherit;
+        }
+        #poda { display: flex; align-items: center; justify-content: center; position: relative; z-index: 1; }
+        .input::placeholder { color: #c0b9c0; }
+        .input:focus { outline: none; }
+        #main:focus-within > #input-mask { display: none; }
+        #input-mask { pointer-events: none; width: 100px; height: 20px; position: absolute; background: linear-gradient(90deg, transparent, #010201); top: 18px; left: 70px; z-index: 3; }
+        #pink-mask { pointer-events: none; width: 30px; height: 20px; position: absolute; background: #cf30aa; top: 10px; left: 5px; filter: blur(20px); opacity: 0.8; transition: all 2s; z-index: 3; }
+        #main:hover > #pink-mask { opacity: 0; }
+        .white { max-height: 63px; max-width: 307px; border-radius: 10px; filter: blur(2px); }
+        .white::before {
+            content: ""; z-index: -2; text-align: center; top: 50%; left: 50%;
+            transform: translate(-50%, -50%) rotate(83deg); position: absolute; width: 600px; height: 600px;
+            background-image: conic-gradient(rgba(0, 0, 0, 0) 0%, #a099d8, rgba(0, 0, 0, 0) 8%, rgba(0, 0, 0, 0) 50%, #dfa2da, rgba(0, 0, 0, 0) 58%);
+            transition: all 2s;
+        }
+        .border { max-height: 59px; max-width: 303px; border-radius: 11px; filter: blur(0.5px); }
+        .border::before {
+            content: ""; z-index: -2; text-align: center; top: 50%; left: 50%;
+            transform: translate(-50%, -50%) rotate(70deg); position: absolute; width: 600px; height: 600px;
+            background-image: conic-gradient(#1c191c, #402fb5 5%, #1c191c 14%, #1c191c 50%, #cf30aa 60%, #1c191c 64%);
+            transition: all 2s;
+        }
+        .darkBorderBg { max-height: 65px; max-width: 312px; }
+        .darkBorderBg::before {
+            content: ""; z-index: -2; text-align: center; top: 50%; left: 50%;
+            transform: translate(-50%, -50%) rotate(82deg); position: absolute; width: 600px; height: 600px;
+            background-image: conic-gradient(rgba(0, 0, 0, 0), #d4af37, rgba(0, 0, 0, 0) 10%, rgba(0, 0, 0, 0) 50%, #d4af37, rgba(0, 0, 0, 0) 60%);
+            transition: all 2s;
+        }
+        #poda:hover > .darkBorderBg::before { transform: translate(-50%, -50%) rotate(262deg); }
+        #poda:hover > .glow::before { transform: translate(-50%, -50%) rotate(240deg); }
+        #poda:hover > .white::before { transform: translate(-50%, -50%) rotate(263deg); }
+        #poda:hover > .border::before { transform: translate(-50%, -50%) rotate(250deg); }
+        #poda:focus-within > .darkBorderBg::before { transform: translate(-50%, -50%) rotate(442deg); transition: all 4s; }
+        #poda:focus-within > .glow::before { transform: translate(-50%, -50%) rotate(420deg); transition: all 4s; }
+        #poda:focus-within > .white::before { transform: translate(-50%, -50%) rotate(443deg); transition: all 4s; }
+        #poda:focus-within > .border::before { transform: translate(-50%, -50%) rotate(430deg); transition: all 4s; }
+        .glow { overflow: hidden; filter: blur(30px); opacity: 0.4; max-height: 130px; max-width: 354px; }
+        .glow:before {
+            content: ""; z-index: -2; text-align: center; top: 50%; left: 50%;
+            transform: translate(-50%, -50%) rotate(60deg); position: absolute; width: 999px; height: 999px;
+            background-image: conic-gradient(#000, #d4af37 5%, #000 38%, #000 50%, #d4af37 60%, #000 87%);
+            transition: all 2s;
+        }
+        #filter-icon {
+            position: absolute; top: 8px; right: 8px; display: flex; align-items: center; justify-content: center;
+            z-index: 3; max-height: 40px; max-width: 38px; height: 100%; width: 100%; border-radius: 10px; 
+            background: linear-gradient(180deg, #161329, black, #1d1b4b);
+        }
+        .filterBorder { height: 42px; width: 40px; position: absolute; overflow: hidden; top: 7px; right: 7px; border-radius: 10px; z-index: 2; }
+        .filterBorder::before {
+            content: ""; text-align: center; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(90deg);
+            position: absolute; width: 600px; height: 600px;
+            background-image: conic-gradient(rgba(0, 0, 0, 0), #d4af37, rgba(0, 0, 0, 0) 50%, rgba(0, 0, 0, 0) 50%, #d4af37, rgba(0, 0, 0, 0) 100%);
+            animation: rotate 4s linear infinite;
+        }
+        #main { position: relative; z-index: 2; }
+        #search-icon { position: absolute; left: 20px; top: 15px; z-index: 3;}
+        @keyframes rotate { 100% { transform: translate(-50%, -50%) rotate(450deg); } }
+
+        /* BUTTONS & LOADER */
+        .download-btn {
+            font-family: inherit; font-size: 16px; background: #212121; color: white; fill: rgb(155, 153, 153);
+            padding: 0.7em 1em; display: flex; align-items: center; justify-content: center;
+            cursor: pointer; border: none; border-radius: 15px; font-weight: 700;
+            transition: all 0.3s; min-width: 220px; text-decoration: none;
+        }
+        .download-btn span { display: block; margin-left: 0.5em; transition: all 0.3s ease-in-out; }
+        .download-btn svg { display: block; transform-origin: center center; transition: transform 0.3s ease-in-out; }
+        .download-btn:hover { background: #000; box-shadow: 0 0 15px rgba(212, 175, 55, 0.3); color: #d4af37; fill: #d4af37;}
+        .download-btn:active { transform: scale(0.95); }
+
+        #loader-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 9999;
+            display: none; justify-content: center; align-items: center; flex-direction: column;
+        }
+        .spinner {
+            width: 50px; height: 50px; border: 5px solid rgba(212, 175, 55, 0.3);
+            border-top-color: var(--primary-color); border-radius: 50%;
+            animation: spin 1s linear infinite; margin-bottom: 1rem;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* ADMIN TABS & TABLE */
+        .admin-tab { padding: 10px 20px; cursor: pointer; border-bottom: 2px solid transparent; transition: 0.3s; color: var(--text-dark); font-weight: bold; }
+        .admin-tab.active { border-bottom: 2px solid var(--primary-color); color: var(--primary-color); }
+        
+        .admin-table-container { overflow-x: auto; border-radius: 10px; background: var(--admin-card); border: 1px solid var(--glass-border); }
+        .admin-table { width: 100%; border-collapse: collapse; text-align: left; }
+        .admin-table th { background: rgba(212, 175, 55, 0.1); color: var(--primary-color); padding: 12px 15px; font-size: 14px; text-transform: uppercase; }
+        .admin-table td { padding: 12px 15px; border-bottom: 1px solid rgba(128,128,128,0.2); color: var(--text-dark); font-size: 14px; }
+        .admin-table tr:hover { background: rgba(212, 175, 55, 0.05); }
+
+        /* MODALS */
+        .admin-btn {
+            position: fixed; bottom: 20px; left: 20px; width: 50px; height: 50px;
+            background: var(--nav-bg); color: var(--primary-color); border: 2px solid var(--primary-color);
+            border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 20px;
+            cursor: pointer; z-index: 1500; transition: 0.3s; backdrop-filter: blur(10px); box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+        .admin-btn:hover { background: var(--primary-color); color: #000; transform: scale(1.1); }
+        
+        .custom-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(8px); display: none;
+            justify-content: center; align-items: center; z-index: 2500; padding: 15px; opacity: 0; transition: opacity 0.3s;
+        }
+        .custom-overlay.active { display: flex; opacity: 1; }
+        .custom-modal { width: 100%; max-width: 500px; padding: 2rem; text-align: center; max-height: 90vh; overflow-y: auto;}
+
+        /* FILE INPUTS */
+        input[type="file"] {
+            background: rgba(0,0,0,0.05); padding: 10px; border-radius: 8px; width: 100%; border: 1px dashed var(--primary-color); color: var(--text-dark);
+        }
+        input[type="file"]::file-selector-button {
+            background: var(--primary-color); color: #000; border: none; padding: 8px 15px; border-radius: 5px; font-weight: bold; cursor: pointer; margin-right: 15px; transition: 0.3s;
+        }
+        input[type="file"]::file-selector-button:hover { background: #b8962e; }
+
+        /* TOAST NOTIFICATION */
+        .toast {
+            position: fixed; bottom: 20px; right: 20px; background: #4CAF50; color: white; padding: 15px 25px;
+            border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); font-weight: bold; z-index: 3000;
+            transform: translateX(150%); transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .toast.show { transform: translateX(0); }
+        .toast.error { background: #F44336; }
+    </style>
+</head>
+<body>
+
+    <!-- Marquee -->
+    <div class="marquee-container" id="topMarquee">
+        <div class="marquee-content" id="marqueeText" data-i18n="marquee">Verify and download your official Daydreamers Awards certificate here.</div>
+    </div>
+
+    <!-- Top Bar & Nav -->
+    <div class="top-bar">
+        <div class="hamburger" id="hamburger">
+            <span></span><span></span><span></span>
+        </div>
+        <div class="controls">
+            <button class="icon-btn" id="lang-btn" onclick="toggleLang()">ES</button>
+            <button class="icon-btn" onclick="toggleTheme()"><i class="fas fa-moon" id="theme-icon"></i></button>
+        </div>
+    </div>
+
+    <nav id="sidebar" class="glass-effect">
+        <a href="index.html" onclick="closeMenu()"><i class="fas fa-home"></i> <span data-i18n="nav_inicio">Home</span></a>
+        <a href="certificados.html" onclick="closeMenu()"><i class="fas fa-certificate"></i> <span data-i18n="nav_certs">Certificates</span></a>
+    </nav>
+
+    <!-- ADMIN VIEW (Dashboard) -->
+    <div id="view-admin" style="display: none;" class="w-full max-w-5xl mx-auto p-4 md:p-8 glass-effect mt-6 md:mt-10 fade-in">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-3xl font-['Cinzel'] text-yellow-500 font-bold" data-i18n="admin_title">Dashboard</h2>
+            <button onclick="cerrarAdmin()" class="hover:text-yellow-500 transition font-bold" style="color: var(--text-dark);">
+                <i class="fas fa-sign-out-alt"></i> <span data-i18n="admin_back">Exit Admin</span>
+            </button>
+        </div>
+        
+        <!-- Tabs -->
+        <div class="flex gap-4 border-b border-gray-500/30 mb-6">
+            <div class="admin-tab active" onclick="switchAdminTab('form')" id="tab-form" data-i18n="admin_tab_add">Add Winner</div>
+            <div class="admin-tab" onclick="switchAdminTab('list')" id="tab-list" data-i18n="admin_tab_manage">Manage Certificates</div>
+        </div>
+
+        <!-- Add Winner Form -->
+        <div id="admin-content-form" class="fade-in">
+            <form id="add-winner-form" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label class="block text-sm mb-2 uppercase tracking-wider font-bold" style="color: var(--primary-color);" data-i18n="admin_lbl_name">Winner Name</label>
+                    <input type="text" id="admin-name" required class="w-full glass-effect px-4 py-3 focus:outline-none focus:border-yellow-500 transition" style="color: var(--text-dark); background: var(--glass-bg);" placeholder="Ex: @WineWithAdele">
+                </div>
+                <div>
+                    <label class="block text-sm mb-2 uppercase tracking-wider font-bold" style="color: var(--primary-color);" data-i18n="admin_lbl_cat">Winning Category</label>
+                    <input type="text" id="admin-category" required class="w-full glass-effect px-4 py-3 focus:outline-none focus:border-yellow-500 transition" style="color: var(--text-dark); background: var(--glass-bg);" placeholder="Ex: Best Fanpage of the Year">
+                </div>
+                <div>
+                    <label class="block text-sm mb-2 uppercase tracking-wider font-bold" style="color: var(--primary-color);" data-i18n="admin_lbl_img">Certificate Image (JPG/PNG)</label>
+                    <input type="file" id="admin-img" accept="image/*" required>
+                    <p class="text-xs mt-1" style="color: var(--header-text);">Uploaded via ImgBB</p>
+                </div>
+                <div>
+                    <label class="block text-sm mb-2 uppercase tracking-wider font-bold" style="color: var(--primary-color);" data-i18n="admin_lbl_pdf">Certificate PDF</label>
+                    <input type="file" id="admin-pdf" accept=".pdf">
+                    <p class="text-xs mt-1" style="color: var(--header-text);">Uploaded via Firebase Storage</p>
+                </div>
+                <div class="md:col-span-2 mt-4">
+                    <button type="submit" class="w-full bg-gradient-to-r from-yellow-600 to-yellow-400 text-black font-bold py-4 rounded-lg hover:from-yellow-500 hover:to-yellow-300 transition shadow-[0_0_15px_rgba(212,175,55,0.4)]" data-i18n="admin_btn_save">
+                        <i class="fas fa-cloud-upload-alt mr-2"></i> Upload & Save
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Manage Winners List -->
+        <div id="admin-content-list" style="display: none;" class="fade-in">
+            <div class="admin-table-container">
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th data-i18n="tbl_name">Name</th>
+                            <th data-i18n="tbl_cat">Category</th>
+                            <th data-i18n="tbl_files">Files</th>
+                            <th data-i18n="tbl_act" class="text-right">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="admin-table-body">
+                        <!-- Filled by JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN USER VIEW -->
+    <div id="view-user" class="container mx-auto px-4 pb-20 pt-10 fade-in">
+        
+        <div class="text-center mb-10">
+            <h1 class="text-4xl md:text-5xl font-['Cinzel'] text-yellow-500 mb-4 font-bold drop-shadow-lg" data-i18n="title">Daydreamers Awards</h1>
+            <p class="text-lg font-medium" style="color: var(--text-dark);" data-i18n="subtitle">Enter your name or username to get your official certificate.</p>
+        </div>
+
+        <!-- Search Input -->
+        <div class="search-container-wrapper glass-effect border-none">
+            <div class="grid"></div>
+            <div id="poda">
+              <div class="glow"></div>
+              <div class="darkBorderBg"></div>
+              <div class="darkBorderBg"></div>
+              <div class="darkBorderBg"></div>
+              <div class="white"></div>
+              <div class="border"></div>
+              <div id="main">
+                <input id="search-input" data-i18n-ph="search_placeholder" placeholder="Search winner..." type="text" class="input" autocomplete="off" />
+                <div id="input-mask"></div>
+                <div id="pink-mask"></div>
+                <div class="filterBorder"></div>
+                <div id="filter-icon">
+                  <svg preserveAspectRatio="none" height="27" width="27" viewBox="4.8 4.56 14.832 15.408" fill="none"><path d="M8.16 6.65002H15.83C16.47 6.65002 16.99 7.17002 16.99 7.81002V9.09002C16.99 9.56002 16.7 10.14 16.41 10.43L13.91 12.64C13.56 12.93 13.33 13.51 13.33 13.98V16.48C13.33 16.83 13.1 17.29 12.81 17.47L12 17.98C11.24 18.45 10.2 17.92 10.2 16.99V13.91C10.2 13.5 9.97 12.98 9.73 12.69L7.52 10.36C7.23 10.08 7 9.55002 7 9.20002V7.87002C7 7.17002 7.52 6.65002 8.16 6.65002Z" stroke="#d6d6e6" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+                </div>
+                <div id="search-icon">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" viewBox="0 0 24 24" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" height="24" fill="none"><circle stroke="#b6a9b7" r="8" cy="11" cx="11"></circle><line stroke="#837484" y2="16.65" y1="22" x2="16.65" x1="22"></line></svg>
+                </div>
+              </div>
+            </div>
+        </div>
+        
+        <div id="search-results" class="text-center min-h-[30px] mb-8 font-medium"></div>
+
+        <!-- Rendered Certificate Data -->
+        <div id="cert-wrapper" style="display: none;" class="flex flex-col items-center fade-in">
+            <h2 id="render-name" class="text-3xl font-['Cinzel'] font-bold text-yellow-500 mb-2"></h2>
+            <p id="render-category" class="text-lg uppercase tracking-wider mb-6 font-bold" style="color: var(--text-dark);"></p>
+            
+            <div class="relative w-full max-w-4xl rounded-xl overflow-hidden shadow-2xl border-2" style="border-color: var(--primary-color);">
+                <img id="render-img" src="" alt="Certificate" class="w-full h-auto object-cover">
+            </div>
+
+            <!-- Download Buttons -->
+            <div class="flex flex-col sm:flex-row gap-4 mt-8 justify-center items-center w-full">
+                <a id="btn-dl-img" href="#" target="_blank" download class="download-btn glass-effect border border-yellow-600 hover:scale-105">
+                    <div class="svg-wrapper">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" class="icon"><path d="M22,15.04C22,17.23 20.24,19 18.07,19H5.93C3.76,19 2,17.23 2,15.04C2,13.07 3.43,11.44 5.31,11.14C5.28,11 5.27,10.86 5.27,10.71C5.27,9.33 6.38,8.2 7.76,8.2C8.37,8.2 8.94,8.43 9.37,8.8C10.14,7.05 11.13,5.44 13.91,5.44C17.28,5.44 18.87,8.06 18.87,10.83C18.87,10.94 18.87,11.06 18.86,11.17C20.65,11.54 22,13.13 22,15.04Z"></path></svg>
+                    </div>
+                    <span data-i18n="btn_img">Download Image</span>
+                </a>
+                <a id="btn-dl-pdf" href="#" target="_blank" class="download-btn glass-effect border border-yellow-600 hover:scale-105">
+                    <div class="svg-wrapper">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" class="icon"><path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20M11.5,14V16H10V18H8.5V12H11.5A1.5,1.5 0 0,1 13,13.5A1.5,1.5 0 0,1 11.5,15H10V14H11.5M10,13.5V14.5H11.5V13.5H10M14.5,13.5H16A1.5,1.5 0 0,1 17.5,15A1.5,1.5 0 0,1 16,16.5H14.5V12H16A1.5,1.5 0 0,1 17.5,13.5A1.5,1.5 0 0,1 16,15H14.5V13.5Z"></path></svg>
+                    </div>
+                    <span data-i18n="btn_pdf">Download PDF</span>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Access Button -->
+    <div class="admin-btn" onclick="pedirPasswordAdmin()" title="Admin Panel">
+        <i class="fas fa-crown"></i>
+    </div>
+
+    <!-- Custom Password Modal -->
+    <div class="custom-overlay" id="adminModalOverlay">
+        <div class="custom-modal glass-effect fade-in" id="adminModalContent"></div>
+    </div>
+
+    <!-- Loader Overlay -->
+    <div id="loader-overlay">
+        <div class="spinner"></div>
+        <p class="text-white font-bold tracking-widest uppercase mt-2" data-i18n="loader_gen">Uploading Files...</p>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast">Action Successful!</div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
+
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'app-de-proyectos-3279c';
+        const IMGBB_API_KEY = "f5567fb36a6232aae841ea9aac0ee139";
+        
+        const firebaseConfig = {
+            apiKey: "AIzaSyAAW-bBHn7MXXJNsVW0EAiH5kf69C9DAeg",
+            authDomain: "app-de-proyectos-3279c.firebaseapp.com",
+            projectId: "app-de-proyectos-3279c",
+            storageBucket: "app-de-proyectos-3279c.firebasestorage.app",
+            messagingSenderId: "1055271736396",
+            appId: "1:1055271736396:web:e486e47d23f1c6420f50e9"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const storage = getStorage(app);
+
+        let winnersCache = [];
+        let isAuthReady = false;
+
+        async function initAuth() {
+            try {
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else {
+                    await signInAnonymously(auth);
+                }
+                isAuthReady = true;
+                loadWinners(); 
+            } catch (error) {
+                console.error("Error Auth:", error);
+            }
+        }
+        initAuth();
+
+        async function loadWinners() {
+            if(!isAuthReady) return;
+            try {
+                const snapshot = await getDocs(collection(db, `artifacts/${appId}/public/data/certificates`));
+                winnersCache = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                renderAdminTable();
+            } catch (error) {
+                console.error("Error loading docs:", error);
+            }
+        }
+
+        // --- GLOBAL STATE & UTILS ---
+        window.lastMatchName = "";
+        window.lastSearchState = "empty"; 
+
+        window.showToast = function(msg, isError = false) {
+            const toast = document.getElementById('toast');
+            toast.textContent = msg;
+            toast.className = `toast ${isError ? 'error' : ''} show`;
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+
+        // --- LANGUAGE & TRANSLATION ---
+        let currentLang = 'en';
+        const langBtn = document.getElementById('lang-btn');
+        const translations = {
+            en: {
+                nav_inicio: "Home", nav_certs: "Certificates", marquee: "Verify and download your official Daydreamers Awards certificate here.",
+                title: "Daydreamers Awards", subtitle: "Enter your name or username to get your official certificate.", search_placeholder: "Search winner...",
+                admin_acc: "Admin Access", admin_desc: "Panel for managing certificates.", btn_enter: "Enter", btn_cancel: "Cancel",
+                admin_title: "Dashboard", admin_back: "Exit Admin", admin_tab_add: "Add Winner", admin_tab_manage: "Manage Certificates",
+                admin_lbl_name: "Winner Name", admin_lbl_cat: "Winning Category", admin_lbl_img: "Certificate Image (JPG/PNG)", admin_lbl_pdf: "Certificate PDF",
+                admin_btn_save: "Upload & Save", btn_img: "Download Image", btn_pdf: "Download PDF",
+                found_msg: "Certificate found for", not_found_msg: "No certificate found for that search.",
+                loader_gen: "Uploading Files...", tbl_name: "Name", tbl_cat: "Category", tbl_files: "Files", tbl_act: "Action"
+            },
+            es: {
+                nav_inicio: "Inicio", nav_certs: "Certificados", marquee: "Verifica y descarga tu certificado oficial de los Daydreamers Awards aquí.",
+                title: "Daydreamers Awards", subtitle: "Ingresa tu nombre o usuario para obtener tu certificado oficial.", search_placeholder: "Buscar ganador...",
+                admin_acc: "Acceso Admin", admin_desc: "Panel para gestionar los certificados.", btn_enter: "Entrar", btn_cancel: "Cancelar",
+                admin_title: "Panel de Control", admin_back: "Salir del Admin", admin_tab_add: "Añadir Ganador", admin_tab_manage: "Gestionar Certificados",
+                admin_lbl_name: "Nombre del Ganador", admin_lbl_cat: "Categoría Ganada", admin_lbl_img: "Imagen del Certificado (JPG/PNG)", admin_lbl_pdf: "PDF del Certificado",
+                admin_btn_save: "Subir y Guardar", btn_img: "Descargar Imagen", btn_pdf: "Descargar PDF",
+                found_msg: "¡Certificado encontrado para", not_found_msg: "No se encontró ningún certificado para esa búsqueda.",
+                loader_gen: "Subiendo Archivos...", tbl_name: "Nombre", tbl_cat: "Categoría", tbl_files: "Archivos", tbl_act: "Acción"
+            }
+        };
+
+        window.aplicarIdioma = function() {
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (translations[currentLang][key]) {
+                    const icon = el.querySelector('i');
+                    if (icon) {
+                        el.innerHTML = ''; el.appendChild(icon); el.innerHTML += ' ' + translations[currentLang][key];
+                    } else {
+                        el.innerHTML = translations[currentLang][key];
+                    }
+                }
+            });
+            document.querySelectorAll('[data-i18n-ph]').forEach(el => {
+                const key = el.getAttribute('data-i18n-ph');
+                if (translations[currentLang][key]) el.placeholder = translations[currentLang][key];
+            });
+            langBtn.innerText = currentLang === 'es' ? 'EN' : 'ES';
+            updateSearchMessage();
+        }
+        
+        function updateSearchMessage() {
+            const sr = document.getElementById('search-results');
+            if (window.lastSearchState === "found") {
+                sr.innerHTML = `<span style="color: #4CAF50; font-weight: bold;">${translations[currentLang].found_msg} ${window.lastMatchName}!</span>`;
+            } else if (window.lastSearchState === "not_found") {
+                sr.innerHTML = `<span style="color: #ff4444; font-weight: bold;">${translations[currentLang].not_found_msg}</span>`;
+            }
+        }
+        window.toggleLang = function() { currentLang = currentLang === 'es' ? 'en' : 'es'; aplicarIdioma(); }
+        window.addEventListener('load', aplicarIdioma);
+
+        // --- THEME & NAV ---
+        window.toggleTheme = function() {
+            const html = document.documentElement; const icon = document.getElementById('theme-icon');
+            if (html.getAttribute('data-theme') === 'light') {
+                html.setAttribute('data-theme', 'dark'); icon.classList.replace('fa-moon', 'fa-sun');
+            } else {
+                html.setAttribute('data-theme', 'light'); icon.classList.replace('fa-sun', 'fa-moon');
+            }
+        }
+        const hamburger = document.getElementById('hamburger'); const sidebar = document.getElementById('sidebar');
+        hamburger.addEventListener('click', () => { hamburger.classList.toggle('active'); sidebar.classList.toggle('open'); });
+        window.closeMenu = function() { hamburger.classList.remove('active'); sidebar.classList.remove('open'); }
+
+        // --- ADMIN LOGIN LOGIC ---
+        window.pedirPasswordAdmin = function() {
+            const adminContent = document.getElementById('adminModalContent');
+            adminContent.innerHTML = `
+                <h3 class="modal-title" style="color: var(--primary-color); font-size: 1.5rem; margin-bottom: 1.5rem;"><i class="fas fa-lock"></i> <span data-i18n="admin_acc">Admin Access</span></h3>
+                <p style="font-size: 14px; margin-bottom:15px; color:var(--text-dark); font-weight:bold;" data-i18n="admin_desc">Panel for managing certificates.</p>
+                <div style="margin-bottom: 15px; text-align: left;">
+                    <input type="password" id="adminPass" placeholder="Password..." style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--glass-border); background: rgba(0,0,0,0.05); color: var(--text-dark); font-family: inherit; font-size: 16px;" onkeypress="if(event.key === 'Enter') verificarAdmin()">
+                </div>
+                <button style="background: var(--primary-color); color: #000; border: none; padding: 12px; width: 100%; font-weight: bold; border-radius: 8px; cursor: pointer; margin-top: 10px; font-size:16px;" onclick="verificarAdmin()"><i class="fas fa-sign-in-alt"></i> <span data-i18n="btn_enter">Enter</span></button>
+                <button style="background: transparent; color: var(--text-dark); border: 1px solid var(--text-dark); padding: 12px; width: 100%; font-weight: bold; border-radius: 8px; cursor: pointer; margin-top: 10px; font-size:16px;" onclick="cerrarAdminModal()"><i class="fas fa-times"></i> <span data-i18n="btn_cancel">Cancel</span></button>
+            `;
+            document.getElementById('adminModalOverlay').classList.add('active');
+            aplicarIdioma();
+        }
+        window.verificarAdmin = function() {
+            if(document.getElementById('adminPass').value === 'admin540') {
+                cerrarAdminModal(); document.getElementById('view-user').style.display = 'none'; document.getElementById('view-admin').style.display = 'block';
+            } else { alert("Incorrect Password"); }
+        }
+        window.cerrarAdminModal = function() { document.getElementById('adminModalOverlay').classList.remove('active'); }
+        window.cerrarAdmin = function() {
+            document.getElementById('view-admin').style.display = 'none'; document.getElementById('view-user').style.display = 'block'; loadWinners();
+        }
+
+        // --- ADMIN DASHBOARD TABS ---
+        window.switchAdminTab = function(tab) {
+            document.getElementById('tab-form').classList.remove('active');
+            document.getElementById('tab-list').classList.remove('active');
+            document.getElementById('admin-content-form').style.display = 'none';
+            document.getElementById('admin-content-list').style.display = 'none';
+            
+            document.getElementById(`tab-${tab}`).classList.add('active');
+            document.getElementById(`admin-content-${tab}`).style.display = 'block';
+        }
+
+        function renderAdminTable() {
+            const tbody = document.getElementById('admin-table-body');
+            tbody.innerHTML = '';
+            winnersCache.forEach(w => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td class="font-bold">${w.name}</td>
+                    <td>${w.category}</td>
+                    <td class="text-xl">
+                        ${w.imageUrl ? `<a href="${w.imageUrl}" target="_blank" class="text-blue-500 hover:text-blue-700 mr-3" title="Image"><i class="fas fa-image"></i></a>` : ''}
+                        ${w.pdfUrl ? `<a href="${w.pdfUrl}" target="_blank" class="text-red-500 hover:text-red-700" title="PDF"><i class="fas fa-file-pdf"></i></a>` : ''}
+                    </td>
+                    <td class="text-right">
+                        <button onclick="deleteWinner('${w.id}')" class="text-red-500 hover:text-red-700 p-2"><i class="fas fa-trash-alt"></i></button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        window.deleteWinner = async function(id) {
+            if(!confirm("Are you sure you want to delete this certificate?")) return;
+            try {
+                await deleteDoc(doc(db, `artifacts/${appId}/public/data/certificates`, id));
+                showToast("Certificate deleted successfully");
+                loadWinners();
+            } catch(e) {
+                console.error(e); showToast("Error deleting", true);
+            }
+        }
+
+        // --- UPLOAD PROCESS ---
+        const adminForm = document.getElementById('add-winner-form');
+        const loader = document.getElementById('loader-overlay');
+
+        adminForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if(!isAuthReady) return alert("Firebase not connected yet.");
+            
+            const name = document.getElementById('admin-name').value.trim();
+            const category = document.getElementById('admin-category').value.trim();
+            const imgFile = document.getElementById('admin-img').files[0];
+            const pdfFile = document.getElementById('admin-pdf').files[0];
+            
+            loader.style.display = 'flex';
+            let uploadedImgUrl = "";
+            let uploadedPdfUrl = "";
+
+            try {
+                // 1. Upload to ImgBB
+                const imgData = new FormData();
+                imgData.append("image", imgFile);
+                const imgRes = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, { method: 'POST', body: imgData });
+                const imgJson = await imgRes.json();
+                if(imgJson.success) {
+                    uploadedImgUrl = imgJson.data.url;
+                } else { throw new Error("ImgBB Upload Failed"); }
+
+                // 2. Upload PDF to Firebase Storage (Opción modificada)
+                if (pdfFile) {
+                    const fileRef = storageRef(storage, `certificates_pdfs/${Date.now()}_${pdfFile.name}`);
+                    await uploadBytes(fileRef, pdfFile);
+                    uploadedPdfUrl = await getDownloadURL(fileRef);
+                }
+
+                // 3. Save reference to Firestore
+                await addDoc(collection(db, `artifacts/${appId}/public/data/certificates`), {
+                    name, category, imageUrl: uploadedImgUrl, pdfUrl: uploadedPdfUrl, dateAdded: new Date().toISOString()
+                });
+
+                showToast(currentLang === 'es' ? "¡Certificado subido exitosamente!" : "Certificate uploaded successfully!");
+                adminForm.reset();
+                loadWinners();
+                switchAdminTab('list');
+
+            } catch (error) {
+                console.error(error);
+                showToast(currentLang === 'es' ? "Error en la subida." : "Upload Error.", true);
+            } finally {
+                loader.style.display = 'none';
+            }
+        });
+
+        // --- SEARCH LOGIC (FRONTEND) ---
+        const searchInput = document.getElementById('search-input');
+        const certWrapper = document.getElementById('cert-wrapper');
+        const renderName = document.getElementById('render-name');
+        const renderCategory = document.getElementById('render-category');
+        const renderImg = document.getElementById('render-img');
+        const btnDlImg = document.getElementById('btn-dl-img');
+        const btnDlPdf = document.getElementById('btn-dl-pdf');
+
+        searchInput.addEventListener('input', (e) => {
+            const term = e.target.value.toLowerCase().trim();
+            if(term.length < 2) {
+                window.lastSearchState = "empty";
+                updateSearchMessage(); certWrapper.style.display = 'none';
+                return;
+            }
+
+            const match = winnersCache.find(w => w.name.toLowerCase().includes(term));
+            if (match) {
+                window.lastSearchState = "found"; window.lastMatchName = match.name;
+                updateSearchMessage();
+                
+                renderName.textContent = match.name;
+                renderCategory.textContent = match.category;
+                
+                renderImg.src = match.imageUrl || 'premio-award.jpeg'; // Fallback visual
+                btnDlImg.href = match.imageUrl || '#';
+                btnDlPdf.href = match.pdfUrl || '#';
+                
+                certWrapper.style.display = 'flex';
+            } else {
+                window.lastSearchState = "not_found"; updateSearchMessage();
+                certWrapper.style.display = 'none';
+            }
+        });
+
+    </script>
+</body>
+</html>
