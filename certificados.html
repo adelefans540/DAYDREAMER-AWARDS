@@ -7,262 +7,550 @@
     
     <!-- FontAwesome Icons Library -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Montserrat:wght@300;400;500;700&family=Poppins:wght@500&display=swap" rel="stylesheet">
+    <!-- Classic Serif Fonts for headings, clean sans-serif for body -->
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
     
     <script src="https://cdn.tailwindcss.com"></script>
     
     <style>
         /* =========================================
-           VARIABLES AND THEMES
+           VARIABLES AND THEMES (Classic & Gold)
            ========================================= */
         :root {
-            --primary-color: #d4af37;
-            --bg-dark: #000000;
-            --bg-light: #ffffff;
-            --text-dark: #333333;
-            --text-light: #f4f4f4;
-            --body-bg-gradient: linear-gradient(135deg, #f0f0f0, #d9d9d9);
-            --header-text: #555;
-            --glass-bg: rgba(255, 255, 255, 0.85);
-            --glass-border: rgba(212, 175, 55, 0.4);
-            --glass-shadow: rgba(0, 0, 0, 0.1);
-            --nav-bg: rgba(255, 255, 255, 0.95);
-            --admin-card: #ffffff;
+            /* Elegant Gold Palette */
+            --primary-color: #B8860B; /* Dark Goldenrod */
+            --primary-light: #D4AF37; /* Metallic Gold */
+            --primary-dark: #8B6508;
+            --accent-color: #F8F8FF; /* Ghost White */
+            
+            /* Light Theme (Classic Paper/Marble feel) */
+            --bg-color: #FDFBF7; /* Very light warm off-white */
+            --text-main: #2C2C2C; /* Soft black for readability */
+            --text-muted: #595959;
+            --nav-bg: #FFFFFF;
+            --border-color: #E0D8C3; /* Subtle warm border */
+            --card-bg: #FFFFFF;
+            
+            --glass-bg: rgba(255, 255, 255, 0.95);
+            --glass-border: rgba(184, 134, 11, 0.3);
+            --glass-shadow: rgba(0, 0, 0, 0.05);
         }
 
         [data-theme="dark"] {
-            --body-bg-gradient: linear-gradient(135deg, #0f0f0f, #220000);
-            --bg-light: #1a1a1a;
-            --text-dark: #e0e0e0;
-            --header-text: #aaaaaa;
-            --glass-bg: rgba(10, 10, 10, 0.85);
+            /* Dark Theme (Classic Midnight/Obsidian feel) */
+            --bg-color: #121212;
+            --text-main: #F0F0F0;
+            --text-muted: #A0A0A0;
+            --nav-bg: #1A1A1A;
+            --border-color: #333333;
+            --card-bg: #1E1E1E;
+            
+            --glass-bg: rgba(30, 30, 30, 0.95);
             --glass-border: rgba(212, 175, 55, 0.4);
-            --glass-shadow: rgba(0, 0, 0, 0.5);
-            --nav-bg: rgba(10, 10, 10, 0.95);
-            --admin-card: #1f1f1f;
+            --glass-shadow: rgba(0, 0, 0, 0.3);
         }
 
         body {
-            font-family: 'Montserrat', sans-serif;
-            line-height: 1.6;
-            color: var(--text-dark);
-            background: var(--body-bg-gradient);
-            background-attachment: fixed;
-            transition: background 0.3s, color 0.3s;
+            font-family: 'Lato', sans-serif;
+            color: var(--text-main);
+            background-color: var(--bg-color);
+            transition: background-color 0.3s ease, color 0.3s ease;
             margin: 0;
             min-height: 100vh;
             overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        h1, h2, h3, h4, h5, h6, .classic-title {
+            font-family: 'Playfair Display', serif;
+            font-weight: 700;
         }
 
         /* ANIMATIONS */
         .fade-in {
-            animation: fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            animation: fadeIn 0.8s ease-out forwards;
         }
         @keyframes fadeIn {
-            0% { opacity: 0; transform: translateY(15px); }
+            0% { opacity: 0; transform: translateY(10px); }
             100% { opacity: 1; transform: translateY(0); }
         }
 
-        .glass-effect {
-            background: var(--glass-bg);
-            backdrop-filter: blur(15px);
-            -webkit-backdrop-filter: blur(15px);
-            border: 1px solid var(--glass-border);
-            box-shadow: 0 8px 32px var(--glass-shadow);
-            border-radius: 12px;
-        }
-
-        /* TOP BAR & NAV */
+        /* TOP BAR & NAV (Classic clean line) */
         .marquee-container {
-            width: 100%; background: var(--primary-color); color: #000;
-            padding: 8px 0; overflow: hidden; position: relative; z-index: 1001;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            width: 100%; 
+            background-color: var(--primary-dark); 
+            color: #FFF;
+            padding: 6px 0; 
+            overflow: hidden; 
+            position: relative; 
+            z-index: 1001;
+            font-family: 'Lato', sans-serif;
+            font-size: 0.85rem;
+            letter-spacing: 1px;
         }
         .marquee-content {
-            white-space: nowrap; display: inline-block; font-weight: bold; font-size: 14px;
-            animation: marquee 20s linear infinite; text-transform: uppercase; letter-spacing: 1px;
+            white-space: nowrap; 
+            display: inline-block; 
+            animation: marquee 25s linear infinite; 
+            text-transform: uppercase; 
         }
         @keyframes marquee { 0% { transform: translateX(100vw); } 100% { transform: translateX(-100%); } }
 
         .top-bar {
-            position: sticky; top: 0; height: 65px; display: flex; align-items: center;
-            justify-content: space-between; padding: 0 1.5rem; z-index: 1000;
-            background: var(--nav-bg); backdrop-filter: blur(10px); border-bottom: 1px solid var(--glass-border);
+            position: sticky; top: 0; height: 70px; display: flex; align-items: center;
+            justify-content: space-between; padding: 0 5%; z-index: 1000;
+            background-color: var(--nav-bg); 
+            border-bottom: 1px solid var(--border-color);
+            box-shadow: 0 2px 10px var(--glass-shadow);
+            transition: background-color 0.3s ease, border-color 0.3s ease;
         }
-        .hamburger { display: flex; flex-direction: column; gap: 6px; cursor: pointer; z-index: 1002; }
-        .hamburger span { width: 30px; height: 3px; background-color: var(--primary-color); transition: 0.3s; border-radius: 3px; }
-        .hamburger.active span:nth-child(1) { transform: translateY(9px) rotate(45deg); }
-        .hamburger.active span:nth-child(2) { opacity: 0; }
-        .hamburger.active span:nth-child(3) { transform: translateY(-9px) rotate(-45deg); }
+        
+        .logo-area {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .logo-icon {
+            font-size: 1.2rem;
+            color: var(--primary-light);
+        }
 
-        .controls { display: flex; gap: 0.8rem; z-index: 1002; }
+        .desktop-nav {
+            display: none;
+            gap: 2rem;
+        }
+        @media (min-width: 768px) {
+            .desktop-nav { display: flex; }
+            .mobile-menu-btn { display: none !important; }
+        }
+
+        .nav-link {
+            font-family: 'Lato', sans-serif;
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--text-main);
+            text-decoration: none;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            padding: 5px 0;
+            position: relative;
+            transition: color 0.3s ease;
+        }
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background-color: var(--primary-color);
+            transition: width 0.3s ease;
+        }
+        .nav-link:hover::after, .nav-link.active::after {
+            width: 100%;
+        }
+        .nav-link:hover {
+            color: var(--primary-color);
+        }
+
+        .controls { display: flex; gap: 1rem; align-items: center; z-index: 1002; }
         .icon-btn {
-            background: transparent; border: 1px solid var(--primary-color); color: var(--primary-color);
-            padding: 0.4rem 0.8rem; cursor: pointer; font-weight: bold; border-radius: 8px; transition: 0.3s;
+            background: transparent; 
+            border: none; 
+            color: var(--text-main);
+            font-size: 1.1rem;
+            cursor: pointer; 
+            transition: color 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
-        .icon-btn:hover { background: var(--primary-color); color: #000; }
+        .icon-btn:hover { color: var(--primary-color); }
+        .lang-toggle {
+            font-weight: 700;
+            font-size: 0.9rem;
+            border: 1px solid var(--text-main);
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+        .lang-toggle:hover {
+            border-color: var(--primary-color);
+        }
 
-        nav {
-            position: fixed; top: 0; left: -100%; width: 300px; max-width: 80%; height: 100vh;
+        /* Mobile Sidebar */
+        .hamburger { display: flex; flex-direction: column; gap: 5px; cursor: pointer; z-index: 1002; }
+        .hamburger span { width: 25px; height: 2px; background-color: var(--text-main); transition: 0.3s; }
+        .hamburger.active span:nth-child(1) { transform: translateY(7px) rotate(45deg); background-color: var(--primary-color); }
+        .hamburger.active span:nth-child(2) { opacity: 0; }
+        .hamburger.active span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); background-color: var(--primary-color); }
+
+        nav.mobile-sidebar {
+            position: fixed; top: 0; left: -100%; width: 280px; height: 100vh;
+            background-color: var(--nav-bg);
+            border-right: 1px solid var(--border-color);
             display: flex; flex-direction: column; padding: 100px 2rem 2rem 2rem;
             transition: left 0.4s cubic-bezier(0.16, 1, 0.3, 1); z-index: 999; gap: 1.5rem;
-            overflow-y: auto;
+            box-shadow: 2px 0 10px var(--glass-shadow);
         }
-        nav.open { left: 0; }
-        nav a {
-            color: var(--primary-color); text-decoration: none; font-weight: bold; text-transform: uppercase;
-            font-size: 1rem; letter-spacing: 1px; padding-bottom: 5px; border-bottom: 1px solid transparent; transition: 0.2s;
-        }
-        nav a:hover { color: var(--text-dark); border-bottom: 1px solid var(--text-dark); }
+        nav.mobile-sidebar.open { left: 0; }
+        nav.mobile-sidebar .nav-link { font-size: 1.1rem; }
 
-        /* SEARCH INPUT */
-        .search-container-wrapper {
-            position: relative; width: 100%; height: 120px; display: flex;
-            justify-content: center; align-items: center; overflow: hidden;
-            border-radius: 12px; margin-bottom: 20px;
+        /* LAYOUT CONTAINERS */
+        .main-container {
+            flex: 1;
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 3rem 5%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
-        .grid {
-            height: 100%; width: 100%;
-            background-image: linear-gradient(to right, rgba(212, 175, 55, 0.1) 1px, transparent 1px),
-              linear-gradient(to bottom, rgba(212, 175, 55, 0.1) 1px, transparent 1px);
-            background-size: 1rem 1rem; background-position: center center;
-            position: absolute; z-index: 0; filter: blur(1px);
-        }
-        .white, .border, .darkBorderBg, .glow {
-            max-height: 70px; max-width: 314px; height: 100%; width: 100%;
-            position: absolute; overflow: hidden; z-index: 0; border-radius: 12px; filter: blur(3px);
-        }
-        .input {
-            background-color: #010201 !important; border: none; width: 301px; height: 56px;
-            border-radius: 10px; color: white !important; padding-inline: 59px; font-size: 18px;
-            position: relative; z-index: 2; font-family: inherit;
-        }
-        #poda { display: flex; align-items: center; justify-content: center; position: relative; z-index: 1; }
-        .input::placeholder { color: #c0b9c0; }
-        .input:focus { outline: none; }
-        #main:focus-within > #input-mask { display: none; }
-        #input-mask { pointer-events: none; width: 100px; height: 20px; position: absolute; background: linear-gradient(90deg, transparent, #010201); top: 18px; left: 70px; z-index: 3; }
-        #pink-mask { pointer-events: none; width: 30px; height: 20px; position: absolute; background: #cf30aa; top: 10px; left: 5px; filter: blur(20px); opacity: 0.8; transition: all 2s; z-index: 3; }
-        #main:hover > #pink-mask { opacity: 0; }
-        .white { max-height: 63px; max-width: 307px; border-radius: 10px; filter: blur(2px); }
-        .white::before {
-            content: ""; z-index: -2; text-align: center; top: 50%; left: 50%;
-            transform: translate(-50%, -50%) rotate(83deg); position: absolute; width: 600px; height: 600px;
-            background-image: conic-gradient(rgba(0, 0, 0, 0) 0%, #a099d8, rgba(0, 0, 0, 0) 8%, rgba(0, 0, 0, 0) 50%, #dfa2da, rgba(0, 0, 0, 0) 58%);
-            transition: all 2s;
-        }
-        .border { max-height: 59px; max-width: 303px; border-radius: 11px; filter: blur(0.5px); }
-        .border::before {
-            content: ""; z-index: -2; text-align: center; top: 50%; left: 50%;
-            transform: translate(-50%, -50%) rotate(70deg); position: absolute; width: 600px; height: 600px;
-            background-image: conic-gradient(#1c191c, #402fb5 5%, #1c191c 14%, #1c191c 50%, #cf30aa 60%, #1c191c 64%);
-            transition: all 2s;
-        }
-        .darkBorderBg { max-height: 65px; max-width: 312px; }
-        .darkBorderBg::before {
-            content: ""; z-index: -2; text-align: center; top: 50%; left: 50%;
-            transform: translate(-50%, -50%) rotate(82deg); position: absolute; width: 600px; height: 600px;
-            background-image: conic-gradient(rgba(0, 0, 0, 0), #d4af37, rgba(0, 0, 0, 0) 10%, rgba(0, 0, 0, 0) 50%, #d4af37, rgba(0, 0, 0, 0) 60%);
-            transition: all 2s;
-        }
-        #poda:hover > .darkBorderBg::before { transform: translate(-50%, -50%) rotate(262deg); }
-        #poda:hover > .glow::before { transform: translate(-50%, -50%) rotate(240deg); }
-        #poda:hover > .white::before { transform: translate(-50%, -50%) rotate(263deg); }
-        #poda:hover > .border::before { transform: translate(-50%, -50%) rotate(250deg); }
-        #poda:focus-within > .darkBorderBg::before { transform: translate(-50%, -50%) rotate(442deg); transition: all 4s; }
-        #poda:focus-within > .glow::before { transform: translate(-50%, -50%) rotate(420deg); transition: all 4s; }
-        #poda:focus-within > .white::before { transform: translate(-50%, -50%) rotate(443deg); transition: all 4s; }
-        #poda:focus-within > .border::before { transform: translate(-50%, -50%) rotate(430deg); transition: all 4s; }
-        .glow { overflow: hidden; filter: blur(30px); opacity: 0.4; max-height: 130px; max-width: 354px; }
-        .glow:before {
-            content: ""; z-index: -2; text-align: center; top: 50%; left: 50%;
-            transform: translate(-50%, -50%) rotate(60deg); position: absolute; width: 999px; height: 999px;
-            background-image: conic-gradient(#000, #d4af37 5%, #000 38%, #000 50%, #d4af37 60%, #000 87%);
-            transition: all 2s;
-        }
-        #filter-icon {
-            position: absolute; top: 8px; right: 8px; display: flex; align-items: center; justify-content: center;
-            z-index: 3; max-height: 40px; max-width: 38px; height: 100%; width: 100%; border-radius: 10px; 
-            background: linear-gradient(180deg, #161329, black, #1d1b4b);
-        }
-        .filterBorder { height: 42px; width: 40px; position: absolute; overflow: hidden; top: 7px; right: 7px; border-radius: 10px; z-index: 2; }
-        .filterBorder::before {
-            content: ""; text-align: center; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(90deg);
-            position: absolute; width: 600px; height: 600px;
-            background-image: conic-gradient(rgba(0, 0, 0, 0), #d4af37, rgba(0, 0, 0, 0) 50%, rgba(0, 0, 0, 0) 50%, #d4af37, rgba(0, 0, 0, 0) 100%);
-            animation: rotate 4s linear infinite;
-        }
-        #main { position: relative; z-index: 2; }
-        #search-icon { position: absolute; left: 20px; top: 15px; z-index: 3;}
-        @keyframes rotate { 100% { transform: translate(-50%, -50%) rotate(450deg); } }
 
-        /* BUTTONS & LOADER */
-        .download-btn {
-            font-family: inherit; font-size: 16px; background: #212121; color: white; fill: rgb(155, 153, 153);
-            padding: 0.7em 1em; display: flex; align-items: center; justify-content: center;
-            cursor: pointer; border: none; border-radius: 15px; font-weight: 700;
-            transition: all 0.3s; min-width: 220px; text-decoration: none;
+        /* HERO SECTION (Classic styling) */
+        .hero-section {
+            text-align: center;
+            margin-bottom: 3rem;
+            max-width: 800px;
         }
-        .download-btn span { display: block; margin-left: 0.5em; transition: all 0.3s ease-in-out; }
-        .download-btn svg { display: block; transform-origin: center center; transition: transform 0.3s ease-in-out; }
-        .download-btn:hover { background: #000; box-shadow: 0 0 15px rgba(212, 175, 55, 0.3); color: #d4af37; fill: #d4af37;}
-        .download-btn:active { transform: scale(0.95); }
+        
+        .hero-badge {
+            display: inline-block;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: var(--primary-dark);
+            border: 1px solid var(--primary-color);
+            padding: 4px 12px;
+            border-radius: 20px;
+            margin-bottom: 1.5rem;
+            font-weight: 700;
+        }
+        [data-theme="dark"] .hero-badge { color: var(--primary-light); }
 
+        .hero-title {
+            font-size: clamp(2.5rem, 5vw, 4rem);
+            line-height: 1.1;
+            margin-bottom: 1rem;
+            color: var(--primary-color);
+        }
+        
+        .hero-subtitle {
+            font-size: 1.1rem;
+            color: var(--text-muted);
+            font-weight: 300;
+            line-height: 1.6;
+        }
+
+        /* SEARCH SECTION (Simplified, elegant classic input) */
+        .search-section {
+            width: 100%;
+            max-width: 600px;
+            margin-bottom: 4rem;
+        }
+        
+        .classic-search-wrapper {
+            position: relative;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 10px;
+        }
+        
+        .classic-search-input {
+            width: 100%;
+            background: transparent;
+            border: none;
+            color: var(--text-main);
+            font-size: 1.2rem;
+            font-family: 'Lato', sans-serif;
+            padding: 10px 40px 10px 10px;
+            outline: none;
+        }
+        .classic-search-input::placeholder {
+            color: var(--text-muted);
+            font-style: italic;
+            font-family: 'Playfair Display', serif;
+        }
+        
+        .classic-search-icon {
+            position: absolute;
+            right: 10px;
+            color: var(--primary-color);
+            font-size: 1.2rem;
+        }
+
+        #search-results {
+            text-align: center;
+            min-height: 30px;
+            margin-top: 1rem;
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        /* CERTIFICATE DISPLAY (Framed look) */
+        .cert-display-area {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .cert-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        .cert-name-title {
+            font-size: 2.5rem;
+            color: var(--text-main);
+            margin-bottom: 0.5rem;
+        }
+        .cert-cat-subtitle {
+            font-family: 'Lato', sans-serif;
+            font-size: 1rem;
+            color: var(--primary-color);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-weight: 700;
+        }
+
+        .cert-frame {
+            position: relative;
+            width: 100%;
+            max-width: 900px;
+            padding: 15px;
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            box-shadow: 0 10px 30px var(--glass-shadow);
+            /* Classic inner border effect */
+        }
+        .cert-frame::before {
+            content: '';
+            position: absolute;
+            top: 5px; left: 5px; right: 5px; bottom: 5px;
+            border: 1px solid var(--primary-color);
+            opacity: 0.5;
+            pointer-events: none;
+        }
+
+        .cert-image {
+            width: 100%;
+            height: auto;
+            display: block;
+            border: 1px solid var(--border-color);
+        }
+
+        /* BUTTONS (Classic elegant buttons) */
+        .btn-group {
+            display: flex;
+            gap: 1.5rem;
+            margin-top: 3rem;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .btn-classic {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 24px;
+            font-family: 'Lato', sans-serif;
+            font-size: 0.95rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            text-decoration: none;
+            color: var(--text-main);
+            background-color: transparent;
+            border: 1px solid var(--primary-color);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .btn-classic:hover {
+            background-color: var(--primary-color);
+            color: #FFF;
+        }
+        [data-theme="dark"] .btn-classic:hover { color: #000; }
+
+        .btn-filled {
+            background-color: var(--primary-color);
+            color: #FFF;
+        }
+        [data-theme="dark"] .btn-filled { color: #000; }
+        .btn-filled:hover {
+            background-color: var(--primary-dark);
+        }
+
+        /* ADMIN SECTION */
+        .admin-panel {
+            width: 100%;
+            max-width: 1000px;
+            margin: 0 auto;
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            padding: 2rem;
+            box-shadow: 0 5px 15px var(--glass-shadow);
+        }
+
+        .admin-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .admin-tabs {
+            display: flex;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+        .admin-tab {
+            font-family: 'Lato', sans-serif;
+            text-transform: uppercase;
+            font-weight: 700;
+            font-size: 0.9rem;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+            cursor: pointer;
+            padding-bottom: 5px;
+            border-bottom: 2px solid transparent;
+            transition: all 0.3s ease;
+        }
+        .admin-tab.active {
+            color: var(--primary-color);
+            border-bottom-color: var(--primary-color);
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        .form-label {
+            display: block;
+            font-family: 'Lato', sans-serif;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-main);
+            margin-bottom: 0.5rem;
+            font-weight: 700;
+        }
+        .form-input {
+            width: 100%;
+            padding: 12px;
+            background-color: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            font-family: 'Lato', sans-serif;
+            transition: border-color 0.3s;
+        }
+        .form-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+
+        /* Admin Table */
+        .table-container { overflow-x: auto; }
+        .admin-table { width: 100%; border-collapse: collapse; text-align: left; }
+        .admin-table th { 
+            background-color: var(--bg-color); 
+            color: var(--primary-color); 
+            padding: 12px; 
+            font-size: 0.85rem; 
+            text-transform: uppercase; 
+            letter-spacing: 1px;
+            border-bottom: 2px solid var(--border-color);
+        }
+        .admin-table td { 
+            padding: 12px; 
+            border-bottom: 1px solid var(--border-color); 
+            color: var(--text-main); 
+            font-size: 0.95rem; 
+        }
+
+        /* MODALS & OVERLAYS */
+        .admin-btn {
+            position: fixed; bottom: 30px; left: 30px; 
+            width: 45px; height: 45px;
+            background-color: var(--card-bg); 
+            color: var(--text-muted); 
+            border: 1px solid var(--border-color);
+            display: flex; justify-content: center; align-items: center; 
+            cursor: pointer; z-index: 1500; transition: all 0.3s; 
+        }
+        .admin-btn:hover { color: var(--primary-color); border-color: var(--primary-color); }
+        
+        .custom-overlay {
+            position: fixed; inset: 0;
+            background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(5px); display: none;
+            justify-content: center; align-items: center; z-index: 2500; padding: 15px; opacity: 0; transition: opacity 0.3s;
+        }
+        .custom-overlay.active { display: flex; opacity: 1; }
+        .custom-modal { 
+            width: 100%; max-width: 400px; 
+            background-color: var(--card-bg);
+            border: 1px solid var(--primary-color);
+            padding: 2.5rem; text-align: center; 
+        }
+
+        /* FILE INPUTS */
+        input[type="file"] {
+            background: transparent; padding: 10px 0; width: 100%; border: none; color: var(--text-main); font-size: 0.9rem;
+        }
+        input[type="file"]::file-selector-button {
+            background: transparent; color: var(--text-main); border: 1px solid var(--border-color); 
+            padding: 8px 15px; font-weight: 600; cursor: pointer; margin-right: 15px; transition: 0.3s;
+            font-family: 'Lato', sans-serif; text-transform: uppercase; font-size: 0.8rem;
+        }
+        input[type="file"]::file-selector-button:hover { border-color: var(--primary-color); color: var(--primary-color); }
+
+        /* TOAST NOTIFICATION */
+        .toast {
+            position: fixed; bottom: 30px; right: 30px; 
+            background-color: var(--card-bg); color: var(--text-main); 
+            padding: 15px 25px; border-left: 4px solid #4CAF50;
+            box-shadow: 0 4px 15px var(--glass-shadow); font-weight: 600; z-index: 3000;
+            transform: translateX(150%); transition: transform 0.4s ease;
+        }
+        .toast.show { transform: translateX(0); }
+        .toast.error { border-left-color: #F44336; }
+
+        /* LOADER */
         #loader-overlay {
-            position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 9999;
+            position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 9999;
             display: none; justify-content: center; align-items: center; flex-direction: column;
         }
         .spinner {
-            width: 50px; height: 50px; border: 5px solid rgba(212, 175, 55, 0.3);
+            width: 40px; height: 40px; border: 2px solid rgba(212, 175, 55, 0.3);
             border-top-color: var(--primary-color); border-radius: 50%;
             animation: spin 1s linear infinite; margin-bottom: 1rem;
         }
         @keyframes spin { to { transform: rotate(360deg); } }
-
-        /* ADMIN TABS & TABLE */
-        .admin-tab { padding: 10px 20px; cursor: pointer; border-bottom: 2px solid transparent; transition: 0.3s; color: var(--text-dark); font-weight: bold; }
-        .admin-tab.active { border-bottom: 2px solid var(--primary-color); color: var(--primary-color); }
         
-        .admin-table-container { overflow-x: auto; border-radius: 10px; background: var(--admin-card); border: 1px solid var(--glass-border); }
-        .admin-table { width: 100%; border-collapse: collapse; text-align: left; }
-        .admin-table th { background: rgba(212, 175, 55, 0.1); color: var(--primary-color); padding: 12px 15px; font-size: 14px; text-transform: uppercase; }
-        .admin-table td { padding: 12px 15px; border-bottom: 1px solid rgba(128,128,128,0.2); color: var(--text-dark); font-size: 14px; }
-        .admin-table tr:hover { background: rgba(212, 175, 55, 0.05); }
+        /* FOOTER */
+        footer {
+            width: 100%;
+            padding: 2rem 5%;
+            border-top: 1px solid var(--border-color);
+            background-color: var(--nav-bg);
+            text-align: center;
+            margin-top: auto;
+        }
+        .footer-text {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            font-family: 'Lato', sans-serif;
+        }
 
-        /* MODALS */
-        .admin-btn {
-            position: fixed; bottom: 20px; left: 20px; width: 50px; height: 50px;
-            background: var(--nav-bg); color: var(--primary-color); border: 2px solid var(--primary-color);
-            border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 20px;
-            cursor: pointer; z-index: 1500; transition: 0.3s; backdrop-filter: blur(10px); box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-        }
-        .admin-btn:hover { background: var(--primary-color); color: #000; transform: scale(1.1); }
-        
-        .custom-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(8px); display: none;
-            justify-content: center; align-items: center; z-index: 2500; padding: 15px; opacity: 0; transition: opacity 0.3s;
-        }
-        .custom-overlay.active { display: flex; opacity: 1; }
-        .custom-modal { width: 100%; max-width: 500px; padding: 2rem; text-align: center; max-height: 90vh; overflow-y: auto;}
-
-        /* FILE INPUTS */
-        input[type="file"] {
-            background: rgba(0,0,0,0.05); padding: 10px; border-radius: 8px; width: 100%; border: 1px dashed var(--primary-color); color: var(--text-dark);
-        }
-        input[type="file"]::file-selector-button {
-            background: var(--primary-color); color: #000; border: none; padding: 8px 15px; border-radius: 5px; font-weight: bold; cursor: pointer; margin-right: 15px; transition: 0.3s;
-        }
-        input[type="file"]::file-selector-button:hover { background: #b8962e; }
-
-        /* TOAST NOTIFICATION */
-        .toast {
-            position: fixed; bottom: 20px; right: 20px; background: #4CAF50; color: white; padding: 15px 25px;
-            border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); font-weight: bold; z-index: 3000;
-            transform: translateX(150%); transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-        .toast.show { transform: translateX(0); }
-        .toast.error { background: #F44336; }
     </style>
 </head>
 <body>
@@ -273,167 +561,171 @@
     </div>
 
     <!-- Top Bar & Nav -->
-    <div class="top-bar">
-        <div class="hamburger" id="hamburger">
-            <span></span><span></span><span></span>
+    <header class="top-bar">
+        <div class="logo-area">
+            <i class="fas fa-award logo-icon"></i>
+            Daydreamers
         </div>
-        <div class="controls">
-            <button class="icon-btn" id="lang-btn" onclick="toggleLang()">ES</button>
-            <button class="icon-btn" onclick="toggleTheme()"><i class="fas fa-moon" id="theme-icon"></i></button>
-        </div>
-    </div>
+        
+        <nav class="desktop-nav">
+            <a href="index.html" class="nav-link"><span data-i18n="nav_inicio">Home</span></a>
+            <a href="certificados.html" class="nav-link active"><span data-i18n="nav_certs">Certificates</span></a>
+        </nav>
 
-    <nav id="sidebar" class="glass-effect">
-        <a href="index.html" onclick="closeMenu()"><i class="fas fa-home"></i> <span data-i18n="nav_inicio">Home</span></a>
-        <a href="certificados.html" onclick="closeMenu()"><i class="fas fa-certificate"></i> <span data-i18n="nav_certs">Certificates</span></a>
+        <div class="controls">
+            <button class="icon-btn lang-toggle" id="lang-btn" onclick="toggleLang()">ES</button>
+            <button class="icon-btn" onclick="toggleTheme()"><i class="fas fa-moon" id="theme-icon"></i></button>
+            <div class="hamburger mobile-menu-btn" id="hamburger">
+                <span></span><span></span><span></span>
+            </div>
+        </div>
+    </header>
+
+    <nav id="sidebar" class="mobile-sidebar">
+        <div style="margin-bottom: 2rem; border-bottom: 1px solid var(--border-color); padding-bottom: 1rem;">
+            <span class="logo-area" style="font-size: 1.2rem;">Daydreamers</span>
+        </div>
+        <a href="index.html" class="nav-link" onclick="closeMenu()"><span data-i18n="nav_inicio">Home</span></a>
+        <a href="certificados.html" class="nav-link active" onclick="closeMenu()"><span data-i18n="nav_certs">Certificates</span></a>
     </nav>
 
-    <!-- ADMIN VIEW (Dashboard) -->
-    <div id="view-admin" style="display: none;" class="w-full max-w-5xl mx-auto p-4 md:p-8 glass-effect mt-6 md:mt-10 fade-in">
-        <div class="flex justify-between items-center mb-6">
-            <h2 class="text-3xl font-['Cinzel'] text-yellow-500 font-bold" data-i18n="admin_title">Dashboard</h2>
-            <button onclick="cerrarAdmin()" class="hover:text-yellow-500 transition font-bold" style="color: var(--text-dark);">
-                <i class="fas fa-sign-out-alt"></i> <span data-i18n="admin_back">Exit Admin</span>
-            </button>
-        </div>
-        
-        <!-- Tabs -->
-        <div class="flex gap-4 border-b border-gray-500/30 mb-6">
-            <div class="admin-tab active" onclick="switchAdminTab('form')" id="tab-form" data-i18n="admin_tab_add">Add Winner</div>
-            <div class="admin-tab" onclick="switchAdminTab('list')" id="tab-list" data-i18n="admin_tab_manage">Manage Certificates</div>
-        </div>
+    <!-- MAIN CONTAINER -->
+    <main class="main-container fade-in">
 
-        <!-- Add Winner Form -->
-        <div id="admin-content-form" class="fade-in">
-            <form id="add-winner-form" class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                    <label class="block text-sm mb-2 uppercase tracking-wider font-bold" style="color: var(--primary-color);" data-i18n="admin_lbl_name">Winner Name</label>
-                    <input type="text" id="admin-name" required class="w-full glass-effect px-4 py-3 focus:outline-none focus:border-yellow-500 transition" style="color: var(--text-dark); background: var(--glass-bg);" placeholder="Ex: @WineWithAdele">
-                </div>
-                <div>
-                    <label class="block text-sm mb-2 uppercase tracking-wider font-bold" style="color: var(--primary-color);" data-i18n="admin_lbl_cat">Winning Category</label>
-                    <input type="text" id="admin-category" required class="w-full glass-effect px-4 py-3 focus:outline-none focus:border-yellow-500 transition" style="color: var(--text-dark); background: var(--glass-bg);" placeholder="Ex: Best Fanpage of the Year">
-                </div>
-                <div>
-                    <label class="block text-sm mb-2 uppercase tracking-wider font-bold" style="color: var(--primary-color);" data-i18n="admin_lbl_img">Certificate Image (JPG/PNG)</label>
-                    <input type="file" id="admin-img" accept="image/*" required>
-                    <p class="text-xs mt-1" style="color: var(--header-text);">Uploaded via ImgBB</p>
-                </div>
-                <div>
-                    <label class="block text-sm mb-2 uppercase tracking-wider font-bold" style="color: var(--primary-color);" data-i18n="admin_lbl_pdf">Certificate PDF</label>
-                    <input type="file" id="admin-pdf" accept=".pdf">
-                    <p class="text-xs mt-1" style="color: var(--header-text);">Uploaded via Firebase Storage</p>
-                </div>
-                <div class="md:col-span-2 mt-4">
-                    <button type="submit" class="w-full bg-gradient-to-r from-yellow-600 to-yellow-400 text-black font-bold py-4 rounded-lg hover:from-yellow-500 hover:to-yellow-300 transition shadow-[0_0_15px_rgba(212,175,55,0.4)]" data-i18n="admin_btn_save">
-                        <i class="fas fa-cloud-upload-alt mr-2"></i> Upload & Save
-                    </button>
-                </div>
-            </form>
-        </div>
-
-        <!-- Manage Winners List -->
-        <div id="admin-content-list" style="display: none;" class="fade-in">
-            <div class="admin-table-container">
-                <table class="admin-table">
-                    <thead>
-                        <tr>
-                            <th data-i18n="tbl_name">Name</th>
-                            <th data-i18n="tbl_cat">Category</th>
-                            <th data-i18n="tbl_files">Files</th>
-                            <th data-i18n="tbl_act" class="text-right">Action</th>
-                        </tr>
-                    </thead>
-                    <tbody id="admin-table-body">
-                        <!-- Filled by JS -->
-                    </tbody>
-                </table>
+        <!-- ADMIN VIEW (Dashboard) -->
+        <div id="view-admin" style="display: none;" class="admin-panel">
+            <div class="admin-header">
+                <h2 class="classic-title" style="font-size: 2rem; color: var(--text-main);" data-i18n="admin_title">Dashboard</h2>
+                <button onclick="cerrarAdmin()" class="btn-classic" style="padding: 8px 16px; font-size: 0.8rem;">
+                    <i class="fas fa-sign-out-alt"></i> <span data-i18n="admin_back">Exit Admin</span>
+                </button>
             </div>
-        </div>
-    </div>
-
-    <!-- MAIN USER VIEW -->
-    <div id="view-user" class="container mx-auto px-4 pb-20 pt-10 fade-in">
-        
-        <div class="text-center mb-10">
-            <h1 class="text-4xl md:text-5xl font-['Cinzel'] text-yellow-500 mb-4 font-bold drop-shadow-lg" data-i18n="title">Daydreamers Awards</h1>
-            <p class="text-lg font-medium" style="color: var(--text-dark);" data-i18n="subtitle">Enter your name or username to get your official certificate.</p>
-        </div>
-
-        <!-- Search Input -->
-        <div class="search-container-wrapper glass-effect border-none">
-            <div class="grid"></div>
-            <div id="poda">
-              <div class="glow"></div>
-              <div class="darkBorderBg"></div>
-              <div class="darkBorderBg"></div>
-              <div class="darkBorderBg"></div>
-              <div class="white"></div>
-              <div class="border"></div>
-              <div id="main">
-                <input id="search-input" data-i18n-ph="search_placeholder" placeholder="Search winner..." type="text" class="input" autocomplete="off" />
-                <div id="input-mask"></div>
-                <div id="pink-mask"></div>
-                <div class="filterBorder"></div>
-                <div id="filter-icon">
-                  <svg preserveAspectRatio="none" height="27" width="27" viewBox="4.8 4.56 14.832 15.408" fill="none"><path d="M8.16 6.65002H15.83C16.47 6.65002 16.99 7.17002 16.99 7.81002V9.09002C16.99 9.56002 16.7 10.14 16.41 10.43L13.91 12.64C13.56 12.93 13.33 13.51 13.33 13.98V16.48C13.33 16.83 13.1 17.29 12.81 17.47L12 17.98C11.24 18.45 10.2 17.92 10.2 16.99V13.91C10.2 13.5 9.97 12.98 9.73 12.69L7.52 10.36C7.23 10.08 7 9.55002 7 9.20002V7.87002C7 7.17002 7.52 6.65002 8.16 6.65002Z" stroke="#d6d6e6" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path></svg>
-                </div>
-                <div id="search-icon">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="24" viewBox="0 0 24 24" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" height="24" fill="none"><circle stroke="#b6a9b7" r="8" cy="11" cx="11"></circle><line stroke="#837484" y2="16.65" y1="22" x2="16.65" x1="22"></line></svg>
-                </div>
-              </div>
-            </div>
-        </div>
-        
-        <div id="search-results" class="text-center min-h-[30px] mb-8 font-medium"></div>
-
-        <!-- Rendered Certificate Data -->
-        <div id="cert-wrapper" style="display: none;" class="flex flex-col items-center fade-in">
-            <h2 id="render-name" class="text-3xl font-['Cinzel'] font-bold text-yellow-500 mb-2"></h2>
-            <p id="render-category" class="text-lg uppercase tracking-wider mb-6 font-bold" style="color: var(--text-dark);"></p>
             
-            <div class="relative w-full max-w-4xl rounded-xl overflow-hidden shadow-2xl border-2" style="border-color: var(--primary-color);">
-                <img id="render-img" src="" alt="Certificate" class="w-full h-auto object-cover">
+            <!-- Tabs -->
+            <div class="admin-tabs">
+                <div class="admin-tab active" onclick="switchAdminTab('form')" id="tab-form" data-i18n="admin_tab_add">Add Winner</div>
+                <div class="admin-tab" onclick="switchAdminTab('list')" id="tab-list" data-i18n="admin_tab_manage">Manage Certificates</div>
             </div>
 
-            <!-- Download Buttons -->
-            <div class="flex flex-col sm:flex-row gap-4 mt-8 justify-center items-center w-full">
-                <a id="btn-dl-img" href="#" target="_blank" download class="download-btn glass-effect border border-yellow-600 hover:scale-105">
-                    <div class="svg-wrapper">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" class="icon"><path d="M22,15.04C22,17.23 20.24,19 18.07,19H5.93C3.76,19 2,17.23 2,15.04C2,13.07 3.43,11.44 5.31,11.14C5.28,11 5.27,10.86 5.27,10.71C5.27,9.33 6.38,8.2 7.76,8.2C8.37,8.2 8.94,8.43 9.37,8.8C10.14,7.05 11.13,5.44 13.91,5.44C17.28,5.44 18.87,8.06 18.87,10.83C18.87,10.94 18.87,11.06 18.86,11.17C20.65,11.54 22,13.13 22,15.04Z"></path></svg>
+            <!-- Add Winner Form -->
+            <div id="admin-content-form" class="fade-in">
+                <form id="add-winner-form" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="form-group">
+                        <label class="form-label" data-i18n="admin_lbl_name">Winner Name</label>
+                        <input type="text" id="admin-name" required class="form-input" placeholder="Ex: @WineWithAdele">
                     </div>
-                    <span data-i18n="btn_img">Download Image</span>
-                </a>
-                <a id="btn-dl-pdf" href="#" target="_blank" class="download-btn glass-effect border border-yellow-600 hover:scale-105">
-                    <div class="svg-wrapper">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" class="icon"><path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20M11.5,14V16H10V18H8.5V12H11.5A1.5,1.5 0 0,1 13,13.5A1.5,1.5 0 0,1 11.5,15H10V14H11.5M10,13.5V14.5H11.5V13.5H10M14.5,13.5H16A1.5,1.5 0 0,1 17.5,15A1.5,1.5 0 0,1 16,16.5H14.5V12H16A1.5,1.5 0 0,1 17.5,13.5A1.5,1.5 0 0,1 16,15H14.5V13.5Z"></path></svg>
+                    <div class="form-group">
+                        <label class="form-label" data-i18n="admin_lbl_cat">Winning Category</label>
+                        <input type="text" id="admin-category" required class="form-input" placeholder="Ex: Best Fanpage of the Year">
                     </div>
-                    <span data-i18n="btn_pdf">Download PDF</span>
-                </a>
+                    <div class="form-group">
+                        <label class="form-label" data-i18n="admin_lbl_img">Certificate Image (JPG/PNG)</label>
+                        <input type="file" id="admin-img" accept="image/*" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" data-i18n="admin_lbl_pdf">Certificate PDF</label>
+                        <input type="file" id="admin-pdf" accept=".pdf">
+                    </div>
+                    <div class="md:col-span-2 mt-4 text-center">
+                        <button type="submit" class="btn-classic btn-filled" data-i18n="admin_btn_save">
+                            <i class="fas fa-cloud-upload-alt"></i> Upload & Save
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Manage Winners List -->
+            <div id="admin-content-list" style="display: none;" class="fade-in">
+                <div class="table-container">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th data-i18n="tbl_name">Name</th>
+                                <th data-i18n="tbl_cat">Category</th>
+                                <th data-i18n="tbl_files">Files</th>
+                                <th data-i18n="tbl_act" style="text-align: right;">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="admin-table-body">
+                            <!-- Filled by JS -->
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
-    </div>
+
+        <!-- MAIN USER VIEW -->
+        <div id="view-user" class="w-full flex flex-col items-center">
+            
+            <!-- Hero Section -->
+            <div class="hero-section">
+                <span class="hero-badge" data-i18n="nav_certs">Certificates</span>
+                <h1 class="hero-title" data-i18n="title">Daydreamers Awards</h1>
+                <p class="hero-subtitle" data-i18n="subtitle">Enter your name or username to retrieve your official certificate of recognition.</p>
+            </div>
+
+            <!-- Search Section -->
+            <div class="search-section">
+                <div class="classic-search-wrapper">
+                    <input id="search-input" data-i18n-ph="search_placeholder" placeholder="Search for a winner..." type="text" class="classic-search-input" autocomplete="off" />
+                    <i class="fas fa-search classic-search-icon"></i>
+                </div>
+                <div id="search-results"></div>
+            </div>
+
+            <!-- Rendered Certificate Data -->
+            <div id="cert-wrapper" style="display: none;" class="cert-display-area fade-in">
+                
+                <div class="cert-header">
+                    <h2 id="render-name" class="cert-name-title"></h2>
+                    <p id="render-category" class="cert-cat-subtitle"></p>
+                </div>
+                
+                <div class="cert-frame">
+                    <img id="render-img" src="" alt="Certificate" class="cert-image">
+                </div>
+
+                <!-- Download Buttons -->
+                <div class="btn-group">
+                    <a id="btn-dl-img" href="#" target="_blank" download class="btn-classic">
+                        <i class="fas fa-image"></i>
+                        <span data-i18n="btn_img">Download Image</span>
+                    </a>
+                    <a id="btn-dl-pdf" href="#" target="_blank" class="btn-classic btn-filled">
+                        <i class="fas fa-file-pdf"></i>
+                        <span data-i18n="btn_pdf">Download PDF</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <footer>
+        <p class="footer-text">© 2024 Daydreamers Awards. All rights reserved.</p>
+    </footer>
 
     <!-- Admin Access Button -->
     <div class="admin-btn" onclick="pedirPasswordAdmin()" title="Admin Panel">
-        <i class="fas fa-crown"></i>
+        <i class="fas fa-key"></i>
     </div>
 
     <!-- Custom Password Modal -->
     <div class="custom-overlay" id="adminModalOverlay">
-        <div class="custom-modal glass-effect fade-in" id="adminModalContent"></div>
+        <div class="custom-modal fade-in" id="adminModalContent"></div>
     </div>
 
     <!-- Loader Overlay -->
     <div id="loader-overlay">
         <div class="spinner"></div>
-        <p class="text-white font-bold tracking-widest uppercase mt-2" data-i18n="loader_gen">Uploading Files...</p>
+        <p class="text-white font-bold tracking-widest uppercase mt-4" style="font-family:'Lato', sans-serif; font-size:0.8rem;" data-i18n="loader_gen">Processing...</p>
     </div>
 
     <!-- Toast Notification -->
     <div id="toast" class="toast">Action Successful!</div>
 
     <script type="module">
+        // Firebase and Logic remains exactly the same
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
@@ -502,23 +794,23 @@
         const translations = {
             en: {
                 nav_inicio: "Home", nav_certs: "Certificates", marquee: "Verify and download your official Daydreamers Awards certificate here.",
-                title: "Daydreamers Awards", subtitle: "Enter your name or username to get your official certificate.", search_placeholder: "Search winner...",
+                title: "Daydreamers Awards", subtitle: "Enter your name or username to retrieve your official certificate of recognition.", search_placeholder: "Search for a winner...",
                 admin_acc: "Admin Access", admin_desc: "Panel for managing certificates.", btn_enter: "Enter", btn_cancel: "Cancel",
                 admin_title: "Dashboard", admin_back: "Exit Admin", admin_tab_add: "Add Winner", admin_tab_manage: "Manage Certificates",
                 admin_lbl_name: "Winner Name", admin_lbl_cat: "Winning Category", admin_lbl_img: "Certificate Image (JPG/PNG)", admin_lbl_pdf: "Certificate PDF",
                 admin_btn_save: "Upload & Save", btn_img: "Download Image", btn_pdf: "Download PDF",
                 found_msg: "Certificate found for", not_found_msg: "No certificate found for that search.",
-                loader_gen: "Uploading Files...", tbl_name: "Name", tbl_cat: "Category", tbl_files: "Files", tbl_act: "Action"
+                loader_gen: "Processing...", tbl_name: "Name", tbl_cat: "Category", tbl_files: "Files", tbl_act: "Action"
             },
             es: {
                 nav_inicio: "Inicio", nav_certs: "Certificados", marquee: "Verifica y descarga tu certificado oficial de los Daydreamers Awards aquí.",
-                title: "Daydreamers Awards", subtitle: "Ingresa tu nombre o usuario para obtener tu certificado oficial.", search_placeholder: "Buscar ganador...",
+                title: "Daydreamers Awards", subtitle: "Ingresa tu nombre o usuario para obtener tu certificado oficial de reconocimiento.", search_placeholder: "Buscar un ganador...",
                 admin_acc: "Acceso Admin", admin_desc: "Panel para gestionar los certificados.", btn_enter: "Entrar", btn_cancel: "Cancelar",
                 admin_title: "Panel de Control", admin_back: "Salir del Admin", admin_tab_add: "Añadir Ganador", admin_tab_manage: "Gestionar Certificados",
                 admin_lbl_name: "Nombre del Ganador", admin_lbl_cat: "Categoría Ganada", admin_lbl_img: "Imagen del Certificado (JPG/PNG)", admin_lbl_pdf: "PDF del Certificado",
                 admin_btn_save: "Subir y Guardar", btn_img: "Descargar Imagen", btn_pdf: "Descargar PDF",
                 found_msg: "¡Certificado encontrado para", not_found_msg: "No se encontró ningún certificado para esa búsqueda.",
-                loader_gen: "Subiendo Archivos...", tbl_name: "Nombre", tbl_cat: "Categoría", tbl_files: "Archivos", tbl_act: "Acción"
+                loader_gen: "Procesando...", tbl_name: "Nombre", tbl_cat: "Categoría", tbl_files: "Archivos", tbl_act: "Acción"
             }
         };
 
@@ -526,9 +818,9 @@
             document.querySelectorAll('[data-i18n]').forEach(el => {
                 const key = el.getAttribute('data-i18n');
                 if (translations[currentLang][key]) {
-                    const icon = el.querySelector('i');
-                    if (icon) {
-                        el.innerHTML = ''; el.appendChild(icon); el.innerHTML += ' ' + translations[currentLang][key];
+                    // Check if it's inside a button with an icon
+                    if(el.tagName === 'SPAN' && el.parentElement.querySelector('i')) {
+                         el.innerHTML = translations[currentLang][key];
                     } else {
                         el.innerHTML = translations[currentLang][key];
                     }
@@ -545,9 +837,11 @@
         function updateSearchMessage() {
             const sr = document.getElementById('search-results');
             if (window.lastSearchState === "found") {
-                sr.innerHTML = `<span style="color: #4CAF50; font-weight: bold;">${translations[currentLang].found_msg} ${window.lastMatchName}!</span>`;
+                sr.innerHTML = `<span style="color: var(--primary-color);">${translations[currentLang].found_msg} ${window.lastMatchName}!</span>`;
             } else if (window.lastSearchState === "not_found") {
-                sr.innerHTML = `<span style="color: #ff4444; font-weight: bold;">${translations[currentLang].not_found_msg}</span>`;
+                sr.innerHTML = `<span style="color: #D32F2F;">${translations[currentLang].not_found_msg}</span>`;
+            } else {
+                sr.innerHTML = '';
             }
         }
         window.toggleLang = function() { currentLang = currentLang === 'es' ? 'en' : 'es'; aplicarIdioma(); }
@@ -570,13 +864,15 @@
         window.pedirPasswordAdmin = function() {
             const adminContent = document.getElementById('adminModalContent');
             adminContent.innerHTML = `
-                <h3 class="modal-title" style="color: var(--primary-color); font-size: 1.5rem; margin-bottom: 1.5rem;"><i class="fas fa-lock"></i> <span data-i18n="admin_acc">Admin Access</span></h3>
-                <p style="font-size: 14px; margin-bottom:15px; color:var(--text-dark); font-weight:bold;" data-i18n="admin_desc">Panel for managing certificates.</p>
-                <div style="margin-bottom: 15px; text-align: left;">
-                    <input type="password" id="adminPass" placeholder="Password..." style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--glass-border); background: rgba(0,0,0,0.05); color: var(--text-dark); font-family: inherit; font-size: 16px;" onkeypress="if(event.key === 'Enter') verificarAdmin()">
+                <h3 class="classic-title" style="color: var(--text-main); font-size: 1.5rem; margin-bottom: 1rem;"><i class="fas fa-lock" style="color: var(--primary-color);"></i> <span data-i18n="admin_acc">Admin Access</span></h3>
+                <p style="font-family: 'Lato', sans-serif; font-size: 0.9rem; margin-bottom:1.5rem; color:var(--text-muted);" data-i18n="admin_desc">Panel for managing certificates.</p>
+                <div style="margin-bottom: 1.5rem;">
+                    <input type="password" id="adminPass" placeholder="Password..." class="form-input" style="text-align: center;" onkeypress="if(event.key === 'Enter') verificarAdmin()">
                 </div>
-                <button style="background: var(--primary-color); color: #000; border: none; padding: 12px; width: 100%; font-weight: bold; border-radius: 8px; cursor: pointer; margin-top: 10px; font-size:16px;" onclick="verificarAdmin()"><i class="fas fa-sign-in-alt"></i> <span data-i18n="btn_enter">Enter</span></button>
-                <button style="background: transparent; color: var(--text-dark); border: 1px solid var(--text-dark); padding: 12px; width: 100%; font-weight: bold; border-radius: 8px; cursor: pointer; margin-top: 10px; font-size:16px;" onclick="cerrarAdminModal()"><i class="fas fa-times"></i> <span data-i18n="btn_cancel">Cancel</span></button>
+                <div style="display: flex; flex-direction: column; gap: 10px;">
+                    <button class="btn-classic btn-filled" style="width: 100%; justify-content: center;" onclick="verificarAdmin()"><span data-i18n="btn_enter">Enter</span></button>
+                    <button class="btn-classic" style="width: 100%; justify-content: center;" onclick="cerrarAdminModal()"><span data-i18n="btn_cancel">Cancel</span></button>
+                </div>
             `;
             document.getElementById('adminModalOverlay').classList.add('active');
             aplicarIdioma();
@@ -588,7 +884,7 @@
         }
         window.cerrarAdminModal = function() { document.getElementById('adminModalOverlay').classList.remove('active'); }
         window.cerrarAdmin = function() {
-            document.getElementById('view-admin').style.display = 'none'; document.getElementById('view-user').style.display = 'block'; loadWinners();
+            document.getElementById('view-admin').style.display = 'none'; document.getElementById('view-user').style.display = 'flex'; loadWinners();
         }
 
         // --- ADMIN DASHBOARD TABS ---
@@ -608,14 +904,14 @@
             winnersCache.forEach(w => {
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
-                    <td class="font-bold">${w.name}</td>
+                    <td style="font-weight: 700;">${w.name}</td>
                     <td>${w.category}</td>
-                    <td class="text-xl">
-                        ${w.imageUrl ? `<a href="${w.imageUrl}" target="_blank" class="text-blue-500 hover:text-blue-700 mr-3" title="Image"><i class="fas fa-image"></i></a>` : ''}
-                        ${w.pdfUrl ? `<a href="${w.pdfUrl}" target="_blank" class="text-red-500 hover:text-red-700" title="PDF"><i class="fas fa-file-pdf"></i></a>` : ''}
+                    <td style="font-size: 1.2rem;">
+                        ${w.imageUrl ? `<a href="${w.imageUrl}" target="_blank" style="color: var(--primary-color); margin-right: 15px;" title="Image"><i class="fas fa-image"></i></a>` : ''}
+                        ${w.pdfUrl ? `<a href="${w.pdfUrl}" target="_blank" style="color: var(--text-main);" title="PDF"><i class="fas fa-file-pdf"></i></a>` : ''}
                     </td>
-                    <td class="text-right">
-                        <button onclick="deleteWinner('${w.id}')" class="text-red-500 hover:text-red-700 p-2"><i class="fas fa-trash-alt"></i></button>
+                    <td style="text-align: right;">
+                        <button onclick="deleteWinner('${w.id}')" style="color: #D32F2F; background: none; border: none; cursor: pointer; font-size: 1.1rem;"><i class="fas fa-trash-alt"></i></button>
                     </td>
                 `;
                 tbody.appendChild(tr);
@@ -660,7 +956,7 @@
                     uploadedImgUrl = imgJson.data.url;
                 } else { throw new Error("ImgBB Upload Failed"); }
 
-                // 2. Upload PDF to Firebase Storage (Opción modificada)
+                // 2. Upload PDF to Firebase Storage
                 if (pdfFile) {
                     const fileRef = storageRef(storage, `certificates_pdfs/${Date.now()}_${pdfFile.name}`);
                     await uploadBytes(fileRef, pdfFile);
