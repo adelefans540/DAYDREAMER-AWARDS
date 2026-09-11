@@ -7,6 +7,8 @@
     
     <!-- FontAwesome Icons Library -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Classic Typography: Playfair Display for headings, Inter for body -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
  
     <!-- Firebase SDK -->
     <script type="module">
@@ -32,13 +34,12 @@
         const appId = 'adele-fans-app';
        
         window.fb = { db, appId, collection, addDoc, onSnapshot, query, orderBy, doc, updateDoc, deleteDoc, setDoc, increment, auth, signInWithEmailAndPassword };
-        window.isAdmin = false; // Flag to know if user entered the password
+        window.isAdmin = false; 
  
         signInAnonymously(auth).catch((error) => console.error("Firebase Auth Error:", error));
         
         onAuthStateChanged(auth, (user) => {
             if (user) {
-                // Record unique visit per session for statistics
                 if (!sessionStorage.getItem('pageVisited')) {
                     sessionStorage.setItem('pageVisited', 'true');
                     const statsRef = doc(db, 'artifacts', appId, 'public', 'data', 'awards_settings', 'stats');
@@ -52,30 +53,24 @@
             }
         });
  
-        // Global Configuration (Marquee and Voting Status)
         window.statsViews = 0;
         function cargarConfiguracionGlobal() {
             const configRef = doc(db, 'artifacts', appId, 'public', 'data', 'awards_settings', 'config');
             onSnapshot(configRef, (docSnap) => {
                 if (docSnap.exists()) {
                     const data = docSnap.data();
-                    
-                    // Update Marquee Text
                     if(data.marqueeText) {
                         document.getElementById('marqueeText').innerText = data.marqueeText;
                     }
-                    
-                    // Update Nominees Status
                     const statusBadge = document.getElementById('nom-status');
                     if (data.votacionesCerradas) {
-                        statusBadge.innerHTML = '<span style="color: #e74c3c; font-weight: 900; background: rgba(231, 76, 60, 0.1); padding: 5px 10px; border-radius: 8px;">VOTING CLOSED</span>';
+                        statusBadge.innerHTML = '<span style="color: #b33939; font-family: \'Inter\', sans-serif; font-weight: 600; font-size: 0.8rem; letter-spacing: 1px; border: 1px solid #b33939; padding: 4px 8px; text-transform: uppercase;">VOTING CLOSED</span>';
                     } else {
                         statusBadge.innerHTML = '';
                     }
                 }
             });
  
-            // Listen to Views
             const statsRef = doc(db, 'artifacts', appId, 'public', 'data', 'awards_settings', 'stats');
             onSnapshot(statsRef, (docSnap) => {
                 if(docSnap.exists()) {
@@ -87,336 +82,356 @@
  
     <style>
         /* =========================================
-           VARIABLES AND THEMES (Light / Dark)
+           CLASSIC GOLDEN THEME VARIABLES
            ========================================= */
         :root {
-            --primary-color: #d4af37; /* Gold */
-            --bg-dark: #000000;
-            --bg-light: #ffffff;
-            --text-dark: #333333;
-            --text-light: #f4f4f4;
+            --primary-color: #d4af37; /* Classic Gold */
+            --primary-dark: #aa8c2c;
+            --primary-light: #f5eedc; 
             
-            --body-bg-gradient: linear-gradient(135deg, #f0f0f0, #d9d9d9);
-            --header-text: #555;
-            --glass-bg: rgba(255, 255, 255, 0.85);
-            --glass-border: rgba(212, 175, 55, 0.4);
-            --glass-shadow: rgba(0, 0, 0, 0.1);
-            --nav-bg: rgba(255, 255, 255, 0.95);
+            /* Light Theme (Ivory/Cream base) */
+            --bg-main: #fdfbf7; 
+            --bg-section-alt: #f4f0e6;
+            --text-main: #2c2820;
+            --text-muted: #5c5545;
+            --border-color: rgba(212, 175, 55, 0.4);
+            --card-bg: #ffffff;
+            --nav-bg: #fdfbf7;
         }
  
         [data-theme="dark"] {
-            --body-bg-gradient: linear-gradient(135deg, #0f0f0f, #220000);
-            --bg-light: #1a1a1a;
-            --text-dark: #e0e0e0;
-            --header-text: #aaaaaa;
-            --glass-bg: rgba(10, 10, 10, 0.85);
-            --glass-border: rgba(212, 175, 55, 0.4);
-            --glass-shadow: rgba(0, 0, 0, 0.5);
-            --nav-bg: rgba(10, 10, 10, 0.95);
+            /* Dark Theme (Deep brownish-black base) */
+            --bg-main: #12100a;
+            --bg-section-alt: #1a1814;
+            --text-main: #e8e4d9;
+            --text-muted: #a39c87;
+            --border-color: rgba(212, 175, 55, 0.2);
+            --card-bg: #16140f;
+            --nav-bg: #12100a;
         }
  
         * { box-sizing: border-box; margin: 0; padding: 0; }
  
         body {
-            font-family: 'Helvetica Neue', Arial, sans-serif;
-            line-height: 1.6;
-            color: var(--text-dark);
-            background: var(--body-bg-gradient);
-            background-attachment: fixed;
+            font-family: 'Inter', Arial, sans-serif;
+            line-height: 1.7;
+            color: var(--text-main);
+            background-color: var(--bg-main);
             transition: background 0.3s, color 0.3s;
             overflow-x: hidden;
         }
+
+        h1, h2, h3, h4, .playfair {
+            font-family: 'Playfair Display', serif;
+            font-weight: 600;
+            color: var(--primary-color);
+        }
  
+        /* Replaced glass-effect with a classic solid card style */
         .glass-effect {
-            background: var(--glass-bg);
-            backdrop-filter: blur(15px);
-            -webkit-backdrop-filter: blur(15px);
-            border: 1px solid var(--glass-border);
-            box-shadow: 0 8px 32px var(--glass-shadow);
-            border-radius: 12px;
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 4px; /* Classic sharp edges */
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
+            transition: all 0.3s ease;
         }
  
         .animate-up {
             opacity: 0;
-            transform: translateY(40px);
-            transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+            transform: translateY(30px);
+            transition: all 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
         }
         .animate-up.visible { opacity: 1; transform: translateY(0); }
  
         /* =========================================
-           SCROLLING MARQUEE (NEW)
+           SCROLLING MARQUEE (Classic Ticker)
            ========================================= */
         .marquee-container {
-            width: 100%; background: var(--primary-color); color: #000;
-            padding: 8px 0; overflow: hidden; position: relative; z-index: 1001;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            width: 100%; background: var(--primary-color); color: #12100a;
+            padding: 10px 0; overflow: hidden; position: relative; z-index: 1001;
+            border-bottom: 2px solid var(--primary-dark);
         }
         .marquee-content {
-            white-space: nowrap; display: inline-block; font-weight: bold; font-size: 14px;
-            animation: marquee 20s linear infinite; text-transform: uppercase; letter-spacing: 1px;
+            white-space: nowrap; display: inline-block; font-weight: 600; font-size: 13px;
+            animation: marquee 25s linear infinite; text-transform: uppercase; letter-spacing: 2px;
+            font-family: 'Inter', sans-serif;
         }
         @keyframes marquee { 0% { transform: translateX(100vw); } 100% { transform: translateX(-100%); } }
  
         /* =========================================
-           MODIFIED LOADING ANIMATION
+           LOADING ANIMATION
            ========================================= */
         #loader-wrapper {
-            position: fixed; inset: 0; background-color: var(--bg-dark); z-index: 9999;
+            position: fixed; inset: 0; background-color: var(--bg-main); z-index: 9999;
             display: flex; justify-content: center; align-items: center; transition: opacity 0.5s ease, visibility 0.5s;
         }
-        
         .loader { display: flex; margin: 0.25em 0; align-items: center; justify-content: center; position: relative;}
         .absolute { position: absolute; }
         .inline-block { display: inline-block; }
         .w-2 { width: 0.5em; }
-        
         .dash { animation: dashArray 2s ease-in-out infinite, dashOffset 2s linear infinite; }
-        .spin {
-            animation: spinDashArray 2s ease-in-out infinite, spin 8s ease-in-out infinite, dashOffset 2s linear infinite;
-            transform-origin: center;
-        }
-        
+        .spin { animation: spinDashArray 2s ease-in-out infinite, spin 8s ease-in-out infinite, dashOffset 2s linear infinite; transform-origin: center; }
         @keyframes dashArray { 0% { stroke-dasharray: 0 1 359 0; } 50% { stroke-dasharray: 0 359 1 0; } 100% { stroke-dasharray: 359 1 0 0; } }
         @keyframes spinDashArray { 0% { stroke-dasharray: 270 90; } 50% { stroke-dasharray: 0 360; } 100% { stroke-dasharray: 270 90; } }
         @keyframes dashOffset { 0% { stroke-dashoffset: 365; } 100% { stroke-dashoffset: 5; } }
-        @keyframes spin {
-            0% { rotate: 0deg; }
-            12.5%, 25% { rotate: 270deg; }
-            37.5%, 50% { rotate: 540deg; }
-            62.5%, 75% { rotate: 810deg; }
-            87.5%, 100% { rotate: 1080deg; }
-        }
- 
+        @keyframes spin { 0% { rotate: 0deg; } 12.5%, 25% { rotate: 270deg; } 37.5%, 50% { rotate: 540deg; } 62.5%, 75% { rotate: 810deg; } 87.5%, 100% { rotate: 1080deg; } }
         .loader-text-adele {
-            position: absolute; font-size: 14px; font-weight: 900; color: var(--primary-color);
-            letter-spacing: 2px; z-index: 10; font-family: 'Helvetica Neue', Arial, sans-serif;
-            text-shadow: 0 0 10px rgba(212, 175, 55, 0.5);
+            position: absolute; font-size: 13px; font-weight: 600; color: var(--primary-color);
+            letter-spacing: 3px; z-index: 10; font-family: 'Playfair Display', serif;
         }
  
         /* =========================================
-           TOP BAR AND NAVIGATION
+           TOP BAR AND NAVIGATION (Classic Header)
            ========================================= */
         .top-bar {
-            position: sticky; top: 0; height: 65px; display: flex; align-items: center;
-            justify-content: space-between; padding: 0 1.5rem; z-index: 1000;
-            background: var(--nav-bg); backdrop-filter: blur(10px); border-bottom: 1px solid var(--glass-border);
+            position: sticky; top: 0; height: 70px; display: flex; align-items: center;
+            justify-content: space-between; padding: 0 2rem; z-index: 1000;
+            background-color: var(--nav-bg); border-bottom: 1px solid var(--border-color);
         }
-        .hamburger { display: flex; flex-direction: column; gap: 6px; cursor: pointer; z-index: 1002; }
-        .hamburger span { width: 30px; height: 3px; background-color: var(--primary-color); transition: 0.3s; border-radius: 3px; }
-        .hamburger.active span:nth-child(1) { transform: translateY(9px) rotate(45deg); }
+        .nav-logo-text {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.4rem; font-weight: 700; color: var(--primary-color);
+            text-transform: uppercase; letter-spacing: 2px; text-decoration: none;
+        }
+        .hamburger { display: flex; flex-direction: column; gap: 5px; cursor: pointer; z-index: 1002; }
+        .hamburger span { width: 28px; height: 2px; background-color: var(--primary-color); transition: 0.3s; }
+        .hamburger.active span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
         .hamburger.active span:nth-child(2) { opacity: 0; }
-        .hamburger.active span:nth-child(3) { transform: translateY(-9px) rotate(-45deg); }
+        .hamburger.active span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
  
-        .controls { display: flex; gap: 0.8rem; z-index: 1002; }
+        .controls { display: flex; gap: 1rem; z-index: 1002; align-items: center; }
         .icon-btn {
             background: transparent; border: 1px solid var(--primary-color); color: var(--primary-color);
-            padding: 0.4rem 0.8rem; cursor: pointer; font-weight: bold; border-radius: 8px; transition: 0.3s;
+            padding: 0.4rem 0.8rem; cursor: pointer; font-weight: 500; font-family: 'Inter', sans-serif;
+            border-radius: 2px; transition: 0.3s; font-size: 0.85rem; letter-spacing: 1px;
         }
-        .icon-btn:hover { background: var(--primary-color); color: #000; }
+        .icon-btn:hover { background: var(--primary-color); color: var(--bg-main); }
  
         nav {
-            position: fixed; top: 0; left: -100%; width: 300px; max-width: 80%; height: 100vh;
-            display: flex; flex-direction: column; padding: 100px 2rem 2rem 2rem;
+            position: fixed; top: 0; left: -100%; width: 320px; max-width: 80%; height: 100vh;
+            display: flex; flex-direction: column; padding: 100px 2.5rem 2rem 2.5rem;
             transition: left 0.4s cubic-bezier(0.16, 1, 0.3, 1); z-index: 999; gap: 1.5rem;
-            overflow-y: auto;
+            overflow-y: auto; background-color: var(--card-bg); border-right: 1px solid var(--border-color);
         }
-        nav.open { left: 0; }
+        nav.open { left: 0; box-shadow: 10px 0 30px rgba(0,0,0,0.1); }
         nav a {
-            color: var(--primary-color); text-decoration: none; font-weight: bold; text-transform: uppercase;
-            font-size: 1rem; letter-spacing: 1px; padding-bottom: 5px; border-bottom: 1px solid transparent; transition: 0.2s;
+            color: var(--text-main); text-decoration: none; font-weight: 400; font-family: 'Playfair Display', serif;
+            font-size: 1.1rem; letter-spacing: 1px; padding-bottom: 8px; border-bottom: 1px solid var(--border-color); 
+            transition: 0.2s; display: flex; align-items: center; gap: 12px;
         }
-        nav a:hover { color: var(--text-dark); border-bottom: 1px solid var(--text-dark); }
+        nav a i { color: var(--primary-color); font-size: 0.9rem; }
+        nav a:hover { color: var(--primary-color); padding-left: 10px; }
  
         /* =========================================
            STRUCTURE AND RESPONSIVE GRIDS
            ========================================= */
-        header { text-align: center; padding: 5rem 1rem 3rem; transition: 0.3s; }
-        .logo-principal { max-width: 250px; width: 100%; height: auto; margin-bottom: 1.5rem; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
-        header h1 { font-size: clamp(2rem, 5vw, 2.8rem); color: var(--text-dark); margin-bottom: 0.5rem; text-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-        header p { font-size: 1.1rem; max-width: 800px; margin: 0 auto; color: var(--text-dark); font-weight: 500; }
+        header { 
+            text-align: center; padding: 6rem 1rem 5rem; 
+            border-bottom: 1px solid var(--border-color);
+            background-color: var(--bg-main);
+        }
+        .logo-principal { 
+            max-width: 220px; width: 100%; height: auto; margin-bottom: 2rem; 
+            border: 4px solid var(--border-color); padding: 5px; background: var(--card-bg);
+            border-radius: 2px; /* Classic sharp frame */
+        }
+        header h1 { 
+            font-size: clamp(2.2rem, 5vw, 3.5rem); color: var(--primary-color); 
+            margin-bottom: 1rem; text-transform: uppercase; letter-spacing: 3px;
+        }
+        header p { 
+            font-size: 1.05rem; max-width: 750px; margin: 0 auto; 
+            color: var(--text-muted); font-weight: 300; line-height: 1.8; 
+            font-family: 'Inter', serif;
+        }
  
-        section { padding: 3rem 1.5rem; max-width: 1200px; margin: 0 auto; }
-        h2 { font-size: clamp(1.8rem, 4vw, 2.2rem); color: var(--text-dark); margin-bottom: 2rem; text-align: center; text-transform: uppercase; letter-spacing: 2px; }
+        section { padding: 4.5rem 1.5rem; }
+        section:nth-child(even) { background-color: var(--bg-section-alt); border-top: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color); }
+        .container { max-width: 1100px; margin: 0 auto; }
+
+        h2.section-title { 
+            font-size: clamp(1.8rem, 4vw, 2.4rem); color: var(--text-main); margin-bottom: 3rem; 
+            text-align: left; /* Classic editorial alignment */
+            border-bottom: 2px solid var(--primary-color); padding-bottom: 10px;
+            display: inline-block;
+        }
  
-        .grid-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; }
+        .grid-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; }
         
-        .historia-item, .categoria-card { padding: 1.5rem; transition: transform 0.3s; }
-        .historia-item:hover, .categoria-card:hover { transform: translateY(-5px); border-color: var(--primary-color); }
-        .historia-item h3, .categoria-card h3 { color: var(--primary-color); margin-bottom: 1rem; font-size: 1.3rem;}
-        .historia-item p, .categoria-card p { color: var(--text-dark); font-weight: 500; font-size: 0.95rem; }
+        .historia-item, .categoria-card { padding: 2rem; transition: transform 0.3s; }
+        .historia-item:hover, .categoria-card:hover { transform: translateY(-3px); border-color: var(--primary-color); }
+        .historia-item h3, .categoria-card h3 { color: var(--primary-color); margin-bottom: 1.2rem; font-size: 1.4rem;}
+        .historia-item p, .categoria-card p { color: var(--text-muted); font-weight: 300; font-size: 0.95rem; line-height: 1.6;}
         
-        .categoria-card { border-left: 5px solid var(--primary-color); }
+        .categoria-card { border-top: 4px solid var(--primary-color); }
  
         /* =========================================
-           NEWS AND ANNOUNCEMENTS REDESIGNED
+           NEWS AND ANNOUNCEMENTS (Classic Grid)
            ========================================= */
         .news-card {
-            display: flex; flex-direction: column; overflow: hidden; position: relative;
-            background: var(--glass-bg); border-radius: 12px; border: 1px solid var(--glass-border);
+            display: flex; flex-direction: column; position: relative;
+            background: var(--card-bg); border-radius: 2px; border: 1px solid var(--border-color);
             transition: 0.3s; height: 100%;
         }
-        .news-card:hover { transform: translateY(-5px); box-shadow: 0 12px 40px var(--glass-shadow); }
-        .news-img { width: 100%; height: 220px; object-fit: cover; border-bottom: 2px solid var(--primary-color); }
-        .news-content { padding: 1.5rem; display: flex; flex-direction: column; flex-grow: 1; }
-        .news-content h3 { font-size: 1.3rem; color: var(--text-dark); margin-bottom: 0.5rem; }
-        .news-date { font-size: 0.85rem; color: var(--primary-color); font-weight: bold; margin-bottom: 1rem; }
-        .news-desc { font-size: 0.95rem; color: var(--text-dark); flex-grow: 1; margin-bottom: 1.5rem; line-height: 1.5; white-space: pre-wrap; word-break: break-word;}
+        .news-card:hover { transform: translateY(-4px); box-shadow: 0 10px 20px rgba(0,0,0,0.05); }
+        .news-img { width: 100%; height: 240px; object-fit: cover; border-bottom: 1px solid var(--border-color); }
+        .news-content { padding: 1.8rem; display: flex; flex-direction: column; flex-grow: 1; }
+        .news-content h3 { font-size: 1.35rem; color: var(--text-main); margin-bottom: 0.8rem; line-height: 1.3;}
+        .news-date { font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; font-weight: 500; margin-bottom: 1.2rem; border-bottom: 1px dashed var(--border-color); padding-bottom: 5px; display: inline-block;}
+        .news-desc { font-size: 0.95rem; color: var(--text-muted); flex-grow: 1; margin-bottom: 1.5rem; line-height: 1.6; white-space: pre-wrap; word-break: break-word;}
         
-        .admin-controls-news {
-            display: flex; gap: 10px; margin-top: auto; padding-top: 15px; border-top: 1px solid rgba(212, 175, 55, 0.2);
-        }
-        .btn-edit, .btn-delete {
-            flex: 1; padding: 8px; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; transition: 0.3s; color: white;
-        }
+        .admin-controls-news { display: flex; gap: 10px; margin-top: auto; padding-top: 15px; border-top: 1px solid var(--border-color); }
+        .btn-edit, .btn-delete { flex: 1; padding: 8px; border: 1px solid transparent; border-radius: 2px; font-family: 'Inter', sans-serif; font-weight: 500; cursor: pointer; transition: 0.3s; color: white; font-size: 0.85rem;}
         .btn-edit { background: #4a90e2; }
         .btn-edit:hover { background: #357abd; }
-        .btn-delete { background: #e74c3c; }
-        .btn-delete:hover { background: #c0392b; }
+        .btn-delete { background: #b33939; }
+        .btn-delete:hover { background: #8c2a2a; }
  
         /* =========================================
-           NOMINEES CAROUSEL (MODIFIED)
+           NOMINEES CAROUSEL
            ========================================= */
         .carousel-container {
-            display: flex; overflow-x: auto; gap: 1.5rem; padding: 1.5rem 5px;
+            display: flex; overflow-x: auto; gap: 2rem; padding: 1rem 5px 2rem 5px;
             scroll-behavior: auto; -ms-overflow-style: none; scrollbar-width: none;
         }
         .carousel-container::-webkit-scrollbar { display: none; }
-        .carousel-container .card-base { min-width: 280px; flex-shrink: 0; }
+        .carousel-container .card-base { min-width: 280px; flex-shrink: 0; padding: 2.5rem 1.5rem; }
  
         /* =========================================
            AWARD AND OTHER CARDS
            ========================================= */
-        .seccion-galardon { padding: 3rem 1.5rem; margin: 2rem 1rem; border-radius: 15px; }
-        .galardon-content { max-width: 1000px; margin: 0 auto; display: flex; align-items: center; justify-content: center; gap: 3rem; flex-wrap: wrap; }
-        .galardon-texto { flex: 1; min-width: 280px; }
-        .galardon-texto h2 { color: var(--primary-color); text-align: left; }
-        .galardon-texto p { color: var(--text-dark); font-weight: 500; font-size: 1.05rem; }
+        .seccion-galardon { padding: 4rem 2rem; margin: 3rem auto; max-width: 1100px; border-radius: 4px; border: 1px solid var(--border-color); background: var(--card-bg); }
+        .galardon-content { display: flex; align-items: center; justify-content: center; gap: 4rem; flex-wrap: wrap; }
+        .galardon-texto { flex: 1; min-width: 300px; }
+        .galardon-texto h2 { color: var(--primary-color); text-align: left; margin-bottom: 1.5rem; font-size: 2.2rem;}
+        .galardon-texto p { color: var(--text-muted); font-weight: 300; font-size: 1.05rem; line-height: 1.8;}
         .imagen-premio { flex: 1; min-width: 280px; display: flex; justify-content: center; }
-        .imagen-premio img { max-width: 100%; height: auto; mix-blend-mode: screen; filter: drop-shadow(0 0 20px rgba(212, 175, 55, 0.4)); }
+        .imagen-premio img { max-width: 100%; height: auto; mix-blend-mode: multiply; border: 1px solid var(--border-color); padding: 10px; }
+        [data-theme="dark"] .imagen-premio img { mix-blend-mode: screen; filter: drop-shadow(0 0 10px rgba(212, 175, 55, 0.2)); }
  
-        .card-base { padding: 1.5rem; text-align: center; transition: 0.3s; display: flex; flex-direction: column; align-items: center; justify-content: space-between; }
-        .card-base:hover { transform: scale(1.02); border-color: var(--primary-color); }
-        .avatar-img { width: 120px; height: 120px; border-radius: 50%; object-fit: cover; border: 3px solid var(--primary-color); margin-bottom: 1rem; }
+        .card-base { padding: 2rem; text-align: center; transition: 0.3s; display: flex; flex-direction: column; align-items: center; justify-content: space-between; }
+        .card-base:hover { border-color: var(--primary-color); }
+        .avatar-img { width: 130px; height: 130px; border-radius: 50%; object-fit: cover; border: 2px solid var(--primary-color); margin-bottom: 1.5rem; padding: 3px; }
+        .card-name { font-size: 1.3rem; margin-bottom: 0.5rem; color: var(--text-main); }
+        .card-meta { color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1rem; }
         
         .btn-action {
-            background: var(--primary-color); color: #000; text-decoration: none; padding: 10px 20px;
-            border-radius: 25px; font-weight: bold; transition: 0.3s; display: inline-block; width: 100%; text-align: center; border: none; cursor: pointer; margin-top: auto;
+            background: transparent; color: var(--primary-color); border: 1px solid var(--primary-color); text-decoration: none; padding: 12px 24px;
+            border-radius: 2px; font-weight: 500; font-family: 'Inter', sans-serif; transition: 0.3s; display: inline-block; width: 100%; text-align: center; cursor: pointer; margin-top: auto;
+            text-transform: uppercase; letter-spacing: 1px; font-size: 0.85rem;
         }
-        .btn-action:hover { box-shadow: 0 0 15px var(--primary-color); transform: translateY(-2px); }
+        .btn-action:hover { background: var(--primary-color); color: var(--bg-main); }
+        .btn-action i { margin-right: 5px; }
  
-        .estado-vacio { text-align: center; padding: 3rem; color: var(--text-dark); font-style: italic; width: 100%; font-weight: bold; }
+        .estado-vacio { text-align: center; padding: 4rem; color: var(--text-muted); font-style: italic; width: 100%; font-family: 'Playfair Display', serif; font-size: 1.2rem;}
  
         /* =========================================
            SUBSCRIPTION POPUP
            ========================================= */
         .popup {
-            position: relative; width: 100%; max-width: 360px; height: fit-content;
-            background: var(--bg-light); border-radius: 15px; padding: 25px;
-            box-shadow: 0px 20px 50px rgba(0, 0, 0, 0.2); border: 1px solid var(--glass-border);
+            position: relative; width: 100%; max-width: 400px; height: fit-content;
+            background: var(--card-bg); border-radius: 2px; padding: 35px 25px;
+            box-shadow: 0px 15px 40px rgba(0, 0, 0, 0.1); border: 2px solid var(--primary-color);
         }
-        .form { display: flex; flex-direction: column; align-items: flex-start; gap: 15px; }
+        .form { display: flex; flex-direction: column; align-items: center; gap: 20px; text-align: center; }
         .icon {
-            display: flex; align-items: center; justify-content: center; width: 60px; height: 60px;
-            background: rgba(212, 175, 55, 0.15); border-radius: 10px; border: 1px solid var(--primary-color);
+            display: flex; align-items: center; justify-content: center; width: 70px; height: 70px;
+            background: var(--bg-section-alt); border-radius: 50%; border: 1px solid var(--border-color);
         }
-        .note { display: flex; flex-direction: column; gap: 5px; }
-        .note .title { font-weight: 700; font-size: 1.15rem; color: var(--text-dark); }
-        .note .subtitle { font-weight: 500; font-size: 0.85rem; color: var(--header-text); }
+        .note { display: flex; flex-direction: column; gap: 8px; }
+        .note .title { font-family: 'Playfair Display', serif; font-weight: 700; font-size: 1.4rem; color: var(--text-main); }
+        .note .subtitle { font-weight: 300; font-size: 0.9rem; color: var(--text-muted); }
         
         .input_field {
-            width: 100%; height: 45px; padding: 0 15px; border-radius: 8px; outline: none;
-            border: 1px solid var(--glass-border); background: var(--glass-bg); color: var(--text-dark);
-            transition: all 0.3s; font-family: inherit;
+            width: 100%; height: 45px; padding: 0 15px; border-radius: 2px; outline: none;
+            border: 1px solid var(--border-color); background: var(--bg-main); color: var(--text-main);
+            transition: all 0.3s; font-family: inherit; font-size: 0.95rem; text-align: center;
         }
-        .input_field:focus { border-color: var(--primary-color); box-shadow: 0 0 5px rgba(212,175,55,0.5); }
+        .input_field:focus { border-color: var(--primary-color); }
         
         .form button.submit {
             display: flex; justify-content: center; align-items: center; width: 100%; height: 45px;
-            background: linear-gradient(180deg, var(--primary-color) 0%, #aa8c2c 100%);
-            border-radius: 8px; border: 0; font-weight: 700; font-size: 1rem; color: #000;
-            cursor: pointer; transition: 0.3s; box-shadow: 0 4px 10px rgba(212,175,55,0.3);
+            background: var(--primary-color); border-radius: 2px; border: 0; font-family: 'Inter', sans-serif;
+            font-weight: 600; font-size: 0.95rem; color: #fff; cursor: pointer; transition: 0.3s; text-transform: uppercase; letter-spacing: 1px;
         }
-        .form button.submit:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(212,175,55,0.5); }
+        .form button.submit:hover { background: var(--primary-dark); }
  
         /* =========================================
            ADMIN AND MODALS
            ========================================= */
         .admin-btn {
-            position: fixed; bottom: 20px; left: 20px; width: 50px; height: 50px;
-            background: var(--nav-bg); color: var(--primary-color); border: 2px solid var(--primary-color);
-            border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 20px;
-            cursor: pointer; z-index: 1500; transition: 0.3s; backdrop-filter: blur(10px);
+            position: fixed; bottom: 30px; left: 30px; width: 45px; height: 45px;
+            background: var(--card-bg); color: var(--primary-color); border: 1px solid var(--primary-color);
+            border-radius: 2px; display: flex; justify-content: center; align-items: center; font-size: 18px;
+            cursor: pointer; z-index: 1500; transition: 0.3s; box-shadow: 0 4px 10px rgba(0,0,0,0.1);
         }
-        .admin-btn:hover { background: var(--primary-color); color: #000; transform: scale(1.1); }
+        .admin-btn:hover { background: var(--primary-color); color: var(--bg-main); }
  
         .custom-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(8px); display: none;
+            background: rgba(18, 16, 10, 0.85); display: none;
             justify-content: center; align-items: center; z-index: 2500; padding: 15px; opacity: 0; transition: opacity 0.3s;
         }
         .custom-overlay.active { display: flex; opacity: 1; }
         
-        .custom-modal { width: 100%; max-width: 500px; padding: 2rem; text-align: center; max-height: 90vh; overflow-y: auto;}
-        .modal-title { color: var(--primary-color); margin-bottom: 1.5rem; font-size: 1.5rem; }
+        .custom-modal { width: 100%; max-width: 500px; padding: 2.5rem; text-align: left; max-height: 90vh; overflow-y: auto; background: var(--card-bg); border: 1px solid var(--primary-color); border-radius: 2px;}
+        .modal-title { color: var(--primary-color); margin-bottom: 1.5rem; font-size: 1.6rem; text-align: center; border-bottom: 1px solid var(--border-color); padding-bottom: 10px;}
         
-        .form-group { margin-bottom: 15px; text-align: left; }
-        .form-group label { display: block; font-size: 0.9rem; color: var(--primary-color); margin-bottom: 6px; font-weight: bold; }
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 8px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; }
         .form-group input, .form-group textarea {
-            width: 100%; padding: 12px; border-radius: 8px; background: rgba(0,0,0,0.02);
-            border: 1px solid var(--glass-border); color: var(--text-dark); outline: none; font-family: inherit; font-size: 14px;
+            width: 100%; padding: 12px; border-radius: 2px; background: var(--bg-main);
+            border: 1px solid var(--border-color); color: var(--text-main); outline: none; font-family: inherit; font-size: 14px;
         }
-        [data-theme="dark"] .form-group input, [data-theme="dark"] .form-group textarea { background: rgba(255,255,255,0.05); }
-        .form-group textarea { resize: vertical; min-height: 100px; }
+        .form-group input:focus, .form-group textarea:focus { border-color: var(--primary-color); }
+        .form-group textarea { resize: vertical; min-height: 120px; }
  
-        .admin-options { display: flex; flex-direction: column; gap: 10px; margin-bottom: 15px; }
-        .admin-stats { background: rgba(212, 175, 55, 0.1); padding: 15px; border-radius: 10px; border: 1px solid var(--primary-color); margin-bottom: 15px; }
+        .admin-options { display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; }
+        .admin-stats { background: var(--bg-section-alt); padding: 20px; border-radius: 2px; border: 1px solid var(--border-color); margin-bottom: 20px; text-align: center; }
  
         .btn-modal {
-            background: var(--primary-color); color: #000; border: none; padding: 12px; width: 100%;
-            font-size: 15px; font-weight: bold; border-radius: 8px; cursor: pointer; transition: 0.3s; margin-top: 10px;
+            background: var(--primary-color); color: #fff; border: none; padding: 12px; width: 100%;
+            font-size: 14px; font-weight: 500; text-transform: uppercase; letter-spacing: 1px; font-family: 'Inter', sans-serif;
+            border-radius: 2px; cursor: pointer; transition: 0.3s; margin-top: 10px;
         }
-        .btn-modal.cancel { background: transparent; color: var(--text-dark); border: 1px solid var(--text-dark); }
-        .btn-modal:hover { opacity: 0.9; transform: scale(1.02); }
+        .btn-modal.cancel { background: transparent; color: var(--text-main); border: 1px solid var(--text-muted); }
+        .btn-modal:hover { background: var(--primary-dark); color: #fff; }
+        .btn-modal.cancel:hover { background: var(--bg-section-alt); color: var(--text-main); }
  
-        #loaderAdmin { display: none; margin-top: 10px; color: var(--primary-color); font-size: 14px; font-weight: bold; }
+        #loaderAdmin { display: none; margin-top: 10px; color: var(--primary-color); font-size: 14px; font-weight: bold; text-align: center;}
  
-        footer { padding: 3rem 1.5rem; text-align: center; margin-top: 4rem; border-top: 1px solid var(--glass-border); }
-        .footer-icons { display: flex; justify-content: center; gap: 1.5rem; margin-bottom: 1rem; }
-        .footer-icons a { color: var(--primary-color); font-size: 1.8rem; transition: 0.3s; }
-        .footer-icons a:hover { color: var(--text-dark); transform: translateY(-3px); }
-        .footer-text { font-size: 0.95rem; color: var(--text-dark); font-weight: bold; }
+        /* =========================================
+           FOOTER
+           ========================================= */
+        footer { padding: 4rem 2rem 2rem; text-align: center; border-top: 1px solid var(--border-color); background-color: var(--card-bg); }
+        .footer-logo { font-family: 'Playfair Display', serif; font-size: 1.5rem; color: var(--primary-color); margin-bottom: 1.5rem; display: inline-block; }
+        .footer-icons { display: flex; justify-content: center; gap: 2rem; margin-bottom: 1.5rem; }
+        .footer-icons a { color: var(--text-muted); font-size: 1.5rem; transition: 0.3s; }
+        .footer-icons a:hover { color: var(--primary-color); transform: translateY(-3px); }
+        .footer-text { font-size: 0.9rem; color: var(--text-main); font-weight: 500; margin-bottom: 10px; letter-spacing: 1px;}
+        .footer-disclaimer { font-size: 0.75rem; color: var(--text-muted); max-width: 650px; margin: 0 auto 20px auto; line-height: 1.6; }
+        .footer-legal { display: flex; justify-content: center; gap: 25px; font-size: 0.8rem; border-top: 1px solid var(--border-color); padding-top: 20px; max-width: 400px; margin: 0 auto;}
+        .footer-legal a { color: var(--text-muted); text-decoration: none; text-transform: uppercase; letter-spacing: 1px; transition: 0.3s; }
+        .footer-legal a:hover { color: var(--primary-color); }
     </style>
 </head>
 <body>
  
-    <!-- Load Animation (Modified with "ADELE") -->
+    <!-- Load Animation -->
     <div id="loader-wrapper">
         <div class="loader">
             <span class="loader-text-adele">ADELE</span>
             <svg height="0" width="0" viewBox="0 0 64 64" class="absolute">
                 <defs xmlns="http://www.w3.org/2000/svg">
-                    <linearGradient gradientUnits="userSpaceOnUse" y2="2" x2="0" y1="62" x1="0" id="b">
-                        <stop stop-color="#d4af37"></stop><stop stop-color="#fff" offset="1"></stop>
-                    </linearGradient>
-                    <linearGradient gradientUnits="userSpaceOnUse" y2="0" x2="0" y1="64" x1="0" id="c">
-                        <stop stop-color="#aa8c2c"></stop><stop stop-color="#fff" offset="1"></stop>
-                        <animateTransform repeatCount="indefinite" keySplines=".42,0,.58,1;.42,0,.58,1;.42,0,.58,1;.42,0,.58,1;.42,0,.58,1;.42,0,.58,1;.42,0,.58,1;.42,0,.58,1" keyTimes="0; 0.125; 0.25; 0.375; 0.5; 0.625; 0.75; 0.875; 1" dur="8s" values="0 32 32;-270 32 32;-270 32 32;-540 32 32;-540 32 32;-810 32 32;-810 32 32;-1080 32 32;-1080 32 32" type="rotate" attributeName="gradientTransform"></animateTransform>
-                    </linearGradient>
-                    <linearGradient gradientUnits="userSpaceOnUse" y2="2" x2="0" y1="62" x1="0" id="d">
-                        <stop stop-color="#d4af37"></stop><stop stop-color="#eebb44" offset="1"></stop>
-                    </linearGradient>
+                    <linearGradient gradientUnits="userSpaceOnUse" y2="2" x2="0" y1="62" x1="0" id="b"><stop stop-color="#d4af37"></stop><stop stop-color="#fff" offset="1"></stop></linearGradient>
+                    <linearGradient gradientUnits="userSpaceOnUse" y2="0" x2="0" y1="64" x1="0" id="c"><stop stop-color="#aa8c2c"></stop><stop stop-color="#fff" offset="1"></stop><animateTransform repeatCount="indefinite" keySplines=".42,0,.58,1;.42,0,.58,1;.42,0,.58,1;.42,0,.58,1;.42,0,.58,1;.42,0,.58,1;.42,0,.58,1;.42,0,.58,1" keyTimes="0; 0.125; 0.25; 0.375; 0.5; 0.625; 0.75; 0.875; 1" dur="8s" values="0 32 32;-270 32 32;-270 32 32;-540 32 32;-540 32 32;-810 32 32;-810 32 32;-1080 32 32;-1080 32 32" type="rotate" attributeName="gradientTransform"></animateTransform></linearGradient>
+                    <linearGradient gradientUnits="userSpaceOnUse" y2="2" x2="0" y1="62" x1="0" id="d"><stop stop-color="#d4af37"></stop><stop stop-color="#eebb44" offset="1"></stop></linearGradient>
                 </defs>
             </svg>
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 64 64" height="64" width="64" class="inline-block">
-                <path stroke-linejoin="round" stroke-linecap="round" stroke-width="8" stroke="url(#b)" d="M 54.722656,3.9726563 A 2.0002,2.0002 0 0 0 54.941406,4 h 5.007813 C 58.955121,17.046124 49.099667,27.677057 36.121094,29.580078 a 2.0002,2.0002 0 0 0 -1.708985,1.978516 V 60 H 29.587891 V 31.558594 A 2.0002,2.0002 0 0 0 27.878906,29.580078 C 14.900333,27.677057 5.0448787,17.046124 4.0507812,4 H 9.28125 c 1.231666,11.63657 10.984383,20.554048 22.6875,20.734375 a 2.0002,2.0002 0 0 0 0.02344,0 c 11.806958,0.04283 21.70649,-9.003371 22.730469,-20.7617187 z" class="dash" pathLength="360"></path>
-            </svg>
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 64 64" height="64" width="64" class="inline-block">
-                <path stroke-linejoin="round" stroke-linecap="round" stroke-width="10" stroke="url(#c)" d="M 32 32 m 0 -27 a 27 27 0 1 1 0 54 a 27 27 0 1 1 0 -54" class="spin" pathLength="360"></path>
-            </svg>
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 64 64" height="64" width="64" class="inline-block"><path stroke-linejoin="round" stroke-linecap="round" stroke-width="8" stroke="url(#b)" d="M 54.722656,3.9726563 A 2.0002,2.0002 0 0 0 54.941406,4 h 5.007813 C 58.955121,17.046124 49.099667,27.677057 36.121094,29.580078 a 2.0002,2.0002 0 0 0 -1.708985,1.978516 V 60 H 29.587891 V 31.558594 A 2.0002,2.0002 0 0 0 27.878906,29.580078 C 14.900333,27.677057 5.0448787,17.046124 4.0507812,4 H 9.28125 c 1.231666,11.63657 10.984383,20.554048 22.6875,20.734375 a 2.0002,2.0002 0 0 0 0.02344,0 c 11.806958,0.04283 21.70649,-9.003371 22.730469,-20.7617187 z" class="dash" pathLength="360"></path></svg>
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 64 64" height="64" width="64" class="inline-block"><path stroke-linejoin="round" stroke-linecap="round" stroke-width="10" stroke="url(#c)" d="M 32 32 m 0 -27 a 27 27 0 1 1 0 54 a 27 27 0 1 1 0 -54" class="spin" pathLength="360"></path></svg>
             <div class="w-2"></div>
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 64 64" height="64" width="64" class="inline-block">
-                <path stroke-linejoin="round" stroke-linecap="round" stroke-width="8" stroke="url(#d)" d="M 4,4 h 4.6230469 v 25.919922 c -0.00276,11.916203 9.8364941,21.550422 21.7500001,21.296875 11.616666,-0.240651 21.014356,-9.63894 21.253906,-21.25586 a 2.0002,2.0002 0 0 0 0,-0.04102 V 4 H 56.25 v 25.919922 c 0,14.33873 -11.581192,25.919922 -25.919922,25.919922 a 2.0002,2.0002 0 0 0 -0.0293,0 C 15.812309,56.052941 3.998433,44.409961 4,29.919922 Z" class="dash" pathLength="360"></path>
-            </svg>
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 64 64" height="64" width="64" class="inline-block"><path stroke-linejoin="round" stroke-linecap="round" stroke-width="8" stroke="url(#d)" d="M 4,4 h 4.6230469 v 25.919922 c -0.00276,11.916203 9.8364941,21.550422 21.7500001,21.296875 11.616666,-0.240651 21.014356,-9.63894 21.253906,-21.25586 a 2.0002,2.0002 0 0 0 0,-0.04102 V 4 H 56.25 v 25.919922 c 0,14.33873 -11.581192,25.919922 -25.919922,25.919922 a 2.0002,2.0002 0 0 0 -0.0293,0 C 15.812309,56.052941 3.998433,44.409961 4,29.919922 Z" class="dash" pathLength="360"></path></svg>
         </div>
     </div>
  
@@ -430,13 +445,17 @@
         <div class="hamburger" id="hamburger">
             <span></span><span></span><span></span>
         </div>
+        <a href="#inicio" class="nav-logo-text">Daydreamers</a>
         <div class="controls">
             <button class="icon-btn" id="lang-btn" onclick="toggleLang()">ES</button>
             <button class="icon-btn" onclick="toggleTheme()"><i class="fas fa-moon" id="theme-icon"></i></button>
         </div>
     </div>
  
-    <nav id="sidebar" class="glass-effect">
+    <nav id="sidebar">
+        <div style="margin-bottom: 2rem; border-bottom: 1px solid var(--border-color); padding-bottom: 1rem;">
+            <h2 class="playfair" style="font-size: 1.5rem; text-align: left; margin: 0;">Menu</h2>
+        </div>
         <a href="#inicio" data-i18n="nav_inicio" onclick="closeMenu()"><i class="fas fa-home"></i> Home</a>
         <a href="#noticias" data-i18n="nav_noticias" onclick="closeMenu()"><i class="fas fa-newspaper"></i> News & Announcements</a>
         <a href="votaciones.html" data-i18n="nav_manifiesto" onclick="closeMenu()"><i class="fas fa-vote-yea"></i> Vote</a>
@@ -445,128 +464,144 @@
         <a href="#galardon" data-i18n="nav_galardon" onclick="closeMenu()"><i class="fas fa-trophy"></i> The Award</a>
         <a href="#nominados" data-i18n="nav_nominados" onclick="closeMenu()"><i class="fas fa-users"></i> Nominees</a>
         <a href="#colaboradores" data-i18n="nav_colaboradores" onclick="closeMenu()"><i class="fas fa-handshake"></i> Collaborators</a>
-
     </nav>
  
+    <!-- Hero / Header -->
     <header id="inicio" class="animate-up">
-        <img src="icono.adele.jpeg" alt="Daydreamers Awards Logo" class="logo-principal">
-        <h1 class="animate-up"><i class="fas fa-star" style="color:var(--primary-color);"></i> Daydreamers Awards</h1>
-        <p data-i18n="header_desc" class="animate-up"><i class="fas fa-quote-left" style="color:var(--primary-color); font-size:0.8em;"></i> The Daydreamers Awards stand as the ultimate honor created by and for the global Adele fan community. Born from a profound admiration for her legacy, these awards pay tribute to the passion, creative brilliance, and unwavering commitment of our most outstanding members and content creators.</p>
+        <div class="container">
+            <img src="icono.adele.jpeg" alt="Daydreamers Awards Logo" class="logo-principal">
+            <h1 class="animate-up">Daydreamers Awards</h1>
+            <p data-i18n="header_desc" class="animate-up">The Daydreamers Awards stand as the ultimate honor created by and for the global Adele fan community. Born from a profound admiration for her legacy, these awards pay tribute to the passion, creative brilliance, and unwavering commitment of our most outstanding members and content creators.</p>
+        </div>
     </header>
  
     <!-- NEWS AND ANNOUNCEMENTS SECTION -->
     <section id="noticias">
-        <h2 data-i18n="noticias_titulo" class="animate-up"><i class="fas fa-bullhorn"></i> News & Announcements</h2>
-        <div id="contenedor-noticias" class="grid-container animate-up">
-            <div class="estado-vacio glass-effect"><i class="fas fa-spinner fa-spin"></i> Loading news...</div>
+        <div class="container">
+            <h2 data-i18n="noticias_titulo" class="section-title animate-up">News & Announcements</h2>
+            <div id="contenedor-noticias" class="grid-container animate-up">
+                <div class="estado-vacio glass-effect"><i class="fas fa-spinner fa-spin"></i> Loading news...</div>
+            </div>
         </div>
     </section>
  
     <!-- MANIFESTO SECTION -->
     <section id="manifiesto">
-        <h2 data-i18n="mani_titulo" class="animate-up"><i class="fas fa-book-open"></i> Daydreamers Awards Manifesto</h2>
-        <div class="grid-container">
-            <div class="historia-item glass-effect animate-up">
-                <h3 data-i18n="mani_origen_tit"><i class="fas fa-music"></i> The Origin of the Name</h3>
-                <p data-i18n="mani_origen_desc">Inspired by "Daydreamer", the iconic opening track from Adele's debut album (19), these awards celebrate those who dreamt big and turned their admiration for the artist into a meeting point, art, and community.</p>
-            </div>
-            <div class="historia-item glass-effect animate-up" style="transition-delay: 0.1s;">
-                <h3 data-i18n="mani_proposito_tit"><i class="fas fa-bullseye"></i> The Purpose</h3>
-                <p data-i18n="mani_proposito_desc">To recognize the tireless work of content creators, fanpage administrators, editors, music analysts, and active members who keep Adele's cultural legacy alive across all digital platforms.</p>
-            </div>
-            <div class="historia-item glass-effect animate-up" style="transition-delay: 0.2s;">
-                <h3 data-i18n="mani_logo_tit"><i class="fas fa-paint-brush"></i> The Meaning of the Logo</h3>
-                <p data-i18n="mani_logo_desc">The monumental "D" represents the unity of the fandom, while the vintage microphone at its center evokes the essence of singing and voice. The small integrated silhouettes honor every individual fan who supports this project.</p>
+        <div class="container">
+            <h2 data-i18n="mani_titulo" class="section-title animate-up">Daydreamers Awards Manifesto</h2>
+            <div class="grid-container">
+                <div class="historia-item glass-effect animate-up">
+                    <h3 data-i18n="mani_origen_tit">The Origin of the Name</h3>
+                    <p data-i18n="mani_origen_desc">Inspired by "Daydreamer", the iconic opening track from Adele's debut album (19), these awards celebrate those who dreamt big and turned their admiration for the artist into a meeting point, art, and community.</p>
+                </div>
+                <div class="historia-item glass-effect animate-up" style="transition-delay: 0.1s;">
+                    <h3 data-i18n="mani_proposito_tit">The Purpose</h3>
+                    <p data-i18n="mani_proposito_desc">To recognize the tireless work of content creators, fanpage administrators, editors, music analysts, and active members who keep Adele's cultural legacy alive across all digital platforms.</p>
+                </div>
+                <div class="historia-item glass-effect animate-up" style="transition-delay: 0.2s;">
+                    <h3 data-i18n="mani_logo_tit">The Meaning of the Logo</h3>
+                    <p data-i18n="mani_logo_desc">The monumental "D" represents the unity of the fandom, while the vintage microphone at its center evokes the essence of singing and voice. The small integrated silhouettes honor every individual fan who supports this project.</p>
+                </div>
             </div>
         </div>
     </section>
  
     <!-- CATEGORIES SECTION -->
     <section id="categorias">
-        <h2 data-i18n="cat_titulo" class="animate-up"><i class="fas fa-award"></i> Main Categories</h2>
-        <div class="grid-container">
-            <div class="categoria-card glass-effect animate-up">
-                <h3 data-i18n="cat_1_tit"><i class="fas fa-video"></i> Content Creator of the Year</h3>
-                <p data-i18n="cat_1_desc">Awarded to the channel or account that has produced the best visual, informative, or analytical content about the artist's career.</p>
-            </div>
-            <div class="categoria-card glass-effect animate-up">
-                <h3 data-i18n="cat_2_tit"><i class="fas fa-heart"></i> Hometown Glory Legend</h3>
-                <p data-i18n="cat_2_desc">Destined for the most active, supportive, and dedicated member within the community's platforms (TikTok, Instagram, fan groups, etc).</p>
-            </div>
-            <div class="categoria-card glass-effect animate-up">
-                <h3 data-i18n="cat_3_tit"><i class="fas fa-palette"></i> Chasing Pavements Creative Award</h3>
-                <p data-i18n="cat_3_desc">Directed at designers, video editors, and graphic artists who stand out for the aesthetic quality of their Adele-inspired creations.</p>
+        <div class="container">
+            <h2 data-i18n="cat_titulo" class="section-title animate-up">Main Categories</h2>
+            <div class="grid-container">
+                <div class="categoria-card glass-effect animate-up">
+                    <h3 data-i18n="cat_1_tit">Content Creator of the Year</h3>
+                    <p data-i18n="cat_1_desc">Awarded to the channel or account that has produced the best visual, informative, or analytical content about the artist's career.</p>
+                </div>
+                <div class="categoria-card glass-effect animate-up">
+                    <h3 data-i18n="cat_2_tit">Hometown Glory Legend</h3>
+                    <p data-i18n="cat_2_desc">Destined for the most active, supportive, and dedicated member within the community's platforms (TikTok, Instagram, fan groups, etc).</p>
+                </div>
+                <div class="categoria-card glass-effect animate-up">
+                    <h3 data-i18n="cat_3_tit">Chasing Pavements Creative Award</h3>
+                    <p data-i18n="cat_3_desc">Directed at designers, video editors, and graphic artists who stand out for the aesthetic quality of their Adele-inspired creations.</p>
+                </div>
             </div>
         </div>
     </section>
  
     <!-- AWARD SECTION -->
-    <div class="seccion-galardon glass-effect animate-up" id="galardon">
-        <div class="galardon-content">
-            <div class="galardon-texto">
-                <h2 data-i18n="galardon_titulo"><i class="fas fa-medal"></i> The Value of the Award</h2>
-                <p data-i18n="galardon_desc">More than just a distinction, winning a Daydreamer Award represents the highest status of respect within the community: a recognition that validates time, dedication, and love for Adele's music, immortalizing the winner's name in fandom history.</p>
-            </div>
-            <div class="imagen-premio">
-                <img src="premio-award.jpeg" alt="Daydreamer Award Statue">
+    <section id="galardon" style="background-color: var(--bg-main);">
+        <div class="seccion-galardon animate-up">
+            <div class="galardon-content">
+                <div class="galardon-texto">
+                    <h2 data-i18n="galardon_titulo" class="playfair">The Value of the Award</h2>
+                    <p data-i18n="galardon_desc">More than just a distinction, winning a Daydreamer Award represents the highest status of respect within the community: a recognition that validates time, dedication, and love for Adele's music, immortalizing the winner's name in fandom history.</p>
+                </div>
+                <div class="imagen-premio">
+                    <img src="premio-award.jpeg" alt="Daydreamer Award Statue">
+                </div>
             </div>
         </div>
-    </div>
+    </section>
  
     <!-- NOMINEES SECTION -->
     <section id="nominados">
-        <h2 class="animate-up"><i class="fas fa-star-half-alt"></i> <span data-i18n="nom_titulo">Nominated Communities and Creators</span><br><span id="nom-status" style="font-size: 0.6em; margin-top: 10px; display: inline-block;"></span></h2>
-        
-        <!-- Now the container uses carousel classes -->
-        <div id="contenedor-nominados" class="carousel-container animate-up">
-            <div class="estado-vacio glass-effect"><i class="fas fa-spinner fa-spin"></i> Loading nominations...</div>
+        <div class="container" style="max-width: 1300px;">
+            <h2 class="section-title animate-up">
+                <span data-i18n="nom_titulo">Nominated Communities and Creators</span><br>
+                <span id="nom-status" style="margin-top: 15px; display: inline-block;"></span>
+            </h2>
+            
+            <div id="contenedor-nominados" class="carousel-container animate-up">
+                <div class="estado-vacio glass-effect"><i class="fas fa-spinner fa-spin"></i> Loading nominations...</div>
+            </div>
         </div>
     </section>
  
     <!-- COLLABORATORS SECTION -->
     <section id="colaboradores">
-        <h2 data-i18n="colab_titulo" class="animate-up"><i class="fas fa-users-cog"></i> Award Collaborators</h2>
-        <div id="contenedor-colaboradores" class="grid-container animate-up">
-            <div class="estado-vacio glass-effect"><i class="fas fa-spinner fa-spin"></i> Loading collaborators...</div>
+        <div class="container">
+            <h2 data-i18n="colab_titulo" class="section-title animate-up">Award Collaborators</h2>
+            <div id="contenedor-colaboradores" class="grid-container animate-up">
+                <div class="estado-vacio glass-effect"><i class="fas fa-spinner fa-spin"></i> Loading collaborators...</div>
+            </div>
         </div>
     </section>
  
     <!-- FOOTER -->
-    <footer class="glass-effect">
+    <footer>
+        <div class="footer-logo">Daydreamers Awards</div>
         <div class="footer-icons">
             <a href="https://www.instagram.com/adele_fans540/"><i class="fab fa-instagram"></i></a>
             <a href="https://www.tiktok.com/@adele_fans542?is_from_webapp=1&sender_device=pc"><i class="fab fa-tiktok"></i></a>
             <a href="https://www.facebook.com/Adele%20Daydreamer"><i class="fab fa-facebook"></i></a>
         </div>
-        <p class="footer-text"><i class="fas fa-copyright"></i> 2026 Daydreamers Awards. All rights reserved by the Adele community.</p>
-        <p style="font-size: 0.75rem; color: #888; max-width: 600px; margin: 0 auto 10px auto; text-align: center;">
+        <p class="footer-text">2026 Daydreamers Awards. All rights reserved by the Adele community.</p>
+        <p class="footer-disclaimer">
             This site is a non-profit project created by fans for the community. It is not officially affiliated with, sponsored by, or linked to Adele, XL Recordings, or Columbia Records.
         </p>
-        <!-- ENLACES DE TÉRMINOS Y PRIVACIDAD -->
-        <div class="footer-legal" style="margin-top: 15px; display: flex; justify-content: center; gap: 20px; font-size: 0.85rem;">
-            <a href="#" onclick="mostrarTerminos(event)" style="color: var(--primary-color); text-decoration: underline;">Terms and Conditions</a>
-            <a href="#" onclick="mostrarPrivacidad(event)" style="color: var(--primary-color); text-decoration: underline;">Privacy Policy</a>
+        <div class="footer-legal">
+            <a href="#" onclick="mostrarTerminos(event)">Terms and Conditions</a>
+            <a href="#" onclick="mostrarPrivacidad(event)">Privacy Policy</a>
         </div>
     </footer>
  
     <!-- ADMIN BUTTON -->
     <div class="admin-btn" onclick="pedirPasswordAdmin()" title="Admin Panel">
-        <i class="fas fa-crown"></i>
+        <i class="fas fa-key"></i>
     </div>
  
     <!-- ALERT MODAL -->
     <div class="custom-overlay" id="alertOverlay" style="z-index: 3000;">
-        <div class="custom-modal glass-effect" id="alertContent"></div>
+        <div class="custom-modal" id="alertContent"></div>
     </div>
 
     <!-- ADMIN MODAL -->
     <div class="custom-overlay" id="adminModalOverlay" style="z-index: 2800;">
-        <div class="custom-modal glass-effect" id="adminModalContent"></div>
+        <div class="custom-modal" id="adminModalContent"></div>
     </div>
  
     <!-- SUBSCRIPTION POPUP -->
     <div class="custom-overlay" id="popupOverlay" style="z-index: 2000;">
-        <div class="popup" style="background: var(--glass-bg); backdrop-filter: blur(15px); border: 1px solid var(--glass-border);">
+        <div class="popup">
             <form class="form" id="subscribeForm">
                 <div class="icon">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 34 34" height="34" width="34">
@@ -583,7 +618,7 @@
                 <input placeholder="Enter your e-mail" title="Enter your e-mail" name="email" type="email" class="input_field" id="subEmail" required>
                 <button type="submit" class="submit" id="btnSubscribe">Submit</button>
             </form>
-            <button onclick="document.getElementById('popupOverlay').classList.remove('active')" style="position:absolute; top:15px; right:15px; background:transparent; border:none; color:var(--text-dark); cursor:pointer; font-size: 1.2rem;"><i class="fas fa-times"></i></button>
+            <button onclick="document.getElementById('popupOverlay').classList.remove('active')" style="position:absolute; top:15px; right:15px; background:transparent; border:none; color:var(--text-muted); cursor:pointer; font-size: 1.2rem;"><i class="fas fa-times"></i></button>
         </div>
     </div>
  
@@ -609,13 +644,12 @@
             autoScrollCarousel();
         });
  
-        // Smooth Carousel Function (JS)
+        // Smooth Carousel Function
         function autoScrollCarousel() {
             const container = document.getElementById('contenedor-nominados');
             if(!container) return;
             
             setInterval(() => {
-                // Stops on hover or if content doesn't overflow
                 if (container.matches(':hover') || container.scrollWidth <= container.clientWidth) return;
                 
                 container.scrollLeft += 1;
@@ -654,11 +688,12 @@
             content.style.textAlign = 'center';
             content.innerHTML = `
                 <i class="fas ${icono}" style="font-size: 3rem; color: ${color}; margin-bottom: 1rem;"></i>
-                <p style="font-size: 1.1rem; margin-bottom: 1.5rem; color: var(--text-dark); font-weight:bold;">${mensaje}</p>
+                <p style="font-size: 1.1rem; margin-bottom: 1.5rem; color: var(--text-main); font-weight:600; font-family: 'Inter', sans-serif;">${mensaje}</p>
                 <button class="btn-action" onclick="document.getElementById('alertOverlay').classList.remove('active')"><i class="fas fa-check"></i> Accept</button>
             `;
             overlay.classList.add('active');
         }
+        
         const observer = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
                 if (entry.isIntersecting) entry.target.classList.add('visible');
@@ -682,7 +717,7 @@
         }
  
         // ==========================================
-        // LANGUAGE SYSTEM (100% English Default)
+        // LANGUAGE SYSTEM
         // ==========================================
         let currentLang = 'en';
         const langBtn = document.getElementById('lang-btn');
@@ -753,7 +788,7 @@
             onSnapshot(nomineesRef, (snapshot) => {
                 const contenedor = document.getElementById('contenedor-nominados');
                 if(snapshot.empty) {
-                    contenedor.innerHTML = `<div class="estado-vacio glass-effect"><i class="fas fa-info-circle"></i> The nominations will be revealed soon. Stay tuned!</div>`; return;
+                    contenedor.innerHTML = `<div class="estado-vacio glass-effect">The nominations will be revealed soon. Stay tuned!</div>`; return;
                 }
                 contenedor.innerHTML = '';
                 snapshot.forEach(doc => {
@@ -761,12 +796,12 @@
                     contenedor.innerHTML += `
                         <div class="card-base glass-effect">
                             <img src="${data.imagenUrl}" alt="${data.nombre}" class="avatar-img" loading="lazy">
-                            <h3 class="card-name">${data.nombre}</h3>
-                            <p class="card-meta"><i class="fas fa-tag" style="color:var(--primary-color);"></i> ${data.categoria}</p>
-                            <p class="card-meta" style="font-weight: 800; margin-top: 5px; color: var(--text-dark);">
+                            <h3 class="card-name playfair">${data.nombre}</h3>
+                            <p class="card-meta">${data.categoria}</p>
+                            <p class="card-meta" style="font-weight: 600; margin-top: 5px; color: var(--text-main);">
                                 <i class="fas fa-star" style="color:var(--primary-color);"></i> ${data.votos || 0} Votes
                             </p>
-                            <a href="votaciones.html" class="btn-action"><i class="fas fa-vote-yea"></i> Vote / Details</a>
+                            <a href="votaciones.html" class="btn-action">Vote / Details</a>
                         </div>`;
                 });
             });
@@ -778,7 +813,7 @@
             onSnapshot(colabRef, (snapshot) => {
                 const contenedor = document.getElementById('contenedor-colaboradores');
                 if(snapshot.empty) {
-                    contenedor.innerHTML = `<div class="estado-vacio glass-effect"><i class="fas fa-tools"></i> Under construction for future collaborators.</div>`; return;
+                    contenedor.innerHTML = `<div class="estado-vacio glass-effect">Under construction for future collaborators.</div>`; return;
                 }
                 contenedor.innerHTML = '';
                 snapshot.forEach(doc => {
@@ -786,9 +821,9 @@
                     contenedor.innerHTML += `
                         <div class="card-base glass-effect">
                             <img src="${data.imagenUrl}" alt="${data.nombre}" class="avatar-img">
-                            <h3 class="card-name">${data.nombre}</h3>
-                            <p class="card-meta"><i class="fas fa-handshake" style="color:var(--primary-color);"></i> Official Collaborator</p>
-                            <a href="${data.enlace}" target="_blank" class="btn-action"><i class="fas fa-external-link-alt"></i> Visit Page</a>
+                            <h3 class="card-name playfair">${data.nombre}</h3>
+                            <p class="card-meta">Official Collaborator</p>
+                            <a href="${data.enlace}" target="_blank" class="btn-action">Visit Page</a>
                         </div>`;
                 });
             });
@@ -801,13 +836,13 @@
  
             onSnapshot(noticiasRef, (snapshot) => {
                 if(snapshot.empty) {
-                    contenedor.innerHTML = `<div class="estado-vacio glass-effect"><i class="fas fa-envelope-open-text"></i> We'll soon be posting new news and announcements.</div>`; return;
+                    contenedor.innerHTML = `<div class="estado-vacio glass-effect">We'll soon be posting new news and announcements.</div>`; return;
                 }
                 contenedor.innerHTML = '';
                 snapshot.forEach(documento => {
                     const data = documento.data();
                     const id = documento.id;
-                    let btnHTML = data.enlace ? `<a href="${data.enlace}" target="_blank" class="btn-action" style="margin-bottom: 10px;"><i class="fas fa-link"></i> More Info</a>` : '';
+                    let btnHTML = data.enlace ? `<a href="${data.enlace}" target="_blank" class="btn-action" style="margin-bottom: 10px;">Read More</a>` : '';
                     
                     let adminControls = '';
                     if (window.isAdmin) {
@@ -823,8 +858,8 @@
                         <div class="news-card">
                             <img src="${data.imagenUrl}" alt="News" class="news-img" loading="lazy">
                             <div class="news-content">
-                                <h3>${data.titulo}</h3>
-                                <p class="news-date"><i class="fas fa-clock"></i> ${new Date(data.fechaRegistro).toLocaleDateString()}</p>
+                                <h3 class="playfair">${data.titulo}</h3>
+                                <p class="news-date">${new Date(data.fechaRegistro).toLocaleDateString()}</p>
                                 <p class="news-desc" translate="yes">${data.informacion}</p>
                                 ${btnHTML}
                                 ${adminControls}
@@ -851,7 +886,7 @@
         window.editarNoticia = function(id, tituloActual, infoActual, enlaceActual) {
             const adminContent = document.getElementById('adminModalContent');
             adminContent.innerHTML = `
-                <h3 class="modal-title"><i class="fas fa-edit"></i> Edit News</h3>
+                <h3 class="modal-title playfair"><i class="fas fa-edit"></i> Edit News</h3>
                 <div class="form-group">
                     <label>Title</label>
                     <input type="text" id="editNotiTitulo" value="${tituloActual}">
@@ -864,8 +899,8 @@
                     <label>Link</label>
                     <input type="url" id="editNotiEnlace" value="${enlaceActual}">
                 </div>
-                <button class="btn-modal" onclick="guardarEdicionNoticia('${id}')"><i class="fas fa-save"></i> Save Changes</button>
-                <button class="btn-modal cancel" onclick="cerrarAdminModal()"><i class="fas fa-times"></i> Cancel</button>
+                <button class="btn-modal" onclick="guardarEdicionNoticia('${id}')">Save Changes</button>
+                <button class="btn-modal cancel" onclick="cerrarAdminModal()">Cancel</button>
             `;
             document.getElementById('adminModalOverlay').classList.add('active');
         }
@@ -894,11 +929,11 @@
  
         window.pedirPasswordAdmin = function() {
             adminContent.innerHTML = `
-                <h3 class="modal-title"><i class="fas fa-lock"></i> Admin Access</h3>
-                <p style="font-size: 14px; margin-bottom:15px; color:var(--text-dark); font-weight:bold;">Panel for managing the site.</p>
+                <h3 class="modal-title playfair"><i class="fas fa-lock"></i> Admin Access</h3>
+                <p style="font-size: 14px; margin-bottom:20px; color:var(--text-muted); font-weight:500;">Panel for managing the site.</p>
                 <div class="form-group"><input type="password" id="adminPass" placeholder="Password..." onkeypress="if(event.key === 'Enter') verificarAdmin()"></div>
-                <button class="btn-modal" onclick="verificarAdmin()"><i class="fas fa-sign-in-alt"></i> Enter</button>
-                <button class="btn-modal cancel" onclick="cerrarAdminModal()"><i class="fas fa-times"></i> Cancel</button>
+                <button class="btn-modal" onclick="verificarAdmin()">Enter</button>
+                <button class="btn-modal cancel" onclick="cerrarAdminModal()">Cancel</button>
             `;
             adminOverlay.classList.add('active');
         }
@@ -915,31 +950,31 @@
  
         function mostrarMenuAdmin() {
             adminContent.innerHTML = `
-                <h3 class="modal-title"><i class="fas fa-cogs"></i> Control Panel</h3>
+                <h3 class="modal-title playfair"><i class="fas fa-cogs"></i> Control Panel</h3>
                 
                 <div class="admin-stats">
                     <i class="fas fa-eye" style="font-size: 1.5rem; color: var(--primary-color);"></i>
-                    <h4 style="margin-top: 5px;">Total Unique Site Views</h4>
-                    <p style="font-size: 1.2rem; font-weight: bold;">${window.statsViews}</p>
+                    <h4 style="margin-top: 5px; font-family:'Inter', sans-serif; text-transform:uppercase; font-size:0.85rem; letter-spacing:1px;">Total Unique Site Views</h4>
+                    <p style="font-size: 1.8rem; font-weight: 700; color:var(--text-main);">${window.statsViews}</p>
                 </div>
  
                 <div class="admin-options">
-                    <button class="btn-modal" onclick="mostrarFormularioMarquee()"><i class="fas fa-text-width"></i> Edit Scrolling Text (Marquee)</button>
-                    <button class="btn-modal" onclick="mostrarFormularioNoticia()"><i class="fas fa-newspaper"></i> Publish New News</button>
+                    <button class="btn-modal" onclick="mostrarFormularioMarquee()"><i class="fas fa-text-width"></i> Edit Scrolling Text</button>
+                    <button class="btn-modal" onclick="mostrarFormularioNoticia()"><i class="fas fa-newspaper"></i> Publish News</button>
                     <button class="btn-modal" onclick="mostrarFormularioColab()"><i class="fas fa-handshake"></i> Add Collaborator</button>
-                    <a href="votaciones.html" class="btn-modal" style="display:block; background:#4CAF50; color:white; text-decoration:none;"><i class="fas fa-vote-yea"></i> Go to Voting Dashboard</a>
+                    <a href="votaciones.html" class="btn-modal" style="display:block; text-align:center; background:#4CAF50; color:white; text-decoration:none;"><i class="fas fa-vote-yea"></i> Voting Dashboard</a>
                 </div>
-                <button class="btn-modal cancel" onclick="cerrarAdminModal(); window.isAdmin=false; cargarNoticias();"><i class="fas fa-sign-out-alt"></i> Exit Admin Mode</button>
+                <button class="btn-modal cancel" onclick="cerrarAdminModal(); window.isAdmin=false; cargarNoticias();"><i class="fas fa-sign-out-alt"></i> Exit Admin</button>
             `;
         }
  
         window.mostrarFormularioMarquee = function() {
             const currentText = document.getElementById('marqueeText').innerText;
             adminContent.innerHTML = `
-                <h3 class="modal-title"><i class="fas fa-text-width"></i> Scrolling Text</h3>
+                <h3 class="modal-title playfair"><i class="fas fa-text-width"></i> Scrolling Text</h3>
                 <div class="form-group"><label>Marquee Top Bar Text</label><textarea id="editMarqueeInput">${currentText}</textarea></div>
-                <button class="btn-modal" onclick="guardarMarqueeText()"><i class="fas fa-save"></i> Save Text</button>
-                <button class="btn-modal cancel" onclick="mostrarMenuAdmin()"><i class="fas fa-arrow-left"></i> Go Back</button>
+                <button class="btn-modal" onclick="guardarMarqueeText()">Save Text</button>
+                <button class="btn-modal cancel" onclick="mostrarMenuAdmin()">Go Back</button>
             `;
         }
  
@@ -958,14 +993,14 @@
  
         window.mostrarFormularioNoticia = function() {
             adminContent.innerHTML = `
-                <h3 class="modal-title"><i class="fas fa-bullhorn"></i> Publish News</h3>
+                <h3 class="modal-title playfair"><i class="fas fa-bullhorn"></i> Publish News</h3>
                 <div class="form-group"><label>Title</label><input type="text" id="notiTitulo"></div>
                 <div class="form-group"><label>Information</label><textarea id="notiInfo"></textarea></div>
                 <div class="form-group"><label>Link (Optional)</label><input type="url" id="notiEnlace"></div>
                 <div class="form-group"><label>Image (Required)</label><input type="file" id="notiFile" accept="image/*" style="padding: 8px;"></div>
                 <div id="loaderAdmin"><i class="fas fa-spinner fa-spin"></i> Uploading...</div>
-                <button class="btn-modal" id="btnGuardarNoti" onclick="guardarNoticia()"><i class="fas fa-paper-plane"></i> Publish News</button>
-                <button class="btn-modal cancel" onclick="mostrarMenuAdmin()"><i class="fas fa-arrow-left"></i> Go Back</button>
+                <button class="btn-modal" id="btnGuardarNoti" onclick="guardarNoticia()">Publish</button>
+                <button class="btn-modal cancel" onclick="mostrarMenuAdmin()">Go Back</button>
             `;
         }
  
@@ -992,12 +1027,12 @@
  
         window.mostrarFormularioColab = function() {
             adminContent.innerHTML = `
-                <h3 class="modal-title"><i class="fas fa-user-plus"></i> Add Collaborator</h3>
+                <h3 class="modal-title playfair"><i class="fas fa-user-plus"></i> Add Collaborator</h3>
                 <div class="form-group"><label>Name</label><input type="text" id="colabNombre"></div>
                 <div class="form-group"><label>Link</label><input type="url" id="colabEnlace"></div>
                 <div class="form-group"><label>Photo (Required)</label><input type="file" id="colabFile" accept="image/*"></div>
                 <div id="loaderAdmin"><i class="fas fa-spinner fa-spin"></i> Saving...</div>
-                <button class="btn-modal" id="btnGuardarColab" onclick="guardarColaborador()"><i class="fas fa-save"></i> Save</button>
+                <button class="btn-modal" id="btnGuardarColab" onclick="guardarColaborador()">Save</button>
                 <button class="btn-modal cancel" onclick="mostrarMenuAdmin()">Go Back</button>
             `;
         }
@@ -1017,6 +1052,7 @@
                 mostrarMenuAdmin(); mostrarAlerta("Collaborator added", "fa-check", "#4CAF50");
             } catch (e) { mostrarAlerta("Error", "fa-times", "red"); loader.style.display = 'none'; document.getElementById('btnGuardarColab').disabled = false; }
         }
+ 
         // ==========================================
         // VENTANAS EMERGENTES: TÉRMINOS Y PRIVACIDAD
         // ==========================================
@@ -1028,28 +1064,28 @@
             content.style.textAlign = 'left';
             
             content.innerHTML = `
-                <h3 style="color: var(--primary-color); margin-bottom: 1rem; text-align: center;"><i class="fas fa-file-contract"></i> Términos y Condiciones</h3>
-                <div style="max-height: 60vh; overflow-y: auto; font-size: 0.9rem; line-height: 1.6; padding-right: 10px; color: var(--text-dark);">
+                <h3 class="playfair" style="color: var(--primary-color); margin-bottom: 1.5rem; text-align: center; border-bottom: 1px solid var(--border-color); padding-bottom: 10px;">Términos y Condiciones</h3>
+                <div style="max-height: 60vh; overflow-y: auto; font-size: 0.95rem; line-height: 1.7; padding-right: 15px; color: var(--text-muted); font-family: 'Inter', sans-serif;">
                     <p><strong>1. Aceptación de los Términos</strong><br>Al acceder y utilizar este sitio web (Daydreamers Awards), aceptas cumplir y estar sujeto a los presentes Términos y Condiciones. Si no estás de acuerdo con alguna parte de estos términos, te sugerimos no utilizar la plataforma.</p>
                     <br>
-                    <p><strong>2. Naturaleza del Proyecto</strong><br>Daydreamers Awards es un proyecto independiente creado por y para la comunidad global de seguidores de la artista Adele. Este sitio web tiene un carácter strictly recreativo, de reconocimiento y comunitario. No cuenta con afiliación oficial, patrocinio ni respaldo comercial directo por parte de Adele, sus representantes legales o sus sellos discográficos.</p>
+                    <p><strong>2. Naturaleza del Proyecto</strong><br>Daydreamers Awards es un proyecto independiente creado por y para la comunidad global de seguidores de la artista Adele. Este sitio web tiene un carácter estrictamente recreativo, de reconocimiento y comunitario. No cuenta con afiliación oficial, patrocinio ni respaldo comercial directo por parte de Adele, sus representantes legales o sus sellos discográficos.</p>
                     <br>
                     <p><strong>3. Normas de Participación y Votación</strong></p>
-                    <ul style="margin-left: 20px; margin-top: 5px;">
+                    <ul style="margin-left: 20px; margin-top: 5px; list-style-type: square;">
                         <li>Las votaciones y registros están abiertos a todos los miembros de la comunidad bajo las reglas establecidas para cada edición.</li>
                         <li>Cualquier intento de fraude, manipulación de votos mediante sistemas automatizados (bots) o alteración malintencionada del sistema dará lugar a la descalificación inmediata del nominado o al bloqueo de la participación.</li>
                         <li>Los organizadores se reservan el derecho de modificar, suspender o cancelar las categorías o las votaciones en caso de fuerza mayor o fallos técnicos.</li>
                     </ul>
                     <br>
                     <p><strong>4. Propiedad Intelectual</strong></p>
-                    <ul style="margin-left: 20px; margin-top: 5px;">
+                    <ul style="margin-left: 20px; margin-top: 5px; list-style-type: square;">
                         <li>Las imágenes, nombres, logotipos y referencias a la artista Adele pertenecen a sus respectivos dueños y titulares de derechos de autor; su uso en este sitio tiene fines exclusivamente ilustrativos y de homenaje dentro del marco del uso legítimo de club de fans.</li>
                         <li>Los elementos gráficos originales del proyecto (como el logotipo de los Daydreamers Awards y diseños exclusivos de la plataforma) son propiedad de la organización comunitaria.</li>
                     </ul>
                     <br>
                     <p><strong>5. Limitación de Responsabilidad</strong><br>Los administradores del sitio no se hacen responsables de interrupciones temporales del servicio, fallos de conexión, pérdida de datos ajena a nuestro control directo o el mal uso que terceros puedan hacer de la plataforma.</p>
                 </div>
-                <button class="btn-action" style="margin-top: 1.5rem;" onclick="document.getElementById('alertOverlay').classList.remove('active')"><i class="fas fa-check"></i> Entendido</button>
+                <button class="btn-action" style="margin-top: 2rem;" onclick="document.getElementById('alertOverlay').classList.remove('active')">Entendido</button>
             `;
             overlay.classList.add('active');
         }
@@ -1062,18 +1098,18 @@
             content.style.textAlign = 'left';
             
             content.innerHTML = `
-                <h3 style="color: var(--primary-color); margin-bottom: 1rem; text-align: center;"><i class="fas fa-user-shield"></i> Política de Privacidad</h3>
-                <div style="max-height: 60vh; overflow-y: auto; font-size: 0.9rem; line-height: 1.6; padding-right: 10px; color: var(--text-dark);">
+                <h3 class="playfair" style="color: var(--primary-color); margin-bottom: 1.5rem; text-align: center; border-bottom: 1px solid var(--border-color); padding-bottom: 10px;">Política de Privacidad</h3>
+                <div style="max-height: 60vh; overflow-y: auto; font-size: 0.95rem; line-height: 1.7; padding-right: 15px; color: var(--text-muted); font-family: 'Inter', sans-serif;">
                     <p><strong>1. Responsable del Tratamiento de Datos</strong><br>El equipo organizador de los Daydreamers Awards es el responsable de la gestión y protección de los datos personales recopilados a través de este sitio web.</p>
                     <br>
                     <p><strong>2. Datos que Recopilamos</strong></p>
-                    <ul style="margin-left: 20px; margin-top: 5px;">
+                    <ul style="margin-left: 20px; margin-top: 5px; list-style-type: square;">
                         <li><strong>Correo electrónico:</strong> Únicamente cuando te suscribes voluntariamente a nuestro boletín de noticias o alertas de los premios a través de los formularios habilitados.</li>
                         <li><strong>Datos de navegación:</strong> Información técnica básica recopilada con fines analíticos y de mejora de la experiencia de usuario (como el tipo de dispositivo o navegador).</li>
                     </ul>
                     <br>
                     <p><strong>3. Finalidad del Uso de los Datos</strong><br>Los datos recopilados (principalmente el correo electrónico) serán utilizados exclusivamente para:</p>
-                    <ul style="margin-left: 20px; margin-top: 5px;">
+                    <ul style="margin-left: 20px; margin-top: 5px; list-style-type: square;">
                         <li>Enviar notificaciones sobre el desarrollo de los premios, apertura y cierre de votaciones.</li>
                         <li>Informar sobre novedades, anuncios importantes o actualizaciones de la comunidad.</li>
                         <li>No compartimos, vendemos ni cedemos información personal a terceros bajo ninguna circunstancia comercial.</li>
@@ -1083,7 +1119,7 @@
                     <br>
                     <p><strong>5. Uso de Cookies</strong><br>El sitio puede utilizar almacenamiento local o cookies técnicas estrictamente necesarias para recordar preferencias de navegación (como el modo oscuro o el idioma seleccionado).</p>
                 </div>
-                <button class="btn-action" style="margin-top: 1.5rem;" onclick="document.getElementById('alertOverlay').classList.remove('active')"><i class="fas fa-check"></i> Entendido</button>
+                <button class="btn-action" style="margin-top: 2rem;" onclick="document.getElementById('alertOverlay').classList.remove('active')">Entendido</button>
             `;
             overlay.classList.add('active');
         }
@@ -1091,15 +1127,15 @@
         window.mostrarLoginAdmin = function() {
             const adminContent = document.getElementById('adminModalContent');
             adminContent.innerHTML = `
-                <h3 class="modal-title" style="color: var(--primary-color);"><i class="fas fa-lock"></i> Acceso Restringido</h3>
+                <h3 class="modal-title playfair" style="color: var(--primary-color);"><i class="fas fa-lock"></i> Acceso Restringido</h3>
                 <p style="text-align:center; font-size:0.9rem; margin-bottom:15px;">Solo personal autorizado</p>
                 <div class="form-group">
                     <label>Correo Electrónico</label>
-                    <input type="email" id="loginEmail" placeholder="admin@daydreamers.com" style="width:100%; padding:10px; margin-top:5px; border-radius:5px; border:1px solid #ccc;">
+                    <input type="email" id="loginEmail" placeholder="admin@daydreamers.com" style="width:100%; padding:12px; margin-top:5px; border-radius:2px; border:1px solid var(--border-color);">
                 </div>
                 <div class="form-group">
                     <label>Contraseña</label>
-                    <input type="password" id="loginPass" placeholder="******" style="width:100%; padding:10px; margin-top:5px; border-radius:5px; border:1px solid #ccc;">
+                    <input type="password" id="loginPass" placeholder="******" style="width:100%; padding:12px; margin-top:5px; border-radius:2px; border:1px solid var(--border-color);">
                 </div>
                 <div id="loginError" style="color:red; font-size:0.85rem; text-align:center; display:none;">Credenciales incorrectas</div>
                 <button class="btn-action" onclick="procesarLogin()" style="width:100%; margin-top:15px;"><i class="fas fa-sign-in-alt"></i> Iniciar Sesión</button>
@@ -1112,15 +1148,10 @@
             const { auth, signInWithEmailAndPassword } = window.fb;
 
             try {
-                // Intenta iniciar sesión en Firebase
                 await signInWithEmailAndPassword(auth, email, pass);
-                
-                // Si es exitoso, te muestra el Menú de Admin que ya tenías programado
                 window.isAdmin = true;
                 mostrarMenuAdmin(); 
-                
             } catch (error) {
-                // Si fallas la contraseña, muestra error
                 document.getElementById('loginError').style.display = 'block';
             }
         }
