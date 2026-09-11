@@ -1,0 +1,897 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daydreamers Awards</title>
+    <style>
+        :root {
+            /* Paleta Clásica y Dorada */
+            --gold-primary: #D4AF37;
+            --gold-dark: #B8860B;
+            --gold-light: #F9F6E8;
+            --gold-glow: rgba(212, 175, 55, 0.3);
+            --text-dark: #2C2C2C;
+            --text-gray: #555555;
+            --bg-white: #FFFFFF;
+            --bg-offwhite: #FAFAFA;
+            --border-light: #EBEBEB;
+        }
+
+        /* Scroll Suave y Custom Scrollbar (Premium) */
+        html {
+            scroll-behavior: smooth;
+        }
+        
+        ::-webkit-scrollbar {
+            width: 10px;
+        }
+        ::-webkit-scrollbar-track {
+            background: var(--bg-offwhite);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--gold-primary);
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--gold-dark);
+        }
+
+        body {
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            line-height: 1.7;
+            color: var(--text-dark);
+            background-color: var(--bg-offwhite);
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Fondo ambiental animado (Toque premium) */
+        .ambient-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+            z-index: -1;
+            overflow: hidden;
+        }
+        .ambient-glow {
+            position: absolute;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(212, 175, 55, 0.05) 0%, transparent 60%);
+            border-radius: 50%;
+            animation: float-ambient 20s infinite alternate ease-in-out;
+        }
+        .ambient-glow:nth-child(1) { top: -10%; left: -10%; }
+        .ambient-glow:nth-child(2) { bottom: -20%; right: -10%; animation-delay: -10s; }
+
+        @keyframes float-ambient {
+            0% { transform: translate(0, 0) scale(1); }
+            100% { transform: translate(50px, 50px) scale(1.2); }
+        }
+
+        /* Barra de Progreso de Scroll */
+        .scroll-progress-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--gold-primary), var(--gold-dark));
+            width: 0%;
+            z-index: 1000;
+            box-shadow: 0 0 10px var(--gold-glow);
+            transition: width 0.1s ease-out;
+        }
+
+        /* Tipografía Clásica para Títulos */
+        h1, h2, h3 {
+            font-family: 'Georgia', 'Times New Roman', serif;
+            color: var(--gold-dark);
+            font-weight: normal;
+        }
+
+        /* Barra de Navegación */
+        .navbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1rem 5%;
+            background-color: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--gold-primary);
+            box-shadow: 0 2px 15px rgba(0,0,0,0.05);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            animation: slideDown 1s cubic-bezier(0.165, 0.84, 0.44, 1) forwards;
+        }
+
+        @keyframes slideDown {
+            from { transform: translateY(-100%); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .brand-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .brand-container img {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--gold-primary);
+            transition: transform 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55), box-shadow 0.3s ease;
+        }
+
+        .brand-container:hover img {
+            transform: rotate(360deg) scale(1.1);
+            box-shadow: 0 0 15px var(--gold-glow);
+        }
+
+        .brand-text {
+            font-family: 'Georgia', serif;
+            font-size: 1.2rem;
+            color: var(--text-dark);
+            font-weight: bold;
+            letter-spacing: 1px;
+            background: linear-gradient(90deg, var(--text-dark), var(--gold-dark));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            transition: all 0.3s ease;
+        }
+
+        /* =========================================
+           SISTEMA DE ANIMACIONES PREMIUM
+           ========================================= */
+        .reveal {
+            opacity: 0;
+            transform: translateY(40px);
+            filter: blur(10px); /* Desenfoque inicial para toque premium */
+            transition: opacity 1s cubic-bezier(0.215, 0.610, 0.355, 1),
+                        transform 1s cubic-bezier(0.215, 0.610, 0.355, 1),
+                        filter 1s cubic-bezier(0.215, 0.610, 0.355, 1);
+            will-change: opacity, transform, filter;
+        }
+        
+        .reveal.fade-left { transform: translateX(-50px); }
+        .reveal.fade-right { transform: translateX(50px); }
+        .reveal.scale-up { transform: scale(0.9) translateY(30px); }
+        
+        .reveal.active {
+            opacity: 1;
+            transform: translateY(0) translateX(0) scale(1);
+            filter: blur(0);
+        }
+
+        /* Retrasos para efecto cascada (Stagger) */
+        .delay-1 { transition-delay: 0.15s; }
+        .delay-2 { transition-delay: 0.3s; }
+        .delay-3 { transition-delay: 0.45s; }
+        .delay-4 { transition-delay: 0.6s; }
+
+        /* Efecto Shine Premium para Tarjetas */
+        .shine-effect {
+            position: relative;
+            overflow: hidden;
+        }
+        .shine-effect::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -150%;
+            width: 50%;
+            height: 100%;
+            background: linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,0.4) 50%, rgba(255,255,255,0) 100%);
+            transform: skewX(-25deg);
+            transition: left 0.7s cubic-bezier(0.19, 1, 0.22, 1);
+            z-index: 2;
+            pointer-events: none;
+        }
+        .shine-effect:hover::before {
+            left: 200%;
+        }
+
+        /* Hero Section */
+        .hero {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 5rem 5%;
+            background-color: var(--gold-light);
+            background-image: radial-gradient(circle at center, #ffffff 0%, var(--gold-light) 100%);
+            border-bottom: 1px solid var(--border-light);
+            overflow: hidden;
+            position: relative;
+        }
+
+        .hero-content {
+            flex: 1;
+            max-width: 600px;
+            z-index: 2;
+        }
+
+        .hero h1 {
+            font-size: 3.2rem;
+            margin: 0 0 1rem 0;
+            line-height: 1.2;
+            color: var(--gold-dark);
+        }
+
+        .hero p {
+            font-size: 1.2rem;
+            color: var(--text-gray);
+            margin-bottom: 2rem;
+        }
+
+        .hero-image {
+            flex: 1;
+            display: flex;
+            justify-content: flex-end;
+            position: relative;
+            z-index: 2;
+        }
+
+        /* Animación de Levitación Premium */
+        @keyframes float-premium {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-15px); box-shadow: 0 25px 40px rgba(0,0,0,0.15); }
+            100% { transform: translateY(0px); }
+        }
+
+        .hero-image img {
+            max-width: 90%;
+            border-radius: 12px;
+            box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+            border: 1px solid var(--gold-primary);
+            animation: float-premium 6s ease-in-out infinite;
+            transition: transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        .hero-image img:hover {
+            animation-play-state: paused;
+            transform: scale(1.03) translateY(-10px);
+        }
+
+        /* Contenedor Principal */
+        .container {
+            max-width: 1100px;
+            margin: 4rem auto;
+            padding: 0 2rem;
+        }
+
+        /* Secciones de Contenido */
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 3rem;
+            margin-bottom: 4rem;
+        }
+
+        .info-card {
+            background-color: var(--bg-white);
+            padding: 2.5rem;
+            border-radius: 8px;
+            border-left: 4px solid var(--gold-primary);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.04);
+            transition: all 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+
+        .info-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 15px 35px rgba(212, 175, 55, 0.15);
+            border-left-width: 8px;
+        }
+
+        .info-card h2 {
+            font-size: 1.8rem;
+            margin-top: 0;
+            margin-bottom: 1rem;
+            border-bottom: 1px solid var(--border-light);
+            padding-bottom: 0.5rem;
+            position: relative;
+        }
+        
+        .info-card h2::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            width: 0;
+            height: 1px;
+            background: var(--gold-primary);
+            transition: width 0.5s ease;
+        }
+        
+        .info-card:hover h2::after {
+            width: 100%;
+        }
+
+        /* Sección Categorías */
+        .categories-section {
+            text-align: center;
+            margin-top: 5rem;
+        }
+
+        .categories-section > h2 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .categories-section > p {
+            max-width: 700px;
+            margin: 0 auto 3rem auto;
+            color: var(--text-gray);
+        }
+
+        .categories-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+
+        .category-card {
+            background-color: var(--bg-white);
+            border: 1px solid var(--border-light);
+            padding: 2.5rem 1.5rem;
+            border-radius: 12px;
+            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+        }
+
+        .category-card::after {
+            /* Efecto gradiente dinámico superior */
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: linear-gradient(90deg, var(--gold-primary), var(--gold-dark), var(--gold-primary));
+            background-size: 200% 100%;
+            transition: height 0.3s ease, background-position 1.5s ease infinite;
+        }
+
+        .category-card:hover {
+            transform: translateY(-12px);
+            box-shadow: 0 25px 50px rgba(212, 175, 55, 0.15);
+            border-color: rgba(212, 175, 55, 0.3);
+        }
+
+        .category-card:hover::after {
+            animation: gradient-shift 2s linear infinite;
+        }
+
+        @keyframes gradient-shift {
+            0% { background-position: 100% 0; }
+            100% { background-position: -100% 0; }
+        }
+
+        .category-icon {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-bottom: 1.5rem;
+            border: 2px solid var(--gold-primary);
+            padding: 5px;
+            transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.6s ease;
+        }
+
+        .category-card:hover .category-icon {
+            transform: scale(1.15) rotate(10deg);
+            box-shadow: 0 10px 20px var(--gold-glow);
+        }
+
+        /* =========================================
+           GALERÍA ULTRA-PREMIUM (NUEVA VERSIÓN)
+           ========================================= */
+        
+        .gallery-section {
+            margin-top: 6rem;
+            text-align: center;
+        }
+
+        .gallery-section > h2 {
+            font-size: 2.8rem;
+            margin-bottom: 3.5rem;
+            position: relative;
+            display: inline-block;
+        }
+
+        .gallery-section > h2::after {
+            content: '';
+            position: absolute;
+            bottom: -15px;
+            left: 50%;
+            transform: translateX(-50%) scaleX(0);
+            width: 60px;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, var(--gold-primary), transparent);
+            transition: transform 0.8s cubic-bezier(0.25, 0.8, 0.25, 1) 0.3s;
+        }
+
+        .gallery-section > h2.active::after {
+            transform: translateX(-50%) scaleX(1);
+        }
+
+        .photo-gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2.5rem;
+            perspective: 1200px;
+        }
+
+        .photo-gallery:has(.photo-item:hover) .photo-item:not(:hover) {
+            filter: grayscale(80%) brightness(0.3) blur(4px);
+            transform: scale(0.92) translateZ(-50px);
+            opacity: 0.5;
+        }
+
+        .photo-item {
+            position: relative;
+            border: 1px solid rgba(212, 175, 55, 0.2);
+            border-radius: 12px;
+            padding: 10px;
+            background: linear-gradient(145deg, var(--bg-white), #fafafa);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.06);
+            overflow: hidden;
+            cursor: pointer;
+            transition: all 0.8s cubic-bezier(0.19, 1, 0.22, 1);
+            transform-style: preserve-3d;
+        }
+
+        /* Brillo interno de la foto */
+        .photo-item::after {
+            content: '';
+            position: absolute;
+            top: 0; left: -150%;
+            width: 50%; height: 100%;
+            background: linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(212,175,55,0.5) 50%, rgba(255,255,255,0) 100%);
+            transform: skewX(-25deg);
+            z-index: 3;
+            transition: left 0.8s cubic-bezier(0.19, 1, 0.22, 1);
+            pointer-events: none;
+        }
+
+        .photo-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            border-radius: 8px;
+            overflow: hidden;
+            background-color: #050505;
+        }
+
+        .photo-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+            opacity: 0.85; 
+            transform: scale(1.05);
+            transition: transform 1.2s cubic-bezier(0.19, 1, 0.22, 1), opacity 0.8s ease;
+        }
+
+        .photo-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to top, rgba(10,10,10,0.95) 0%, rgba(10,10,10,0.4) 50%, rgba(10,10,10,0) 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            padding: 2.5rem 1.5rem;
+            opacity: 0;
+            transition: opacity 0.6s ease;
+            z-index: 2;
+            backdrop-filter: blur(3px);
+            -webkit-backdrop-filter: blur(3px);
+        }
+
+        .photo-item:hover {
+            transform: translateY(-15px) scale(1.05) translateZ(30px);
+            box-shadow: 0 40px 70px rgba(212, 175, 55, 0.3), 0 0 30px rgba(212, 175, 55, 0.15);
+            border-color: rgba(212, 175, 55, 0.9);
+            z-index: 10;
+        }
+
+        .photo-item:hover::after { left: 150%; }
+        .photo-item:hover img { transform: scale(1.2); opacity: 1; }
+        .photo-item:hover .photo-overlay { opacity: 1; }
+
+        /* Frecuencia Section */
+        .frequency-section {
+            margin-top: 5rem;
+            background-color: var(--gold-light);
+            padding: 4rem 3rem;
+            text-align: center;
+            border-radius: 12px;
+            border: 1px solid var(--gold-primary);
+            transition: all 0.6s cubic-bezier(0.25, 0.8, 0.25, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .frequency-section:hover {
+            transform: translateY(-8px) scale(1.01);
+            box-shadow: 0 25px 40px rgba(212, 175, 55, 0.15);
+        }
+
+        /* =========================================
+           SECCIÓN DE CONTACTO (CORREO Y MÁS)
+           ========================================= */
+        .contact-section {
+            margin-top: 6rem;
+            background-color: var(--gold-light);
+            padding: 4rem 3rem;
+            text-align: center;
+            border-radius: 12px;
+            border: 1px solid var(--gold-primary);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .contact-info-card {
+            background-color: var(--bg-white);
+            border: 1px solid var(--border-light);
+            border-left: 4px solid var(--gold-primary);
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.03);
+            transition: all 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+
+        .contact-info-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 35px rgba(212, 175, 55, 0.15);
+            border-left-width: 8px;
+        }
+
+        /* Enlaces magnéticos (Premium touch) */
+        .contact-email-link, .contact-links-list a {
+            display: inline-block;
+            transition: all 0.3s ease;
+        }
+        
+        .contact-email-link:hover, .contact-links-list a:hover {
+            transform: translateX(5px);
+            color: var(--gold-primary);
+            text-shadow: 0 0 8px var(--gold-glow);
+        }
+
+        /* =========================================
+           SECCIÓN DE CÓDIGO DE CONDUCTA / VALORES Y TIMELINE
+           ========================================= */
+        .value-card, .timeline-card {
+            background-color: var(--bg-white);
+            border: 1px solid var(--border-light);
+            padding: 2.5rem 2rem;
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.03);
+            transition: all 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+        
+        .value-card { border-top: 4px solid var(--gold-primary); }
+        .timeline-card { border-bottom: 4px solid var(--gold-primary); }
+
+        .value-card:hover, .timeline-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(212, 175, 55, 0.15);
+        }
+        
+        .value-card:hover { border-top-width: 8px; }
+        .timeline-card:hover { border-bottom-width: 8px; }
+
+        /* Responsivo */
+        @media (max-width: 768px) {
+            .hero {
+                flex-direction: column;
+                text-align: center;
+                padding: 3rem 5%;
+            }
+            .hero-image {
+                justify-content: center;
+                margin-top: 2rem;
+            }
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+            .photo-gallery:has(.photo-item:hover) .photo-item:not(:hover) {
+                filter: none;
+                transform: none;
+                opacity: 1;
+            }
+            /* Ajuste de animaciones para móviles (Evitar saltos horizontales grandes) */
+            .reveal.fade-left, .reveal.fade-right { transform: translateY(30px) translateX(0); }
+            
+            .ambient-glow { display: none; } /* Ocultar en móvil para rendimiento */
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Barra de progreso superior -->
+    <div class="scroll-progress-bar" id="scrollProgress"></div>
+
+    <!-- Fondo de halos dorados -->
+    <div class="ambient-bg">
+        <div class="ambient-glow"></div>
+        <div class="ambient-glow"></div>
+    </div>
+
+    <!-- Nav Bar -->
+    <nav class="navbar">
+        <div class="brand-container">
+            <img src="icono.adele.jpeg" alt="Icono Adele Fans">
+            <span class="brand-text">ADELE_FANS</span>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <header class="hero">
+        <div class="hero-content reveal fade-left">
+            <h1>Todo sobre los Daydreamers Awards</h1>
+            <p>Documento Informativo y de Identidad del Evento</p>
+        </div>
+        <div class="hero-image reveal fade-right delay-1">
+            <img src="daydreamer.jpeg" alt="Daydreamer Awards Hero">
+        </div>
+    </header>
+
+    <div class="container">
+        
+        <!-- Info Grid -->
+        <div class="info-grid">
+            <!-- Añadido class shine-effect a las tarjetas para el brillo al pasar el mouse -->
+            <section class="info-card shine-effect reveal scale-up" id="que-son">
+                <h2>¿Qué son los Daydreamers Awards?</h2>
+                <p>Los Daydreamers Awards son la máxima celebración virtual creada dentro de la comunidad de fans de Adele. Es un espacio dedicado exclusivamente a reconocer, aplaudir y agradecer el talento, la constancia y el tiempo que los fans invierten para mantener activo e informado al fandom.</p>
+            </section>
+
+            <section class="info-card shine-effect reveal scale-up delay-1" id="origen">
+                <h2>¿Cómo y por qué surgieron?</h2>
+                <p>La idea de crear estos premios surgió de una necesidad muy genuina: premiar y darle su merecido reconocimiento a aquellos fans que tienen mucho tiempo subiendo contenido de Adele y apoyando al fandom. Es una forma de decirles "gracias" por todas las horas de dedicación que le ponen a sus cuentas para que la comunidad siga unida y disfrutando de la música y el legado de Adele.</p>
+            </section>
+
+            <section class="info-card shine-effect reveal scale-up delay-2" id="organizadores" style="grid-column: 1 / -1; border-left: none; border-top: 4px solid var(--gold-primary); text-align: center;">
+                <h2>¿Quiénes son los organizadores?</h2>
+                <p style="max-width: 800px; margin: 0 auto;">La organización y dirección total de los Daydreamers Awards está a cargo de la página ADELE_FANS. Ellos son los responsables de gestionar el evento, definir las dinámicas y llevar a cabo la premiación para toda la comunidad.</p>
+            </section>
+        </div>
+
+        <!-- Categorías -->
+        <section class="categories-section" id="categorias">
+            <h2 class="reveal">¿Cuáles son las Categorías Oficiales?</h2>
+            <p class="reveal delay-1">Para mantener el evento enfocado y darle un peso especial a cada premio, los Daydreamers Awards cuentan con 3 categorías oficiales:</p>
+            
+            <div class="categories-grid">
+                <div class="category-card shine-effect reveal scale-up delay-1">
+                    <img src="premio-award.jpeg" alt="Premio Icono" class="category-icon">
+                    <h3>Creador del Año</h3>
+                    <p>El premio mayor para aquel fan o cuenta que se ha destacado por encima de todos por su constancia, calidad y el impacto de su contenido durante todo el año.</p>
+                </div>
+                
+                <div class="category-card shine-effect reveal scale-up delay-2">
+                    <img src="premio-award.jpeg" alt="Premio Icono" class="category-icon">
+                    <h3>Creatividad del Año</h3>
+                    <p>Un reconocimiento directo al talento, la originalidad y la imaginación. Para ese fan que siempre sorprende con las mejores ediciones, videos o dinámicas creativas.</p>
+                </div>
+                
+                <div class="category-card shine-effect reveal scale-up delay-3">
+                    <img src="premio-award.jpeg" alt="Premio Icono" class="category-icon">
+                    <h3>Mejor Comunidad</h3>
+                    <p>Un premio dedicado a aplaudir a los grupos, cuentas o espacios que logran unir a los fans, creando un ambiente positivo, interactivo y de apoyo mutuo dentro del fandom.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- CTA / Footer Info -->
+        <section class="frequency-section shine-effect reveal" id="frecuencia">
+            <h2>¿Cada cuánto se llevan a cabo?</h2>
+            <p>Es un evento de carácter anual. Se realiza una vez al año para poder recopilar, evaluar y celebrar todo el contenido y el esfuerzo que los fans han realizado a lo largo de los últimos 12 meses.</p>
+        </section>
+
+        <!-- Galería de Imágenes -->
+        <section class="gallery-section" id="galeria">
+            <h2 class="reveal">Galería</h2>
+            
+            <div class="photo-gallery">
+                <div class="photo-item reveal">
+                    <picture>
+                        <source media="(min-width: 768px)" srcset="https://i.pinimg.com/736x/2f/b9/84/2fb984ef6de50c7c1fa7cbac29b2230b.jpg">
+                        <img src="https://i.pinimg.com/736x/6a/96/06/6a9606e15ac6f8644fc3e7e2b53c29ba.jpg" alt="Momento Daydreamers Awards 1">
+                    </picture>
+                </div>
+
+                <div class="photo-item reveal delay-1">
+                    <picture>
+                        <source media="(min-width: 768px)" srcset="https://i.pinimg.com/1200x/73/26/db/7326db3b48389439a8b0af3a0d0a2c24.jpg">
+                        <img src="https://i.pinimg.com/236x/18/98/d8/1898d88482989672bed839b4f929a141.jpg" alt="Momento Daydreamers Awards 2">
+                    </picture>
+                </div>
+
+                <div class="photo-item reveal delay-2">
+                    <picture>
+                        <source media="(min-width: 768px)" srcset="https://i.pinimg.com/736x/14/a6/08/14a608c67e4d6174a6f5bd29669f7061.jpg">
+                        <img src="https://i.pinimg.com/736x/eb/d9/40/ebd9402b68cb053a8d3a64129f7d733f.jpg" alt="Momento Daydreamers Awards 3">
+                    </picture>
+                </div>
+
+                <div class="photo-item reveal delay-3">
+                    <picture>
+                        <source media="(min-width: 768px)" srcset="https://i.pinimg.com/736x/a9/ba/45/a9ba458c9cb02ac6ef3fab0f6092249b.jpg">
+                        <img src="https://i.pinimg.com/1200x/1a/e0/d5/1ae0d5fd1cff3d769f75d18a5e3e7ed5.jpg" alt="Momento Daydreamers Awards">
+                    </picture>
+                </div>
+
+                <div class="photo-item reveal">
+                    <picture>
+                        <source media="(min-width: 768px)" srcset="https://i.pinimg.com/736x/e0/7f/13/e07f1329fded037bb5bf29c378db9fe5.jpg">
+                        <img src="https://i.pinimg.com/736x/de/2d/5b/de2d5b6d3d4cf44251270096f23b1804.jpg" alt="Momento Daydreamers Awards">
+                    </picture>
+                </div>
+
+                <div class="photo-item reveal delay-1">
+                    <picture>
+                        <source media="(min-width: 768px)" srcset="https://i.pinimg.com/736x/26/0b/19/260b192da4bef9587970d6f4ba62124d.jpg">
+                        <img src="https://i.pinimg.com/1200x/77/93/3e/77933e464413eb11ad3132eb3f665871.jpg" alt="Momento Daydreamers Awards">
+                    </picture>
+                </div>
+
+                <div class="photo-item reveal delay-2">
+                    <picture>
+                        <source media="(min-width: 768px)" srcset="https://i.pinimg.com/736x/c6/b6/e2/c6b6e28d90d7a936b923de62cc5ca81e.jpg">
+                        <img src="https://i.pinimg.com/736x/da/7b/90/da7b9033a255a4c9ce08d8df973a75d0.jpg" alt="Momento Daydreamers Awards">
+                    </picture>
+                </div>
+
+                <div class="photo-item reveal delay-3">
+                    <picture>
+                        <source media="(min-width: 768px)" srcset="https://i.pinimg.com/736x/f0/0d/aa/f00daa35c1ff98572e75c1706f53ea88.jpg">
+                        <img src="https://i.pinimg.com/736x/9c/69/b0/9c69b0c04e674905775ad8c22a01b087.jpg" alt="Momento Daydreamers Awards">
+                    </picture>
+                </div>
+
+                <div class="photo-item reveal delay-1">
+                    <picture>
+                        <source media="(min-width: 768px)" srcset="https://i.pinimg.com/1200x/a5/30/06/a5300610ff95e1c3cde5ea212411d95f.jpg">
+                        <img src="https://i.pinimg.com/736x/49/50/d8/4950d84b582c76a1a688b48f3212af9f.jpg" alt="Momento Daydreamers Awards">
+                    </picture>
+                </div>
+
+                <div class="photo-item reveal delay-2">
+                    <picture>
+                        <source media="(min-width: 768px)" srcset="https://i.pinimg.com/736x/dd/ed/df/ddeddf165c8e25d21cbbbdae33f8b08c.jpg">
+                        <img src="https://i.pinimg.com/736x/e5/a5/0a/e5a50af0bd03b6d15c713236679ec23f.jpg" alt="Momento Daydreamers Awards">
+                    </picture>
+                </div>
+
+            </div>
+        </section>
+        
+        <!-- Sección de Contacto (Correo y Más) -->
+        <section class="contact-section shine-effect" id="contacto">
+            <h2 class="reveal">Contacto y Comunicación</h2>
+            <p class="reveal delay-1">¿Tienes alguna duda, propuesta o comentario? Comunícate directamente con el equipo de organización.</p>
+            
+            <div class="contact-card-container">
+                <div class="contact-info-card shine-effect reveal scale-up delay-1">
+                    <h3>Correo Electrónico</h3>
+                    <p>Para consultas directas, mensajes formales o colaboraciones con ADELE_FANS:</p>
+                    <a href="mailto:adele.fans540@gmail.com" class="contact-email-link">adele.fans540@gmail.com</a>
+                </div>
+
+                <div class="contact-info-card shine-effect reveal scale-up delay-2">
+                    <h3>Más Canales</h3>
+                    <p>Sigue nuestras actualizaciones, avisos oficiales y dinámicas del evento:</p>
+                    <ul class="contact-links-list">
+                        <li><a href="#" target="_blank">🔗 Instagram Oficial de ADELE_FANS</a></li>
+                        <li><a href="#" target="_blank">🔗 Tiktok Oficial de ADELE_FANS</a></li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Sección de Código de Conducta / Valores -->
+        <section class="values-section" id="valores">
+            <h2 class="reveal">Valores y Convivencia</h2>
+            <p class="reveal delay-1">Los Daydreamers Awards se rigen bajo principios de respeto, apoyo mutuo y celebración sana del fandom.</p>
+            
+            <div class="values-grid">
+                <div class="value-card shine-effect reveal scale-up delay-1">
+                    <h3>Respeto y Empatía</h3>
+                    <p>Fomentamos un entorno seguro y positivo para todos los creadores y seguidores, evitando cualquier tipo de rivalidad tóxica.</p>
+                </div>
+                
+                <div class="value-card shine-effect reveal scale-up delay-2">
+                    <h3>Juego Limpio</h3>
+                    <p>Reconocemos la constancia y el esfuerzo genuino de las cuentas, valorando el trabajo que cada uno aporta a la comunidad de Adele.</p>
+                </div>
+                
+                <div class="value-card shine-effect reveal scale-up delay-3">
+                    <h3>Unión del Fandom</h3>
+                    <p>El propósito principal es mantener a la comunidad unida, celebrando juntos el amor por la música y el legado de nuestra artista.</p>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Sección de Ciclo Anual / Proceso -->
+        <section class="timeline-section" id="proceso">
+            <h2 class="reveal">Ciclo Anual del Evento</h2>
+            <p class="reveal delay-1">Así es como se desarrolla el proceso informativo y de recopilación a lo largo del año para los Daydreamers Awards.</p>
+            
+            <div class="timeline-grid">
+                <div class="timeline-card shine-effect reveal scale-up delay-1">
+                    <h3>1. Seguimiento Continuo</h3>
+                    <p>Durante todo el año, ADELE_FANS observa y recopila el esfuerzo, la constancia y las creaciones destacadas dentro de la comunidad.</p>
+                </div>
+                
+                <div class="timeline-card shine-effect reveal scale-up delay-2">
+                    <h3>2. Evaluación y Selección</h3>
+                    <p>Se analizan las cuentas y creadores que han mantenido activo al fandom, seleccionando a los referentes de cada categoría oficial.</p>
+                </div>
+                
+                <div class="timeline-card shine-effect reveal scale-up delay-3">
+                    <h3>3. Gran Anuncio Anual</h3>
+                    <p>Se publica el informe y la revelación oficial de los destacados del año en una celebración virtual exclusiva para los fans.</p>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Lógica de Animaciones on Scroll y Barra de Progreso -->
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            
+            // 1. Lógica del Intersection Observer (Animaciones al hacer scroll)
+            const observerOptions = {
+                root: null,
+                rootMargin: '0px',
+                threshold: 0.15 // El elemento aparecerá cuando el 15% sea visible
+            };
+
+            const observer = new IntersectionObserver((entries, observer) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        // Agrega la clase 'active' que detona la animación
+                        entry.target.classList.add('active');
+                        // Dejamos de observar el elemento para que la animación solo ocurra una vez
+                        observer.unobserve(entry.target);
+                    }
+                });
+            }, observerOptions);
+
+            const revealElements = document.querySelectorAll('.reveal');
+            revealElements.forEach(el => {
+                observer.observe(el);
+            });
+
+            // 2. Lógica de la Barra de Progreso de Scroll Superior
+            const progressBar = document.getElementById('scrollProgress');
+            
+            window.addEventListener('scroll', () => {
+                // Altura total del documento menos la ventana visible
+                const totalScroll = document.documentElement.scrollTop;
+                const windowHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+                
+                // Calculamos el porcentaje
+                const scrollPercentage = (totalScroll / windowHeight) * 100;
+                
+                // Actualizamos el ancho de la barra
+                progressBar.style.width = scrollPercentage + '%';
+            });
+        });
+    </script>
+</body>
+</html>
