@@ -5,7 +5,9 @@
 'use strict';
 const FS = 'https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js';
 const DEFAULT_START = '2026-10-07T19:00:00-07:00';   // 7 oct 2026, 7:00 pm hora de Sonora (se cambia desde el panel admin)
-const VIDEO = 'Premiaciones .mov', ICON = 'LIVE.png';
+// VIDEO puede ser un archivo ('premiaciones.mp4') o un enlace de YouTube ('https://youtu.be/XXXXXXXXXXX')
+const VIDEO = 'https://youtu.be/OeMtUraVK2g?si=52Ttu8lvyGhJm_S-', ICON = 'LIVE.png';
+const YTID = ((VIDEO.match(/(?:youtu\.be\/|[?&]v=|embed\/|shorts\/|live\/)([\w-]{11})/) || (/^[\w-]{11}$/.test(VIDEO) ? [0, VIDEO] : []))[1]) || '';
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 const lang = () => (typeof currentLang !== 'undefined' ? currentLang : 'en');
@@ -30,6 +32,7 @@ css.textContent = `
 .dd-stage:-webkit-full-screen{width:100%;max-width:none;height:100%;aspect-ratio:auto;border:0;border-radius:0}
 .dd-stage.dd-full{position:fixed;inset:0;z-index:5000;height:100dvh}
 .dd-stage video{width:100%;height:100%;object-fit:contain;display:block}
+.dd-stage iframe{width:100%;height:100%;border:0;display:block;pointer-events:none}
 .dd-top{position:absolute;top:10px;left:10px;right:10px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;z-index:3}
 .dd-pill{display:inline-flex;align-items:center;gap:6px;background:#e0001b;color:#fff;font:700 12px Inter,sans-serif;letter-spacing:1px;padding:4px 10px;border-radius:3px}
 .dd-pill i{width:8px;height:8px;border-radius:50%;background:#fff;animation:ddPulse 1.2s infinite}
@@ -63,7 +66,7 @@ const block = document.createElement('div');
 block.id = 'ddLive'; block.hidden = true; block.setAttribute('role', 'region');
 block.innerHTML = `<div class="container"><h2 class="section-title" data-l="title"></h2>
  <div class="dd-stage" id="ddStage">
-  <video id="ddVid" src="${VIDEO}" playsinline muted preload="metadata" disablepictureinpicture controlslist="nodownload"></video>
+  ${YTID ? '<div id="ddVid"></div>' : `<video id="ddVid" src="${VIDEO}" playsinline muted preload="metadata" disablepictureinpicture controlslist="nodownload"></video>`}
   <div class="dd-top"><span class="dd-pill"><i></i><span data-l="live"></span></span><span class="dd-tag" id="ddPrev" hidden data-l="preview"></span><button class="dd-tag" id="ddUnmute" hidden data-l="unmute"></button></div>
   <div class="dd-over" id="ddOver"><p id="ddOverT"></p><button id="ddReplay" hidden data-l="replay"></button></div>
   <div class="dd-side"><button id="ddLike" aria-label="Like"><i class="fas fa-heart"></i><small id="ddLikes">0</small></button>
@@ -77,7 +80,33 @@ const pill = document.createElement('a');
 pill.id = 'ddPill'; pill.href = '#ddLive'; pill.hidden = true; pill.innerHTML = `<img src="${ICON}" alt="LIVE">`;
 $('#noticias').before(block, Object.assign(document.createElement('div'), { hidden: true })); // 2º elemento: conserva el patrón de fondos alternos
 $('.controls')?.prepend(pill);
-const vid = $('#ddVid'), over = $('#ddOver'), overT = $('#ddOverT'), chat = $('#ddChat');
+const over = $('#ddOver'), overT = $('#ddOverT'), chat = $('#ddChat');
+/* Adaptador de YouTube: imita las propiedades de <video> que usa el resto del código */
+function ytAdapter(id) {
+  let p = null, ok = false, onMeta = null;
+  const A = {
+    get duration() { const d = ok ? p.getDuration() : 0; return d > 0 ? d : NaN; },
+    get readyState() { return ok ? 4 : 0; },
+    get currentTime() { return ok ? p.getCurrentTime() : 0; },
+    set currentTime(v) { if (ok) p.seekTo(v, true); },
+    get paused() { return !ok || ![1, 3].includes(p.getPlayerState()); },
+    get muted() { return !ok || p.isMuted(); },
+    set muted(m) { if (ok) { m ? p.mute() : p.unMute(); } },
+    set controls(c) { const f = $('#ddVid'); if (f) f.style.pointerEvents = c ? 'auto' : 'none'; },
+    play() { if (ok) p.playVideo(); return Promise.resolve(); },
+    pause() { if (ok) p.pauseVideo(); },
+    addEventListener(type, fn) { if (type === 'loadedmetadata') onMeta = fn; }
+  };
+  const boot = () => { p = new YT.Player('ddVid', { videoId: id,
+    playerVars: { controls: 0, disablekb: 1, fs: 0, rel: 0, modestbranding: 1, playsinline: 1, iv_load_policy: 3 },
+    events: { onReady: () => { ok = true; p.mute(); onMeta && onMeta(); },
+              onAutoplayBlocked: () => { over.hidden = false; overT.textContent = t('play'); over.onclick = () => { over.onclick = null; p.playVideo(); }; } } }); };
+  if (window.YT && window.YT.Player) boot();
+  else { const prev = window.onYouTubeIframeAPIReady; window.onYouTubeIframeAPIReady = () => { prev && prev(); boot(); };
+         const sc = document.createElement('script'); sc.src = 'https://www.youtube.com/iframe_api'; document.head.appendChild(sc); }
+  return A;
+}
+const vid = YTID ? ytAdapter(YTID) : $('#ddVid');
 $('#ddName').value = store.get('dd_name') || '';
 
 /* ---------- Estado de la transmisión ---------- */
