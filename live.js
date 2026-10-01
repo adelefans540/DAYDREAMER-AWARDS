@@ -6,7 +6,7 @@
 const FS = 'https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js';
 const DEFAULT_START = '2026-10-07T19:00:00-07:00';   // 7 oct 2026, 7:00 pm hora de Sonora (se cambia desde el panel admin)
 // VIDEO puede ser un archivo ('premiaciones.mp4') o un enlace de YouTube ('https://youtu.be/XXXXXXXXXXX')
-const VIDEO = 'https://youtu.be/OeMtUraVK2g?si=52Ttu8lvyGhJm_S-', ICON = 'LIVE.png';
+const VIDEO = 'Premiaciones .mov', ICON = 'LIVE.png';
 const YTID = ((VIDEO.match(/(?:youtu\.be\/|[?&]v=|embed\/|shorts\/|live\/)([\w-]{11})/) || (/^[\w-]{11}$/.test(VIDEO) ? [0, VIDEO] : []))[1]) || '';
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -26,8 +26,14 @@ const t = k => T[lang()][k];
 const css = document.createElement('style');
 css.textContent = `
 #ddLive [hidden],#ddPill[hidden]{display:none!important}
-#ddLive{padding:3rem 1.5rem;background:var(--bg-main);border-bottom:1px solid var(--border-color)}
-.dd-stage{position:relative;width:min(100%,calc(85vh*9/16),480px);width:min(100%,calc(85dvh*9/16),480px);aspect-ratio:9/16;margin:0 auto;background:#000;border:1px solid var(--primary-color);border-radius:8px;overflow:hidden;user-select:none}
+#ddLive{padding:1.5rem;background:var(--bg-main);border-bottom:1px solid var(--border-color)}
+#ddLive .section-title{text-align:center;margin-bottom:1rem}
+.dd-icon-bar{display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:1rem}
+.dd-icon-bar img{width:80px;height:auto;object-fit:contain}
+.dd-viewers{display:inline-flex;align-items:center;gap:6px;background:#e0001b;color:#fff;font:600 13px Inter,sans-serif;padding:6px 12px;border-radius:4px}
+.dd-viewers i{width:6px;height:6px;background:#fff;border-radius:50%;animation:ddDot 1.5s infinite}
+.dd-viewers span{font-weight:700}
+.dd-stage{position:relative;width:clamp(280px,100%,480px);aspect-ratio:9/16;margin:0 auto;background:#000;border:1px solid var(--primary-color);border-radius:8px;overflow:hidden;user-select:none;max-height:85vh;max-height:85dvh}
 .dd-stage:fullscreen,.dd-stage.dd-full{width:100%;max-width:none;height:100%;aspect-ratio:auto;border:0;border-radius:0}
 .dd-stage:-webkit-full-screen{width:100%;max-width:none;height:100%;aspect-ratio:auto;border:0;border-radius:0}
 .dd-stage.dd-full{position:fixed;inset:0;z-index:5000;height:100dvh}
@@ -58,7 +64,10 @@ button.dd-tag{cursor:pointer;margin-left:auto}
 @keyframes ddPulse{50%{opacity:.25}}
 @keyframes ddUp{to{transform:translateY(-230px) scale(1.5);opacity:0}}
 @keyframes ddRing{50%{box-shadow:0 0 0 4px rgba(224,0,27,.25)}}
-@media (prefers-reduced-motion:reduce){.dd-h,.dd-pill i,#ddPill{animation:none!important}}`;
+@keyframes ddDot{0%,100%{opacity:1}50%{opacity:.4}}
+@media (prefers-reduced-motion:reduce){.dd-h,.dd-pill i,#ddPill,.dd-viewers i{animation:none!important}}
+@media (max-width:400px){.dd-viewers{font-size:12px;padding:5px 10px}#ddLive{padding:1rem}}
+@media (min-width:768px){.dd-stage{max-height:90vh;max-height:90dvh}}`;
 document.head.appendChild(css);
 
 /* ---------- Estructura ---------- */
