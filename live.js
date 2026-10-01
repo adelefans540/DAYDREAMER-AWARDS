@@ -25,7 +25,10 @@ const css = document.createElement('style');
 css.textContent = `
 #ddLive [hidden],#ddPill[hidden]{display:none!important}
 #ddLive{padding:3rem 1.5rem;background:var(--bg-main);border-bottom:1px solid var(--border-color)}
-.dd-stage{position:relative;max-width:900px;margin:0 auto;aspect-ratio:16/9;background:#000;border:1px solid var(--primary-color);border-radius:4px;overflow:hidden;user-select:none}
+.dd-stage{position:relative;width:min(100%,calc(85vh*9/16),480px);width:min(100%,calc(85dvh*9/16),480px);aspect-ratio:9/16;margin:0 auto;background:#000;border:1px solid var(--primary-color);border-radius:8px;overflow:hidden;user-select:none}
+.dd-stage:fullscreen,.dd-stage.dd-full{width:100%;max-width:none;height:100%;aspect-ratio:auto;border:0;border-radius:0}
+.dd-stage:-webkit-full-screen{width:100%;max-width:none;height:100%;aspect-ratio:auto;border:0;border-radius:0}
+.dd-stage.dd-full{position:fixed;inset:0;z-index:5000;height:100dvh}
 .dd-stage video{width:100%;height:100%;object-fit:contain;display:block}
 .dd-top{position:absolute;top:10px;left:10px;right:10px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;z-index:3}
 .dd-pill{display:inline-flex;align-items:center;gap:6px;background:#e0001b;color:#fff;font:700 12px Inter,sans-serif;letter-spacing:1px;padding:4px 10px;border-radius:3px}
@@ -34,19 +37,19 @@ css.textContent = `
 button.dd-tag{cursor:pointer;margin-left:auto}
 .dd-over{position:absolute;inset:0;background:rgba(0,0,0,.78);color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center;padding:20px;z-index:2;font-family:'Playfair Display',serif;font-size:clamp(1.1rem,3vw,1.8rem)}
 .dd-over button{background:var(--primary-color);color:#1a1508;border:0;padding:10px 22px;font:600 13px Inter,sans-serif;letter-spacing:1px;text-transform:uppercase;cursor:pointer;border-radius:2px}
-.dd-side{position:absolute;right:10px;bottom:70px;display:flex;flex-direction:column;gap:14px;z-index:3;align-items:center}
+.dd-side{position:absolute;right:10px;bottom:130px;display:flex;flex-direction:column;gap:14px;z-index:3;align-items:center}
 .dd-side button{background:rgba(0,0,0,.45);border:0;color:#fff;width:46px;height:46px;border-radius:50%;cursor:pointer;font-size:19px;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1}
 .dd-side button small{font:600 10px Inter,sans-serif;margin-top:2px}
 #ddLike i{color:#ff2d55}
-.dd-chat{position:absolute;left:10px;bottom:10px;width:68%;max-height:38%;overflow:hidden;display:flex;flex-direction:column;justify-content:flex-end;gap:4px;z-index:3;pointer-events:none}
+.dd-chat{position:absolute;left:10px;bottom:62px;width:72%;max-height:34%;overflow:hidden;display:flex;flex-direction:column;justify-content:flex-end;gap:4px;z-index:3;pointer-events:none}
 .dd-chat div{background:rgba(0,0,0,.5);color:#fff;font:400 13px Inter,sans-serif;padding:4px 10px;border-radius:12px;width:fit-content;max-width:100%;word-break:break-word;pointer-events:auto}
 .dd-chat b{color:var(--primary-color);margin-right:6px}
 .dd-chat button{background:none;border:0;color:#ff6b6b;cursor:pointer;margin-left:6px}
-.dd-h{position:absolute;bottom:70px;right:22px;font-size:26px;color:#ff2d55;pointer-events:none;z-index:4;animation:ddUp 1.6s ease-out forwards}
-.dd-form{max-width:900px;margin:12px auto 0;display:flex;gap:8px;flex-wrap:wrap}
-.dd-form input{padding:11px;border:1px solid var(--border-color);background:var(--card-bg);color:var(--text-main);border-radius:2px;font-family:inherit}
-.dd-form #ddName{width:140px}.dd-form #ddMsg{flex:1;min-width:180px}
-.dd-form button{background:var(--primary-color);color:#1a1508;border:0;padding:0 22px;font-weight:600;cursor:pointer;border-radius:2px;text-transform:uppercase;letter-spacing:1px;font-size:.8rem}
+.dd-h{position:absolute;bottom:130px;right:22px;font-size:26px;color:#ff2d55;pointer-events:none;z-index:4;animation:ddUp 1.6s ease-out forwards}
+.dd-form{position:absolute;left:0;right:0;bottom:0;z-index:5;display:flex;gap:6px;padding:26px 10px 10px;background:linear-gradient(transparent,rgba(0,0,0,.8))}
+.dd-form input{padding:10px 12px;border:1px solid rgba(255,255,255,.35);background:rgba(0,0,0,.55);color:#fff;border-radius:20px;font-family:inherit;font-size:16px;user-select:text;-webkit-user-select:text;min-width:0}
+.dd-form #ddName{width:84px}.dd-form #ddMsg{flex:1}
+.dd-form button{background:var(--primary-color);color:#1a1508;border:0;padding:0 16px;font-weight:600;cursor:pointer;border-radius:20px;text-transform:uppercase;letter-spacing:1px;font-size:.75rem}
 #ddPill{display:inline-flex;align-items:center;gap:6px;border:1px solid #e0001b;border-radius:4px;padding:2px;animation:ddRing 1.6s infinite}
 #ddPill img{width:84px;height:28px;object-fit:cover;object-position:center 46%;background:#fff;border-radius:2px;display:block}
 @keyframes ddPulse{50%{opacity:.25}}
@@ -65,10 +68,11 @@ block.innerHTML = `<div class="container"><h2 class="section-title" data-l="titl
   <div class="dd-over" id="ddOver"><p id="ddOverT"></p><button id="ddReplay" hidden data-l="replay"></button></div>
   <div class="dd-side"><button id="ddLike" aria-label="Like"><i class="fas fa-heart"></i><small id="ddLikes">0</small></button>
    <button id="ddCom" aria-label="Comments"><i class="fas fa-comment-dots"></i><small id="ddComN">0</small></button>
-   <button id="ddShareB" aria-label="Share"><i class="fas fa-share"></i></button></div>
+   <button id="ddShareB" aria-label="Share"><i class="fas fa-share"></i></button>
+   <button id="ddFs" aria-label="Fullscreen"><i class="fas fa-expand"></i></button></div>
   <div class="dd-chat" id="ddChat" aria-live="polite"></div><div id="ddHearts"></div>
- </div>
- <div class="dd-form"><input id="ddName" maxlength="20" data-lp="name"><input id="ddMsg" maxlength="140" data-lp="msg"><button id="ddSend" data-l="send"></button></div></div>`;
+  <div class="dd-form"><input id="ddName" maxlength="20" data-lp="name"><input id="ddMsg" maxlength="140" data-lp="msg"><button id="ddSend" data-l="send"></button></div>
+ </div></div>`;
 const pill = document.createElement('a');
 pill.id = 'ddPill'; pill.href = '#ddLive'; pill.hidden = true; pill.innerHTML = `<img src="${ICON}" alt="LIVE">`;
 $('#noticias').before(block, Object.assign(document.createElement('div'), { hidden: true })); // 2º elemento: conserva el patrón de fondos alternos
@@ -119,8 +123,26 @@ function like() {
   if (!preview) pend++;
 }
 $('#ddLike').onclick = like;
-$('#ddStage').addEventListener('dblclick', like);
+$('#ddStage').addEventListener('dblclick', e => { if (!e.target.closest('.dd-form,.dd-side')) like(); });
 $('#ddCom').onclick = () => $('#ddMsg').focus();
+
+/* ---------- Pantalla completa (nativa o, si el navegador no la permite, simulada) ---------- */
+const stage = $('#ddStage'), fsBtn = $('#ddFs');
+const pseudo = on => { stage.classList.toggle('dd-full', on); document.body.style.overflow = on ? 'hidden' : ''; };
+const isFs = () => document.fullscreenElement === stage || document.webkitFullscreenElement === stage || stage.classList.contains('dd-full');
+const fsIcon = () => { fsBtn.firstElementChild.className = 'fas ' + (isFs() ? 'fa-compress' : 'fa-expand'); };
+fsBtn.onclick = () => {
+  if (isFs()) {
+    if (stage.classList.contains('dd-full')) pseudo(false); else (document.exitFullscreen || document.webkitExitFullscreen).call(document);
+  } else {
+    const req = stage.requestFullscreen || stage.webkitRequestFullscreen;
+    if (!req) pseudo(true);
+    else { try { const p = req.call(stage); if (p && p.catch) p.catch(() => pseudo(true)); } catch { pseudo(true); } }
+  }
+  fsIcon();
+};
+['fullscreenchange', 'webkitfullscreenchange'].forEach(ev => document.addEventListener(ev, fsIcon));
+addEventListener('keydown', e => { if (e.key === 'Escape' && stage.classList.contains('dd-full')) { pseudo(false); fsIcon(); } });
 $('#ddShareB').onclick = async () => {
   const url = location.origin + location.pathname;
   if (navigator.share) { try { await navigator.share({ title: 'Daydreamers Awards', url }); } catch {} }
