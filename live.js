@@ -6,7 +6,7 @@
 const FS = 'https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js';
 const DEFAULT_START = '2026-10-07T19:00:00-07:00';   // 7 oct 2026, 7:00 pm hora de Sonora (se cambia desde el panel admin)
 // VIDEO puede ser un archivo ('premiaciones.mp4') o un enlace de YouTube ('https://youtu.be/XXXXXXXXXXX')
-const VIDEO = 'Premiaciones .mov', ICON = 'LIVE.png';
+const VIDEO = 'premiaciones.mp4', ICON = 'LIVE.png';
 const YTID = ((VIDEO.match(/(?:youtu\.be\/|[?&]v=|embed\/|shorts\/|live\/)([\w-]{11})/) || (/^[\w-]{11}$/.test(VIDEO) ? [0, VIDEO] : []))[1]) || '';
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
