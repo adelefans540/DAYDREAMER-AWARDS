@@ -5,7 +5,7 @@
 'use strict';
 const FS = 'https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js';
 const DEFAULT_START = '2026-10-07T19:00:00-07:00';   // 7 oct 2026, 7:00 pm hora de Sonora (se cambia desde el panel admin)
-const VIDEO = 'premiaciones.mp4', ICON = 'LIVE.png';
+const VIDEO = 'Premiaciones .mov', ICON = 'LIVE.png';
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 const lang = () => (typeof currentLang !== 'undefined' ? currentLang : 'en');
